@@ -53,15 +53,22 @@ you should be able to pass a flag to your cluster submission command (e.g. the -
 ### Testing multiseq
 
 > library(multiseq)
-> load("~/src/multiseq/data/OAS1.RData")
+> data(OAS1,package="multiseq")
 > M <- OAS1$M
 > g <- OAS1$g
 > read.depth <- OAS1$read.depth
 > res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
+> fra=2 #fraction of sd
+> plotResults(res,fra)
 
-To see intervals where multiseq found an effect at 2 sd:
+To print intervals where multiseq found an effect at 2 sd:
 
-> get.effect.intervals(res,2)
+> get.effect.intervals(res,fra)
+
+Smooth by group
+
+> res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
+> plotResults(res0, fra, type="baseline")
 
 
 The samplesheet should have the following format (see file ~/src/multiseq/data/sim/samplesheet.sim.txt):
@@ -72,11 +79,37 @@ The samplesheet should have the following format (see file ~/src/multiseq/data/s
     056A RNASeq 24hrShamControl 9 - 1320166 ./data/sim/056A.bw
     056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ./data/sim/056BNonNull.bw
 
-### Visualizing input and ouptput in the UCSC Genome Browser
+### Testing multiseq on sequencing data
 
-> samplesheet=~/src/multiseq/data/sim/samplesheet.sim.txt
+Need a sample sheet (samplesheet) a sequence name (chr), sequence start (start) and end (end) position:
+ 
+> samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
+> chr="chr5"
+> start=131989505
+> end=132120576
+> #run multiseq on all samples in samplesheet or select a subset of samples
+> samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
+> g=factor(samples$Tissue) 
+> g=match(g,levels(g))-1
+> M=get.counts(samples, chr, start, end) 
+> res=multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
+> fra=2 #fraction of sd
+> get.effect.intervals(res,fra)
+> plotResults(res,fra)
+> #to save results in dir.name
+> dir.name="~/src/multiseq/data/multiseq_sim/"
+> write.effect.mean.variance.gz(res,dir.name)
+> write.effect.intervals(res,dir.name,fra)
+
+Smooth by group
+
+> res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0]) 
+> plotResults(res0, fra, type="baseline")
+
+### Visualizing input and output in the UCSC Genome Browser
+
 > hub_name="testMultiseq/sim"
-> simulationToTrackHub(samplesheet,hub_name)
+> samplesheetToTrackHub(samplesheet,hub_name)
 
 will create a track hub in "/some/path/testMultiseq/sim/" and will print the following message:
 
@@ -103,12 +136,12 @@ multiseqToTrackHub wil create a track hub with
 - the effect +- 2 standard errors 
 - the significant intervals at 2 sd 
 
-in the UCSC Genome Browser. If multiseq output is in folder ~/src/multiseq/data/results/ and ~/src/multiseq/data/chromosome.lengths.hg19.txt is a file with chromosome names and lengths, then:
+in the UCSC Genome Browser. If multiseq output is in folder ~/src/multiseq/data/multiseq_sim/ and ~/src/multiseq/data/chromosome.lengths.hg19.txt is a file with chromosome names and lengths, then:
 
     region="chr5:131989505-132120576"
-    hub_name="test/multiseq"
-    multiseq_folder="~/src/multiseq/data/test/results"
-    chrom_file="~/src/multiseq/data/hg19/chromosome.lengths.hg19.txt"
+    hub_name="testMultiseq/multiseq_sim"
+    multiseq_folder="~/src/multiseq/data/multiseq_sim"
+    chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt"
     multiseqToTrackHub(region, hub_name, multiseq_folder, chrom_file)
 
 will create a track hub named *multiseq* in the "https:some/address/test/" folder and will print the following message:
@@ -120,3 +153,17 @@ will create a track hub named *multiseq* in the "https:some/address/test/" folde
 
 This is a screenshot of the track hub from the Genome Browser:
 ![Image](data/sim/plots/multiseq.png?raw=true)
+
+### Running multiseq on multiple loci on the PPS cluster
+
+If you want to run multiseq in the list of loci in list_loci.bed (a bed file) then we can use the script in the folder "local" from spudhead:
+   sh qsub_run_multiseq.sh < list_loci.bed
+This script will submit to the cluster as many jobs as there are lines in list_loci.bed.
+
+[Note: the bash script qsub_run_multiseq.R runs the R script run.multiseq.R on each locus in list_loci.bed. run.multiseq.R calls multiseq with the appropriate arguments.]
+ 
+Use 
+    window_size=131072
+    chrom_file=$HOME/src/multiseq/data/chromosome.lengths.hg19.txt
+    sh write_list_loci.sh $window_size $chrom_file | head -n 5000 > list_loci.bed
+to create a bed file list_loci.bed with 5000 adjacent intervals of size 131072 from chr1

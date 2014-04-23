@@ -1,0 +1,493 @@
+#the following functions are approximately unbiased variance estimates
+#for the estimators for logit(p) when n is small
+v3=function(n,s,f){
+    return((n+1)/n*(1/(s+1)+1/(f+1)))
+}
+
+vs=function(n,s,f){
+    vv=v3(n,s,f)
+    return(vv*(1-2/n+vv/2))
+}
+
+vss=function(n,s,f){
+    vv=v3(n,s,f)
+    return(vs(n,s,f)-1/2*vv^2*(vv-4/n))
+}
+
+
+# use glm to fit quasibinomial, but don't allow for underdispersion!
+safe.quasibinomial.glm.fit=function(x,y,forcebin=FALSE,repara=FALSE,...){
+    if(forcebin){
+        z=glm.fit(x,y,family=binomial(),...)
+        p1=1L:z$rank
+        covmat=chol2inv(z$qr[[1]][p1, p1, drop = FALSE])
+        se=sqrt(diag(covmat))
+        if(repara==TRUE){
+            if(length(covmat)<=1){
+                covmubeta=NA
+            }else{
+                covmubeta=covmat[2,1]
+            }
+            mbvar=covmubeta/se[2]^2
+            z$coef[1]=z$coef[1]-z$coef[2]*mbvar
+            se[1]=sqrt(se[1]^2+mbvar^2*se[2]^2-2*mbvar*covmubeta)
+        }
+    }else{
+        z = glm.fit(x,y,family=quasibinomial(),...)
+        p1=1L:z$rank
+        covmat.i=chol2inv(z$qr[[1]][p1, p1, drop = FALSE])
+        df=z$df.residual
+        if(df==0){
+            d=1
+        }else{
+            d=sum((z$weights * z$residuals^2)[z$weights > 0])/df
+            d=d*(d>=1)+1*(d<1)
+        }
+        covmat=covmat.i*d
+        se=sqrt(diag(covmat))
+        if(repara==TRUE){
+            if(length(covmat)<=1){
+                covmubeta=NA
+            }else{
+                covmubeta=covmat[2,1]
+            }
+            mbvar=covmubeta/se[2]^2
+            z$coef[1]=z$coef[1]-z$coef[2]*mbvar
+            se[1]=sqrt(se[1]^2+mbvar^2*se[2]^2-2*mbvar*covmubeta)
+        }
+    }
+    if(repara==FALSE){
+        return(c(z$coef[1],se[1],z$coef[2],se[2]))
+    }else{
+        return(c(z$coef[1],se[1],z$coef[2],se[2],mbvar)) 
+    }
+}
+
+
+# x is a 2n by 1 vector, with first n observations giving
+#number of successes, and next n giving number of failures in a series
+#of binomial experiments.
+#returns estimated binomial p (actually logit(p))
+# and standard error
+#if g is supplied also provides estimate and standard error of effect of g
+#the repara option simply returns the covariance between intercept and 
+#slope when called
+bintest = function(x,g,minobs=1,pseudocounts=0.5,all=FALSE,forcebin=FALSE,repara=FALSE){
+    xmat = matrix(x,ncol=2)
+    zerosum = (apply(xmat,1,sum)==0)
+    if(sum(!zerosum)>(minobs-1)){   #check for enough observations
+        ind1=(xmat[,1]==0)
+        ind2=(xmat[,2]==0)
+        if(all==TRUE){
+            xmat = xmat[!zerosum,,drop=F]+pseudocounts
+        }else{
+            xmat[ind1,1]=xmat[ind1,1]+pseudocounts
+            xmat[ind1,2]=xmat[ind1,2]+pseudocounts
+            xmat[ind2,1]=xmat[ind2,1]+pseudocounts
+            xmat[ind2,2]=xmat[ind2,2]+pseudocounts
+            xmat = xmat[!zerosum,,drop=F]
+        }
+        #check if there is enough variance in g among informative individuals
+        g=g[!zerosum]
+        ng=sum(!zerosum)
+        dm=matrix(c(rep(1,ng),g),ncol=2)
+        if(!is.na(sd(g))&(sd(g) > 0.1)){
+            dm[,2]=g
+            return(safe.quasibinomial.glm.fit(dm,xmat,forcebin,repara=repara))
+        }else {
+            if(repara==FALSE){
+                return(c(safe.quasibinomial.glm.fit(dm,xmat,forcebin,repara=repara)[1:2],NA,NA))
+            }else{
+                return(c(safe.quasibinomial.glm.fit(dm,xmat,forcebin,repara=repara)[1:2],NA,NA,NA))
+            }
+        }     
+    }else{ #not enough observations, so just return NAs
+        if(repara==FALSE){
+            return(c(NA,NA,NA,NA))
+        }else{
+            return(c(NA,NA,NA,NA,NA))
+        }
+    }
+}
+
+#Extracts success and failure counts from a matrix of successes and failures
+extract.sf=function(x,n){
+    return(list(x.s=as.vector(t(x[,(1:(2*n))%%2==1])),x.f=as.vector(t(x[,(1:(2*n))%%2==0]))))
+}
+
+
+#Adds pseudocounts to successes and failures according to specified parameters
+add.counts=function(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn=NULL){
+    if(pseudocounts==0){                    
+        x.s[index1]=x.s[index1]+eps
+        x.f[index2]=x.f[index2]+eps
+    }else if(pseudocounts!=0&all==TRUE){
+        x.s=x.s+pseudocounts
+        x.f=x.f+pseudocounts
+    }else{
+        x.s[index1]=x.s[index1]+pseudocounts
+        x.f[index1]=x.f[index1]+pseudocounts
+        x.s[index2]=x.s[index2]+pseudocounts
+        x.f[index2]=x.f[index2]+pseudocounts
+    }
+    if(!is.null(indexn)){
+        x.s[indexn]=0
+        x.f[indexn]=0 
+    }
+    return(list(x.s=x.s,x.f=x.f))
+}
+  
+
+compute.approx.z=function(x.s,x.f,bound,eps,pseudocounts,all,indexn=NULL,return.p=FALSE){
+    #compute mu
+    index1=(x.s/x.f)<=bound                  #find indices for which binomial success or failures are too small
+    index2=(x.f/x.s)<=bound
+    index1[is.na(index1)]=FALSE
+    index2[is.na(index2)]=FALSE
+    x=add.counts(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn)       #add pseudocounts
+    s=x$x.s+x$x.f 
+    mu=log(x$x.s/x$x.f)                          #compute logit(p) to be used as observations
+    mu[index1]=mu[index1]-0.5                 #end-point correction
+    mu[index2]=mu[index2]+0.5
+    #compute var
+    if(all==FALSE){                         #compute var(logit(p))
+        var=vss(s,x$x.s,x$x.f)
+        var[index1]=vss(s[index1]-2*pseudocounts,x$x.s[index1]-pseudocounts,x$x.f[index1]-pseudocounts)
+        var[index2]=vss(s[index2]-2*pseudocounts,x$x.s[index2]-pseudocounts,x$x.f[index2]-pseudocounts)
+    }else{
+        var=vss(s-2*pseudocounts,x$x.s-pseudocounts,x$x.f-pseudocounts)   
+    }
+    if(return.p==TRUE)
+        return(list(mu=mu,var=var,p=x$x.s/s))
+    else
+        return(list(mu=mu,var=var)) 
+}
+
+
+#Obtain estimates and standard errors for mu and beta when using fitting WLS
+wls.coef=function(z,disp,indexnm,n,ng,forcebin,g=NULL,repara=NULL){
+    #compute vector of dfs for all n linear models (disregarding obs with missing data)
+    if(is.null(g))
+        df=pmax(colSums(!indexnm)-1,0)
+    else
+        df=pmax(colSums(!indexnm)-2,0)
+    zm=matrix(z$mu,ncol=n,byrow=T)             #create ng*n matrix of logit(p)
+    zm[indexnm]=0
+    vm=matrix(z$var,ncol=n,byrow=T)             #create ng*n matrix of var(logit(p))
+    res=wls.mb(zm,vm,disp,indexnm,ng,df,forcebin,g,n)
+    if(disp=="add"){                        #return estimates if multiplicative dispersion is assumed
+        vm[indexnm]=NA
+        vv=pmax((res$wrse2-1)*colMeans(vm,na.rm=T),0)   #computes crude estimate of sigma_u^2 as in documentation
+        res=wls.mb(zm,vm,disp,indexnm,ng,df,forcebin,g,n,vv)
+    }
+    if(is.null(g))
+        return(list(coef=res$coef,se=res$se,mbvar=NULL))
+    else{
+        coef=c(res$muhat,res$betahat)
+        se=c(res$semuhat,res$sebetahat)
+        if(is.null(repara)) stop("Error: invalid argument 'repara'")
+        if(repara==TRUE){                            #return reparametrized muhat and behat as well as their SEs, together with gamma as defined in documentation
+            mbvar=res$covmubeta/res$sebetahat^2
+            coef[1:n]=res$muhat-res$betahat*mbvar
+            se[1:n]=sqrt(res$semuhat^2+mbvar^2*res$sebetahat^2-2*mbvar*res$covmubeta)
+            return(list(coef=coef,se=se,mbvar=mbvar))
+        }else
+            return(list(coef=coef,se=se,mbvar=NULL))
+    }
+}
+
+
+#Function used in wls.coef 
+wls.mb=function(z,v,disp,indexnm,ng,df,forcebin,g=NULL,n=NULL,vv=NULL){
+    if(is.null(vv)){                       #compute weights for each of the n models
+        w=1/v                                
+    }else{
+        w=1/(v+rep(1,ng)%o%vv) 
+    }
+    w[indexnm]=0
+    ws=colSums(w)                         #define sum of weights for each of the n models (to be used later)
+    if (is.null(g)){
+        muhat=colSums(w*z)/ws                 #compute muhat for each of the n models using formula in documentation
+        wrse=sqrt(colSums((z-rep(1,ng)%o%muhat)^2*w)/df)  #compute residual standard error
+    }else{
+	gwmean=colSums(w*g)/ws                #define weighted center of g for each of the n models (to be used later)
+	ggwmeanm=g%o%rep(1,n)-rep(1,ng)%o%gwmean                    #define weighted difference between each g and its weighted center for each of the n models (to be used later)
+        wgg=colSums(w*ggwmeanm^2)                     #compute sum_j w_j^2*(g_j-gwmean)^2 (to be used later)
+        wgg.ind=wgg<1e-6                               
+        wgg[wgg.ind]=0
+        betahat=colSums(w*z*ggwmeanm)/colSums(w*ggwmeanm^2)         #compute betahat using formula in documentation
+	g.betahat=g%o%betahat
+                                        #compute betahat*g  for each of the n models
+        muhat=colSums(w*(z-g.betahat))/ws           #compute muhat using formula in documentation
+        wrse=sqrt(colSums((z-rep(1,ng)%o%muhat-g.betahat)^2*w)/df)   #compute residual standard error
+    }
+    wrse[is.na(wrse)]=1 
+    if(forcebin|(is.null(g)&ng==2)|(!is.null(g)&ng==length(unique(g))))  #force dispersion to be absent (also in the case with only 1 observation in each group)
+        wrse=1
+    else{
+        if(is.null(vv)){
+            wrse[(wrse==Inf)|(wrse<1)]=1          #do not allow for "underdispersion"
+        }else{
+            wrse[(wrse==Inf)|(vv==0)]=1
+        }
+    }
+    wrse2=wrse^2
+    if(is.null(g)){
+        semuhat=sqrt(wrse2/ws)
+        return(list(coef=muhat,se=semuhat,wrse2=wrse2))
+    }else{
+	sebetahat=sqrt(wrse2/wgg)                      #compute se(betahat) using formula in documentation
+        sebetahat[wgg.ind]=NA 
+        semuhat=sqrt((1/ws+gwmean^2/wgg)*wrse2)       #compute se(muhat) using formula in documentation
+        semuhat[wgg.ind]=NA
+        covmubeta=colSums(w*ggwmeanm)/ws/wgg*wrse2-gwmean*sebetahat^2   #compute covariance between muhat and betahat
+        return(list(muhat=muhat,semuhat=semuhat,betahat=betahat,sebetahat=sebetahat,covmubeta=covmubeta,wrse2=wrse2))
+    }
+}
+
+#Computes the dispersion factor
+compute.dispersion=function(p,n,ng,indexnm,forcebin,ind=NULL,ord=NULL,lg=NULL,x=NULL,x.s=NULL,x.f=NULL){
+   if(is.null(lg)){
+     if(forcebin|ng==1)                         #force dispersion to be absent
+       return(1)
+   }else{
+     if(forcebin|(ng==lg))                   #(or if there is 1 obs in each group)
+       return(1)
+   }
+
+    #find effective number of observations after getting rid of missing data
+    ngn=!indexnm
+    ngn=colSums(ngn)
+    ngn=rep(ngn,times=ng)
+    
+    if(is.null(lg)){
+        ss=x.s+x.f
+        p=rep(p,times=ng)     
+        d.ini=1/(ngn-1)*(x.s-p*ss)^2/(ss*p*(1-p)) #compute dispersion factor as in McC and Nelder
+        d.ini[d.ini==Inf]=0
+        d.ini[is.na(d.ini)]=0         
+        d.m=matrix(d.ini,ncol=ng)
+        d=rowSums(d.m)            
+        d[d<1]=1                                  #do not allow underdispersion
+    }else{
+        x=x[ord,]
+        x.sf=extract.sf(x,n)
+        s=x.sf$x.s+x.sf$x.f
+        pn=NULL
+        for(i in 1:lg){    
+            pn=c(pn,rep(p[(n*(i-1)+1):(n*i)],times=sum(ind[[i]])))
+        }        
+        d.ini=1/(ngn-lg)*(x.sf$x.s-pn*s)^2/(s*pn*(1-pn))   #compute dispersion factor as in McC and Nelder
+        d.ini[d.ini==Inf]=0
+        d.ini[is.na(d.ini)]=0         
+        d.m=matrix(d.ini,ncol=ng)
+        d=rowSums(d.m)
+        d[d<1]=1                                      #do not allow underdispersion
+        d=rep(d,times=lg)
+    }
+    return(d)
+}
+
+
+
+#Computes the estimates and SEs for the models using glm, taking different scenarios into account
+#covv is only defined when lg=3
+#mbvar is only defined when lg=2 and repara=TRUE
+glm.coef=function(z,g,n,center,repara){
+    lg=length(levels(g))
+    mbvar=NULL
+    if(lg==2){                              #2 categories
+        covv=NULL
+        if(center==TRUE){                         #considered centered and uncentered covariate separately    
+            g.num=sort(as.numeric(levels(g))[g])
+            g.num=unique(g.num-mean(g.num))
+            w1=g.num[1]                           #weights come in because covariate is centered
+            w2=g.num[2]
+            coef=w2*z$mu[1:n]-w1*z$mu[(n+1):(2*n)]    #compute logit(p) for each group
+            coef=c(coef,z$mu[(n+1):(2*n)]-z$mu[1:n])  #compute intercept and slope
+            var=w2^2*z$var[1:n]+w1^2*z$var[(n+1):(2*n)]   #compute var(logit(p)) for each group
+            var=c(var,z$var[(n+1):(2*n)]+z$var[1:n])       #compute var for intercept and slope
+        }else{
+            coef=z$mu-c(rep(0,n),rep(z$mu[1:n],times=(lg-1)))                      #compute intercept and slope
+            var=z$var+c(rep(0,n),rep(z$var[1:n],times=(lg-1)))        #compute var of intercept and slope
+        }
+        if(repara==TRUE){
+            mbvar=-var[1:n]/var[(n+1):(2*n)]                               #compute gamma as in documentation if reparametrization is used
+            coef[1:n]=coef[1:n]-coef[(n+1):(2*n)]*mbvar                      #reparametrized estimates
+            var[1:n]=var[1:n]-var[1:n]^2/var[(n+1):(2*n)]              #reparametrized Ses
+        }
+    }else if(lg==3){                        #3 groups case as in PoissonBinomial_etc
+        if(center==TRUE){                         #considered centered and uncentered covariate separately    
+            g.num=sort(as.numeric(levels(g))[g])
+            g.num[g.num!=1]=0
+            g.num[g.num==1]=1
+            g.num=unique(g.num-mean(g.num))
+            w1.1=g.num[1]
+            w1.2=g.num[2]
+            g.num=sort(as.numeric(levels(g))[g])
+            g.num[g.num!=2]=0
+            g.num[g.num==2]=1
+            g.num=unique(g.num-mean(g.num))
+            w2.1=g.num[1]
+            w2.2=g.num[2]
+            coef=(w1.2+w2.1)*z$mu[1:n]-w1.1*z$mu[(n+1):(2*n)]-w2.1*z$mu[(2*n+1):(3*n)]
+            coef=c(coef,z$mu[(n+1):(3*n)]-rep(z$mu[1:n],times=(lg-1)))
+            var=(w1.2+w2.1)^2*z$var[1:n]+(w1.1)^2*z$var[(n+1):(2*n)]+(w2.1)^2*z$var[(2*n+1):(3*n)]
+            var=c(var,z$var[(n+1):(3*n)]+rep(z$var[1:n],times=(lg-1)))
+            covv=z$var[1:n]
+        }else{                       #3 groups case
+            coef=z$mu-c(rep(0,n),z$mu[1:(2*n)])
+            var=z$var+c(rep(0,n),z$var[1:(2*n)])
+            covv=-z$var[(n+1):(2*n)]
+        }
+    }
+    return(list(mu=coef,var=var,mbvar=mbvar,covv=covv))
+}
+
+#Set NA to models with insufficient data and returns output for wls
+compute.lm=function(g,coef,se,mbvar,n,index,repara){
+    if(is.null(g)){
+        na.ind=is.na(coef[1:n])|is.na(se[1:n])  
+        coef[na.ind|index]=NA  #set muhat and se(muhat) to NA for those models with insufficiant data or NAs
+        se[na.ind|index]=NA
+        return(matrix(c(coef,se),nrow=2,byrow=T))                
+    }else{
+        index=rep(index,times=2)
+        na.ind=is.na(coef[1:n])|is.na(se[1:n])|is.na(coef[(n+1):(2*n)])|is.na(se[(n+1):(2*n)])
+        na.ind2=rep(na.ind,times=2)
+        coef[na.ind2|index]=NA  #set muhat and se(muhat) to NA for those models with insufficiant data or NAs
+        se[na.ind2|index]=NA
+        toreturn=array(rbind(coef,se),dim=c(2,n,2))
+        if(repara==TRUE){
+            mbvar[index[1:n]]=NA
+            mbvar[na.ind]=NA
+            return(matrix(rbind(apply(toreturn,2,rbind),mbvar),ncol=n))
+        }else
+            return(matrix(rbind(apply(toreturn,2,rbind),mbvar),ncol=n)) #should this be return(apply(toreturn,2,rbind))????
+    }
+}
+
+
+#Set NA to models with insufficient data and returns output for glm
+compute.glm=function(x,g,d,n,na.index,repara){
+    se=sqrt(x$var*d)           #dispersion
+    mu=x$mu
+    mu[na.index]=NA          #set muhat and se(muhat) to NA for those models with insufficiant data
+    se[na.index]=NA
+    
+    if(is.null(g))
+        return(matrix(c(mu,se),nrow=2,byrow=T))
+    else{
+        if(is.factor(g)){
+            lg=length(levels(g))
+            toreturn=array(rbind(mu,se),dim=c(2,n,lg))
+            if(lg==3){
+                if(length(d)==1)
+                    covv=x$covv*d   #dispersion
+                else
+                    covv=x$covv*d[1:n]   #dispersion
+                covv[na.index[1:n]]=NA   #check that this is correct?????
+                return(matrix(rbind(apply(toreturn,2,rbind),covv),ncol=n)) 
+            }else if(lg==2){
+                if(repara==FALSE)
+                    return(apply(toreturn,2,rbind))
+                else{
+                    mbvar=x$mbvar
+                    mbvar[na.index[1:n]]=NA
+                    return(matrix(rbind(apply(toreturn,2,rbind),mbvar),ncol=n))
+                }
+            }
+        }
+    }
+}
+
+
+
+
+#fast alternative to the glm function
+#inputs: 
+#eps: (usually small) number added to the cases when either
+#there are 0 successes or 0 failures
+#pseudocounts: as in bintest
+#all: indicates if pseudocounts should be added to all entries rather
+#than just 0 entries. default FALSE
+#minobs: the minimum number of observations with no missing data to estimate intercept and slope
+#center: chooses if to center g. does not work for categorical g with more than 2 groups
+#forcebin: forcibly sets dispersion to 1 or not
+# minReads
+# filter : 0 no filtering
+#          1 filter if min(s1,f1, s2, f2) < minReads
+#          2 filter if min(s1+f1, s2+f2) < minReads
+#repara: specifies whether or not to reparametrize linear model to have independent parameters in multiscale model
+#lm.approx: uses a modified WLS to approximate the GLM
+glm.approx=function(x,g=NULL,eps=1e-8,minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,filter=0,forcebin=FALSE,repara=FALSE,minReads=1,lm.approx=FALSE,disp=c("add","mult")){
+#   thresh = minReads
+    disp=match.arg(disp)
+    if(is.vector(x)){dim(x)<- c(1,length(x))}  #if x is a vector convert to matrix 
+    n=ncol(x)/2
+    ng=nrow(x)
+    
+    if(ng==1){
+        lm.approx=FALSE             #if x has 1 row don't use the lm approximation
+        forcebin=TRUE 
+    }else{
+        x.sf=extract.sf(x,n)                      #extract success and failure counts separately
+        indexn=(x.sf$x.s==0&x.sf$x.f==0)                  #find indices for which there is no data
+        indexnm=matrix(indexn,nrow=ng,byrow=T)
+    }
+    if(lm.approx==TRUE){                        #use WLS approximation
+        na.index=colSums(matrix((x.sf$x.s+x.sf$x.f)!=0,ncol=n,byrow=T))<minobs    #find indices for which there is insufficient data
+        z=compute.approx.z(x.sf$x.s,x.sf$x.f,0.02,eps,pseudocounts,all,indexn)          #obtain estimates for logit(p) and var(logit(p))
+        if(is.null(g)){                           #smoothing multiple signals without covariate  
+            res=wls.coef(z,disp,indexnm,n,ng,forcebin)
+            return(compute.lm(g,res$coef,res$se,res$mbvar,n,na.index,repara))   
+        }else{                                           
+            if(is.factor(g)) g=as.numeric(levels(g))[g]   #if g is a 2-level factor convert to numeric
+            if(center==TRUE) g=g-mean(g)
+            res=wls.coef(z,disp,indexnm,n,ng,forcebin,g,repara)
+            return(compute.lm(g,res$coef,res$se,res$mbvar,n,na.index,repara))
+        }
+    }else{                                          #use GLM     
+        if(is.null(g)){                               #case where g is absent
+            if(ng>1)                   #smoothing multiple signals
+                x=colSums(x)                              #pool data together as in GLM
+            x=matrix(x,ncol=n)
+            na.index=(colSums(x)==0)
+            z=compute.approx.z(x[1,],x[2,],0.05,eps,pseudocounts,all,NULL,TRUE)          #obtain estimates for logit(p) and var(logit(p)) #indexn=NULL???
+            d=compute.dispersion(z$p,n,ng,indexnm,forcebin,x.s=x.sf$x.s,x.f=x.sf$x.f)      #computes dispersion  
+            return(compute.glm(z,g,d,n,na.index,repara))
+        }else{                                        #case where g is present
+            if(is.factor(g)){                           #first consider case where g is factor, and hence with closed form solution
+                lg=length(levels(g))
+                ord=sort.list(g)
+                if(ng>lg){                                #pool successes and failures in the same category, depending on if there are more obs than no. of categories or not
+                    x.mer=matrix(0,nrow=lg,ncol=2*n)
+                    ind=list(0)
+                    for(i in 1:lg){
+                        ind[[i]]=(g==levels(g)[i])
+                        x.mer[i,]=colSums(matrix(x[ind[[i]],],nrow=sum(ind[[i]])))   
+                    } 
+                }else{
+                    ind=NULL
+                    x.mer=x[ord,]
+                }		  
+                x.mer.s=x.mer[,(1:(2*n))%%2==1]           #now consider pooled data as effective raw data and extract successes and failures
+                x.mer.f=x.mer[,(1:(2*n))%%2==0]
+                na.index=colSums(matrix((x.mer.s+x.mer.f)!=0,ncol=n))<pmin(minobs,lg)     #find indices with insufficient data #since data are pooled, min no. of obs cannot be less than number of groups in g
+                na.index=rep(na.index,times=lg)
+                x.s.m=as.vector(t(x.mer.s))               #extract successes and failures from pooled data
+                x.f.m=as.vector(t(x.mer.f))
+                indexn=(x.s.m==0&x.f.m==0)                #define indices where pooled data still has no data
+                z=compute.approx.z(x.s.m,x.f.m,0.02,eps,pseudocounts,all,indexn,TRUE)          #obtain estimates for logit(p) and var(logit(p)) #indexn?
+                res=glm.coef(z,g,n,center,repara)
+                d=compute.dispersion(z$p,n,ng,indexnm,forcebin,ind,ord,lg,x)   #computes dispersion
+                return(compute.glm(res,g,d,n,na.index,repara))
+            }else{                                    #now consider the case when g is quantitative
+                x=matrix(x,ncol=n)
+                if(center==TRUE) g=g-mean(g)
+                #use the bintest function to fit a GLM separately to each case for quantitative covariate
+                return(apply(x,2,bintest,g=g,minobs=minobs,pseudocounts=pseudocounts,all=all,forcebin=forcebin,repara=repara))#return?
+            }
+        }
+    }
+}  
