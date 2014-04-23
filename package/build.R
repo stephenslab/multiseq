@@ -7,6 +7,12 @@
 #in R:
 library(Rcpp)
 Rcpp.package.skeleton("multiseq", path=".", code <- files=c("multiseq.R", "PoissonBinomial.funcs.R", "deltamethod.R"), cpp <- files="multiseq.cpp", example <- code = FALSE, attributes = TRUE)
+
+#/data/tools/R-3.0.3/bin/R
+require(roxygen2)
+require(devtools)
+roxygenize()
+
 #in the terminal
 #cd ..
 #tar -pczf multiseq.tar.gz multiseq

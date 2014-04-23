@@ -1,0 +1,23 @@
+\name{compute.res}
+\alias{compute.res}
+\title{Compute posterior mean and var for log(p), log(q), log(p0/p1) and log(q0/q1)
+This function returns posterior means and variances of log(p), log(q), log(p0/p1) and log(q0/q1) as lp, lq, lpratio and lqratio, respectively, where p
+is the probability of going left and q=1-p.}
+\usage{
+compute.res(zdat.ash.intercept, repara, baseline = NULL, w = NULL,
+  g = NULL, zdat = NULL, zdat.ash = NULL)
+}
+\value{
+a list with elements "lp.mean", "lp.var", "lq.mean",
+"lq.var" [and "lpratio.mean", "lpratio.var",
+"lqratio.mean", "lqratio.var" if covariate is present, i.e.
+\code{g} is not NULL]
+}
+\description{
+Compute posterior mean and var for log(p), log(q),
+log(p0/p1) and log(q0/q1) This function returns posterior
+means and variances of log(p), log(q), log(p0/p1) and
+log(q0/q1) as lp, lq, lpratio and lqratio, respectively,
+where p is the probability of going left and q=1-p.
+}
+

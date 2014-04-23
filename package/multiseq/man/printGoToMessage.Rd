@@ -1,0 +1,11 @@
+\name{printGoToMessage}
+\alias{printGoToMessage}
+\title{Write a message containing instructions on how to visualize the Track Hub}
+\usage{
+printGoToMessage(hub_name, hub_dir, http_address, region = NULL)
+}
+\description{
+Write a message containing instructions on how to visualize
+the Track Hub
+}
+

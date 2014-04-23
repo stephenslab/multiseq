@@ -1,0 +1,11 @@
+\name{ffwrapper}
+\alias{ffwrapper}
+\title{A wrapper for code in \code{compute.res} and \code{compute.res.rate}}
+\usage{
+ffwrapper(mean, var, Mean, Sq, wSq, beta.tm, beta.fm, g)
+}
+\description{
+A wrapper for code in \code{compute.res} and
+\code{compute.res.rate}
+}
+
