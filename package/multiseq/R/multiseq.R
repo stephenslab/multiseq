@@ -336,14 +336,13 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
             y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
             zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-          
-            #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
-            y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
-            zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
 
             if(computelogLR){
-                logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
+                #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
+                y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
+                zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
                 res.rate=compute.res.rate(zdat.rate.o, repara, w, g, zdat.rate)
             }
         }
