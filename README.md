@@ -26,13 +26,10 @@ It depends on *ashr* a package in development that you can download and install 
 
 After installing *ashr* from within R use:
 
-> install.packages("tools")
-
-> install.packages("rhdf5")
-
-> install.packages("data.table")
-
-> install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
+      install.packages("tools")
+      install.packages("rhdf5")
+      install.packages("data.table")
+      install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
 
 Some functions for sequencing data extraction/manipulation require additional executables to be in the user's PATH. The required executables are: `samtools`, `wigToBigWig`, `bigWigInfo`, and `bedToBigBed`.
 
@@ -55,32 +52,24 @@ you should be able to pass a flag to your cluster submission command (e.g. the -
 
 ### Testing multiseq
 
-> library(multiseq)
-
-> data(OAS1,package="multiseq")
-
-> M <- OAS1$M
-
-> g <- OAS1$g
-
-> read.depth <- OAS1$read.depth
-
-> res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
-
-> fra=2 #fraction of sd
-
-> plotResults(res,fra)
-
-To print intervals where multiseq found an effect at 2 sd:
-
-> get.effect.intervals(res,fra)
+    library(multiseq)
+    data(OAS1,package="multiseq")
+    M <- OAS1$M
+    g <- OAS1$g
+    read.depth <- OAS1$read.depth
+    res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
+    fra=2 #fraction of sd
+    plotResults(res,fra)
+    # To print intervals where multiseq found an effect at 2 sd:
+    get.effect.intervals(res,fra)
 
 Smooth by group
+       res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
+       plotResults(res0, fra, type="baseline")
 
-> res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
+### Testing multiseq on sequencing data
 
-> plotResults(res0, fra, type="baseline")
-
+Need a sample sheet (samplesheet) a sequence name (chr), sequence start (start) and end (end) position.
 
 The samplesheet should have the following format (see file ~/src/multiseq/data/sim/samplesheet.sim.txt):
 
@@ -90,56 +79,40 @@ The samplesheet should have the following format (see file ~/src/multiseq/data/s
     056A RNASeq 24hrShamControl 9 - 1320166 ./data/sim/056A.bw
     056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ./data/sim/056BNonNull.bw
 
-### Testing multiseq on sequencing data
 
-Need a sample sheet (samplesheet) a sequence name (chr), sequence start (start) and end (end) position:
- 
-> samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
+    samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
+    chr="chr5"
+    start=131989505
+    end=132120576
 
-> chr="chr5"
+Run multiseq on all samples in samplesheet or select a subset of samples
 
-> start=131989505
-
-> end=132120576
-Rrun multiseq on all samples in samplesheet or select a subset of samples
-
-> samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
-
-> g=factor(samples$Tissue) 
-
-> g=match(g,levels(g))-1
-
-> M=get.counts(samples, chr, start, end) 
-
-> res=multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-
-> fra=2 #fraction of sd
-
-> get.effect.intervals(res,fra)
-
-> plotResults(res,fra)
-
-#to save results in dir.name
-
-> dir.name="~/src/multiseq/data/multiseq_sim/"
-
-> write.effect.mean.variance.gz(res,dir.name)
-
-> write.effect.intervals(res,dir.name,fra)
+    samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
+    g=factor(samples$Tissue) 
+    g=match(g,levels(g))-1
+    M=get.counts(samples, chr, start, end) 
+    res=multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
+    fra=2 #fraction of sd
+    get.effect.intervals(res,fra)
+    plotResults(res,fra)
+    #to save results in dir.name
+    dir.name="~/src/multiseq/data/multiseq_sim/"
+    write.effect.mean.variance.gz(res,dir.name)
+    write.effect.intervals(res,dir.name,fra)
 
 Smooth by group
 
-> res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0]) 
-
-> plotResults(res0, fra, type="baseline")
+    res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0]) 
+    plotResults(res0, fra, type="baseline")
 
 ### Visualizing input and output in the UCSC Genome Browser
 
-> hub_name="testMultiseq/sim"
+With function samplesheetToTrackHub you can create a track hub that you can then visualize in the UCSC Genome Browser.
 
-> samplesheetToTrackHub(samplesheet,hub_name)
+    hub_name="testMultiseq/sim"
+    samplesheetToTrackHub(samplesheet,hub_name)
 
-will create a track hub in "/some/path/testMultiseq/sim/" and will print the following message:
+This will create a track hub in "/some/path/testMultiseq/sim/" and will print the following message:
 
     go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window    
     copy paste the following string in the URL field
@@ -151,7 +124,6 @@ If the read tracks or the bed files are large, make sure enough memory is availa
 
 This is a screenshot of the data in the Genome Browser:
 ![Image](data/sim/sim.png?raw=true)
-
 
 As of now we can run multiseq region by region. Output of multiseq on a specific region consists of 3 files:
 
