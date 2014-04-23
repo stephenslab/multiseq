@@ -22,13 +22,16 @@ Let's assume you want to clone this repository into a directory named ~/src:
 ## Installing the package
 
 The (in development) *multiseq* package is in package/multiseq.tar.gz. 
-It depends on *ashr* a package in development that you can download and install following instructions at [https://github.com/stephens999/ash/README](https://github.com/stephens999/ash/README)
+It depends on *ashr* a package in development that you can download and install following instructions at [https://github.com/stephens999/ash/README](https://github.com/stephens999/ash/blob/master/README)
 
 After installing *ashr* from within R use:
 
 > install.packages("tools")
+
 > install.packages("rhdf5")
+
 > install.packages("data.table")
+
 > install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
 
 Some functions for sequencing data extraction/manipulation require additional executables to be in the user's PATH. The required executables are: `samtools`, `wigToBigWig`, `bigWigInfo`, and `bedToBigBed`.
@@ -53,12 +56,19 @@ you should be able to pass a flag to your cluster submission command (e.g. the -
 ### Testing multiseq
 
 > library(multiseq)
+
 > data(OAS1,package="multiseq")
+
 > M <- OAS1$M
+
 > g <- OAS1$g
+
 > read.depth <- OAS1$read.depth
+
 > res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
+
 > fra=2 #fraction of sd
+
 > plotResults(res,fra)
 
 To print intervals where multiseq found an effect at 2 sd:
@@ -68,6 +78,7 @@ To print intervals where multiseq found an effect at 2 sd:
 Smooth by group
 
 > res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
+
 > plotResults(res0, fra, type="baseline")
 
 
@@ -84,31 +95,48 @@ The samplesheet should have the following format (see file ~/src/multiseq/data/s
 Need a sample sheet (samplesheet) a sequence name (chr), sequence start (start) and end (end) position:
  
 > samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
+
 > chr="chr5"
+
 > start=131989505
+
 > end=132120576
-> #run multiseq on all samples in samplesheet or select a subset of samples
+Rrun multiseq on all samples in samplesheet or select a subset of samples
+
 > samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
+
 > g=factor(samples$Tissue) 
+
 > g=match(g,levels(g))-1
+
 > M=get.counts(samples, chr, start, end) 
+
 > res=multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
+
 > fra=2 #fraction of sd
+
 > get.effect.intervals(res,fra)
+
 > plotResults(res,fra)
-> #to save results in dir.name
+
+#to save results in dir.name
+
 > dir.name="~/src/multiseq/data/multiseq_sim/"
+
 > write.effect.mean.variance.gz(res,dir.name)
+
 > write.effect.intervals(res,dir.name,fra)
 
 Smooth by group
 
 > res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0]) 
+
 > plotResults(res0, fra, type="baseline")
 
 ### Visualizing input and output in the UCSC Genome Browser
 
 > hub_name="testMultiseq/sim"
+
 > samplesheetToTrackHub(samplesheet,hub_name)
 
 will create a track hub in "/some/path/testMultiseq/sim/" and will print the following message:
