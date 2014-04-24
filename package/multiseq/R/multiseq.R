@@ -327,7 +327,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
 
             if(computelogLR){
-                logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                logLR[J+1] = fast.ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
                 res.rate=compute.res.rate(zdat.rate.o, repara, w)
             }
@@ -338,7 +338,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=FALSE))
 
             if(computelogLR){
-                logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                logLR[J+1] = fast.ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
                 y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
@@ -366,7 +366,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     if(computelogLR){
         for(j in 1:J){
             ind = ((j-1)*n+1):(j*n)
-            logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+            logLR[j] = fast.ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
         }
         return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = sum(logLR), logLR.each.scale = logLR))  
     }
