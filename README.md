@@ -61,6 +61,7 @@ Remember that when you submit jobs to a compute cluster (e.g. using SGE's qsub),
     get.effect.intervals(res,fra)
 
 Smooth by group
+
        res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
        plotResults(res0, fra, type="baseline")
 
@@ -76,13 +77,12 @@ The samplesheet should have the following format (see file ~/src/multiseq/data/s
     056A RNASeq 24hrShamControl 9 - 1320166 ~/src/multiseq/data/sim/056A.bw
     056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ~/src/multiseq/data/sim/056BNonNull.bw
 
+Run multiseq on all samples in samplesheet or select a subset of samples
 
     samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
     chr="chr5"
     start=131989505
     end=132120576
-
-Run multiseq on all samples in samplesheet or select a subset of samples
 
     samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
     g=factor(samples$Tissue) 
@@ -106,7 +106,7 @@ Smooth by group
 
 ### Visualizing input and output in the UCSC Genome Browser
 
-With function samplesheetToTrackHub you can create a Track Hub and you can visualize it in the UCSC Genome Browser.
+With function samplesheetToTrackHub you can create a Track Hub and visualize it in the UCSC Genome Browser.
 
     hub_name="testMultiseq/sim"
     samplesheetToTrackHub(samplesheet,hub_name)
@@ -124,7 +124,7 @@ If the read tracks or the bed files are large, make sure enough memory is availa
 This is a screenshot of the data in the Genome Browser:
 ![Image](data/sim/sim.png?raw=true)
 
-As of now we can run multiseq region by region. After running multiseq and you saved results using write.effect.mean.variance.gz and write.effect.intervals (as we showed above) you can create a track hub of results using function multiseqToTrackHub. multiseqToTrackHub will create a track hub with
+As of now we can run multiseq region by region. After running multiseq and saving results using write.effect.mean.variance.gz and write.effect.intervals (as we showed above), you can create a Track Hub of results using function multiseqToTrackHub. multiseqToTrackHub will create a track hub with
 - the effect +- 2 standard errors
 - the significant intervals at 2 sd
 
@@ -136,7 +136,7 @@ in the UCSC Genome Browser. If multiseq output is in folder ~/src/multiseq/data/
     chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt"
     multiseqToTrackHub(region, hub_name, multiseq_folder, chrom_file)
 
-will create a track hub named *multiseq* in the "https:some/address/testMultiseq/multiseq_sim/" folder and will print the following message:
+will create a track hub named *multiseq_sim* in the "https:some/address/testMultiseq/" folder and will print the following message:
   
     go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window
     copy paste the following string in the URL field
@@ -148,14 +148,18 @@ This is a screenshot of the track hub from the Genome Browser:
 
 ### Running multiseq on multiple loci on the PPS cluster
 
-If you want to run multiseq in the list of loci in a bed file (e.g.: list_loci.bed) then you can use the script in the folder "local". From spudhead:
+If you want to run multiseq on the list of loci in a bed file (e.g.: list_loci.bed) then you can use the script in the folder "local". From spudhead:
+
    sh qsub_run_multiseq.sh < list_loci.bed
+
 This script will submit to the cluster as many jobs as there are lines in list_loci.bed.
 
 [Note: the bash script qsub_run_multiseq.sh runs the R script run.multiseq.R on each locus in list_loci.bed. run.multiseq.R calls multiseq with the appropriate arguments.]
  
-Use 
+Use
+ 
     window_size=131072
     chrom_file=$HOME/src/multiseq/data/chromosome.lengths.hg19.txt
     sh write_list_loci.sh $window_size $chrom_file | head -n 5000 > list_loci.bed
+
 to create a bed file list_loci.bed with 5000 adjacent intervals of size 131072 from chr1
