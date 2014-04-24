@@ -33,7 +33,7 @@ After installing *ashr* from within R use:
 
 Some functions for sequencing data extraction/manipulation require additional executables to be in the user's PATH. The required executables are: `samtools`, `wigToBigWig`, `bigWigInfo`, and `bedToBigBed`.
 
-## Setting up a mountpoint to visualize results in the UCSC Genome Browser
+### Setting up a mountpoint to visualize results in the UCSC Genome Browser
 
 To visualize data in the UCS Genome Browser some shell environment variables must be set. We recommend setting these variables in your ~/.bashrc or ~/.profile files as follows:
 
@@ -41,16 +41,13 @@ To visualize data in the UCS Genome Browser some shell environment variables mus
     export MOUNTPOINT_PATH="/some/path"
     export MOUNTPOINT_HTTP_ADDRESS="https:some/address"
 
-where you have to replace "/some/path" with the path to the mountpoint (i.e., "/data/internal/solexa_mountpoint/$USER on the PPS cluster") and "https:some/address" with the http address of the mountpoint. If you have access to the PPS cluster replace "/some/path" with "/data/internal/solexa_mountpoint/$USER" where $USER is your username in the cluster; the http address associated to this mountpoint is password protected (ask Ester).
+where you have to replace "/some/path" with the path to the mountpoint and "https:some/address" with the http address of the mountpoint. If you have access to the PPS cluster and you are in the stephenslab group, replace "/some/path" with "/data/internal/solexa_mountpoint/$USER" where $USER is your username in the cluster; the http address associated to this mountpoint is password protected (ask Ester).
 
-Make sure that you remember to set these variables after adding them to your .bashrc for the first time. 
-You can login again, or do source ~/.bashrc
+Make sure that you remember to set these variables after adding them to your .bashrc for the first time. You can login again, or do source ~/.bashrc
 
-Remember that when you submit jobs to a compute cluster (e.g. using SGE's qsub), they run in "batch mode" 
-and may not execute your ~/.bashrc. To ensure that your jobs have the correct environment variables set, 
-you should be able to pass a flag to your cluster submission command (e.g. the -V flag to qsub).
+Remember that when you submit jobs to a compute cluster (e.g. using SGE's qsub), they run in "batch mode" and may not execute your ~/.bashrc. To ensure that your jobs have the correct environment variables set, you should be able to pass a flag to your cluster submission command (e.g. the -V flag to qsub).
 
-### Testing multiseq
+## Testing multiseq
 
     library(multiseq)
     data(OAS1,package="multiseq")
@@ -69,15 +66,15 @@ Smooth by group
 
 ### Testing multiseq on sequencing data
 
-Need a sample sheet (samplesheet) a sequence name (chr), sequence start (start) and end (end) position.
+Need a sample sheet (samplesheet), a sequence name (chr), sequence start (start) and end (end) positions.
 
 The samplesheet should have the following format (see file ~/src/multiseq/data/sim/samplesheet.sim.txt):
 
     SampleID Type Tissue Replicate Peaks ReadDepth bigWigPath
-    055A RNASeq 24hrShamControl 8 - 1550735 ./data/sim/055A.bw
-    055B RNASeq 24hr2uMsimvastatinLPDS 8 - 2350343 ./data/sim/055BNonNull.bw
-    056A RNASeq 24hrShamControl 9 - 1320166 ./data/sim/056A.bw
-    056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ./data/sim/056BNonNull.bw
+    055A RNASeq 24hrShamControl 8 - 1550735 ~/src/multiseq/data/sim/055A.bw
+    055B RNASeq 24hr2uMsimvastatinLPDS 8 - 2350343 ~/src/multiseq/data/sim/055BNonNull.bw
+    056A RNASeq 24hrShamControl 9 - 1320166 ~/src/multiseq/data/sim/056A.bw
+    056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ~/src/multiseq/data/sim/056BNonNull.bw
 
 
     samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
@@ -97,7 +94,9 @@ Run multiseq on all samples in samplesheet or select a subset of samples
     plotResults(res,fra)
     #to save results in dir.name
     dir.name="~/src/multiseq/data/multiseq_sim/"
+    # this function saves results in file effect_mean_var.txt.gz, a file with two columns: first column is effect mean and second column is effect variance
     write.effect.mean.variance.gz(res,dir.name)
+    # To write intervals where multiseq found an effect at 2 sd in a bed file
     write.effect.intervals(res,dir.name,fra)
 
 Smooth by group
@@ -107,16 +106,16 @@ Smooth by group
 
 ### Visualizing input and output in the UCSC Genome Browser
 
-With function samplesheetToTrackHub you can create a track hub that you can then visualize in the UCSC Genome Browser.
+With function samplesheetToTrackHub you can create a Track Hub and you can visualize it in the UCSC Genome Browser.
 
     hub_name="testMultiseq/sim"
     samplesheetToTrackHub(samplesheet,hub_name)
 
-This will create a track hub in "/some/path/testMultiseq/sim/" and will print the following message:
+This will create a Track Hub in "/some/path/testMultiseq/sim/" and will print the following message:
 
     go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window    
     copy paste the following string in the URL field
-    https:some/address/testNGS/sim/hub.txt
+    https:some/address/testMultiseq/sim/hub.txt
     center the genome browser on the region of interest
     if the track is hidden click on show and then refresh
 
@@ -125,16 +124,9 @@ If the read tracks or the bed files are large, make sure enough memory is availa
 This is a screenshot of the data in the Genome Browser:
 ![Image](data/sim/sim.png?raw=true)
 
-As of now we can run multiseq region by region. Output of multiseq on a specific region consists of 3 files:
-
-- *effect_mean_var.txt.gz*:  a file with two columns, first column a mean effect a
-nd second column squared standard error of the effect) 
-- *multiseq.effect.2sd.bed* and *multiseq.effect.3sd.bed*: two bed files containin
-g significant intervals (as computed by multiseq) at 2 and 3 sd, respectively. 
-
-multiseqToTrackHub wil create a track hub with 
-- the effect +- 2 standard errors 
-- the significant intervals at 2 sd 
+As of now we can run multiseq region by region. After running multiseq and you saved results using write.effect.mean.variance.gz and write.effect.intervals (as we showed above) you can create a track hub of results using function multiseqToTrackHub. multiseqToTrackHub will create a track hub with
+- the effect +- 2 standard errors
+- the significant intervals at 2 sd
 
 in the UCSC Genome Browser. If multiseq output is in folder ~/src/multiseq/data/multiseq_sim/ and ~/src/multiseq/data/chromosome.lengths.hg19.txt is a file with chromosome names and lengths, then:
 

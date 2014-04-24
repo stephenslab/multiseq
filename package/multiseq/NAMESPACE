@@ -1,1 +1,2 @@
-export(multiseq)
+useDynLib(multiseq)
+exportPattern("^[[:alpha:]]+")

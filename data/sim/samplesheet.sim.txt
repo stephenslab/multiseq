@@ -1,5 +1,5 @@
 SampleID Type Tissue Replicate Peaks ReadDepth bigWigPath
-055A RNASeq 24hrShamControl 8 - 1550735 ./data/sim/055A.bw
-055B RNASeq 24hr2uMsimvastatinLPDS 8 - 2350343 ./data/sim/055BNonNull.bw
-056A RNASeq 24hrShamControl 9 - 1320166 ./data/sim/056A.bw
-056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ./data/sim/056BNonNull.bw
+055A RNASeq 24hrShamControl 8 - 1550735 ~/src/multiseq/data/sim/055A.bw
+055B RNASeq 24hr2uMsimvastatinLPDS 8 - 2350343 ~/src/multiseq/data/sim/055BNonNull.bw
+056A RNASeq 24hrShamControl 9 - 1320166 ~/src/multiseq/data/sim/056A.bw
+056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ~/src/multiseq/data/sim/056BNonNull.bw
