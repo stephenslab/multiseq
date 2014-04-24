@@ -1,0 +1,5 @@
+SampleID Type Tissue Factor Condition Replicate h5FullPath bamReads Control Peaks ReadDepth
+DGR19138 ChipSeq - GR Dex 1 /scratch/shim/ChIP_seq_fluca/TwoSamples/DGR19138_nodup.bam - -
+DGR19171 ChipSeq - GR Dex 2 /scratch/shim/ChIP_seq_fluca/TwoSamples/DGR19171_nodup_testmix.bam - -
+EGR19138 ChipSeq - GR EtOH 1 /scratch/shim/ChIP_seq_fluca/TwoSamples/EGR19138_nodup.bam - -
+EGR19171 ChipSeq - GR EtOH 2 /scratch/shim/ChIP_seq_fluca/TwoSamples/EGR19171_nodup_testmix.bam - - 

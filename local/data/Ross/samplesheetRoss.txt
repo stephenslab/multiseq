@@ -1,0 +1,16 @@
+SampleID Type Tissue Factor Condition Replicate PeakCaller h5FullPath bamReads bamControl SampleGEOID ControlGEOID Peaks ReadDepth Control bamReadsGEO
+BT474.1- chipseq BT474 ER Resistant 1 macs - SRR1021794.sra.bam SRR1021807.sra.bam GSM798430 GSM798443 GSM798430_SLX-2645.443.s_5_SLX-2577.443.s_8_peaks.txt.gz - - GEO_DATA/GSM798430_SLX-2645.443.s_5.bwa.homo_sapiens_f.bam GEO_DATA/GSM798443_SLX-2577.443.s_8.bwa.homo_sapiens_f.bam
+BT474.2- chipseq BT474 ER Resistant 2 macs - SRR1021795.sra.bam SRR1021807.sra.bam GSM798431 GSM798443 GSM798431_SLX-2576.443.s_7_SLX-2577.443.s_8_peaks.txt.gz - - GEO_DATA/GSM798431_SLX-2576.443.s_7.bwa.homo_sapiens_f.bam GEO_DATA/GSM798443_SLX-2577.443.s_8.bwa.homo_sapiens_f.bam
+MCF7.1+ chipseq MCF7 ER Responsive 1 macs - SRR1021787.sra.bam SRR1021804.sra.bam GSM798423 GSM798440 GSM798423_SLX-2640.438.s_1_SLX-2574.433.s_2_peaks.txt.gz - - GEO_DATA/GSM798423_SLX-2640.438.s_1.bwa.homo_sapiens_f.bam GEO_DATA/GSM798440_SLX-2574.433.s_2.bwa.homo_sapiens_f.bam
+MCF7.2+ chipseq MCF7 ER Responsive 2 macs - SRR1021788.sra.bam SRR1021804.sra.bam GSM798424 GSM798440 GSM798424_SLX-2773.448.s_1_SLX-2574.433.s_2_peaks.txt.gz - - GEO_DATA/GSM798424_SLX-2773.448.s_1.bwa.homo_sapiens_f.bam GEO_DATA/GSM798440_SLX-2574.433.s_2.bwa.homo_sapiens_f.bam
+MCF7.3+ chipseq MCF7 ER Responsive 3 macs - SRR1021789.sra.bam SRR1021804.sra.bam GSM798425 GSM798440 GSM798425_SLX-2943.469.s_2_SLX-2574.433.s_2_peaks.txt.gz - - GEO_DATA/GSM798425_SLX-2943.469.s_2.bwa.homo_sapiens_f.bam GEO_DATA/GSM798440_SLX-2574.433.s_2.bwa.homo_sapiens_f.bam
+ZR75.1+ chipseq ZR75 ER Responsive 1 macs - SRR1021790.sra.bam SRR1021805.sra.bam GSM798426 GSM798441 GSM798426_SLX-2774.448.s_2_ZR75_Input_peaks.txt.gz - - GEO_DATA/GSM798426_SLX-2774.448.s_2.bwa.homo_sapiens_f.bam GEO_DATA/GSM798441_ZR75_Input_f.bam
+ZR75.2+ chipseq ZR75 ER Responsive 2 macs - SRR1021791.sra.bam SRR1021805.sra.bam GSM798427 GSM798441 GSM798427_SLX-2866.466.s_7_ZR75_Input_peaks.txt.gz - - GEO_DATA/GSM798427_SLX-2866.466.s_7.bwa.homo_sapiens_f.bam GEO_DATA/GSM798441_ZR75_Input_f.bam
+T47D.1+ chipseq T47D ER Responsive 1 macs - SRR1021792.sra.bam SRR1021806.sra.bam GSM798428 GSM798442 GSM798428_SLX-2775.448.s_3_T47D_Input_peaks.txt.gz - - GEO_DATA/GSM798428_SLX-2775.448.s_3.bwa.homo_sapiens_f.bam GEO_DATA/GSM798442_T47D_Input_f.bam
+T47D.2+ chipseq T47D ER Responsive 2 macs - SRR1021793.sra.bam SRR1021806.sra.bam GSM798429 GSM798442 GSM798429_SLX-2867.466.s_6_T47D_Input_peaks.txt.gz - - GEO_DATA/GSM798429_SLX-2867.466.s_6.bwa.homo_sapiens_f.bam GEO_DATA/GSM798442_T47D_Input_f.bam
+MCF7.1- chipseq MCF7 ER Resistant 1 macs - SRR1021796.sra.bam SRR1021808.sra.bam GSM798432 GSM798444 GSM798432_SLX-3229.521.s_5_SLX-1651.307.s_1_peaks.txt.gz - - GEO_DATA/GSM798432_SLX-3229.521.s_5.bwa.homo_sapiens_f.bam GEO_DATA/GSM798444_SLX-3231.526.s_5.bwa.homo_sapiens_f.bam
+MCF7.2- chipseq MCF7 ER Resistant 2 macs - SRR1021797.sr.bam SRR1021808.sra.bam GSM798433 GSM798444 GSM798433_SLX-3230.526.s_4_SLX-3231.526.s_5_peaks.txt.gz - - EO_DATA/GSM798433_SLX-3230.526.s_4.bwa.homo_sapiens_f.bam GEO_DATA/GSM798444_SLX-3231.526.s_5.bwa.homo_sapiens_f.bam
+
+
+
+

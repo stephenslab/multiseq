@@ -1,0 +1,5 @@
+SampleID Type Tissue Factor Condition Replicate h5FullPath bamReads Control Peaks ReadDepth
+DN19138 ChipSeq - NFkappaB Dex 1 /scratch/shim/ChIP_seq_fluca/TwoSamples/DN19138_nodup.bam - -
+DN19171 ChipSeq - NFkappaB Dex 2 /scratch/shim/ChIP_seq_fluca/TwoSamples/DN19171_nodup.bam - -
+EN19138 ChipSeq - NFkappaB EtOH 1 /scratch/shim/ChIP_seq_fluca/TwoSamples/EN19138_nodup.bam - -
+EN19171 ChipSeq - NFkappaB EtOH 2 /scratch/shim/ChIP_seq_fluca/TwoSamples/EN19171_nodup.bam - - 
