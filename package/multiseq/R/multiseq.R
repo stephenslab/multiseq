@@ -258,7 +258,7 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #'
 #' @export
 #' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "logLR.each.scale" 
-multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,repara=TRUE,forcebin=FALSE,lm.approx=TRUE,disp=c("add","mult"),nullcheck=TRUE,pointmass=TRUE,prior="nullbiased",gridmult=4,mixsd=NULL,VB=FALSE,shape.eff=FALSE,cxx=TRUE, computelogLR = FALSE){
+multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,repara=TRUE,forcebin=FALSE,lm.approx=TRUE,disp=c("add","mult"),nullcheck=TRUE,pointmass=TRUE,prior="nullbiased",gridmult=2,mixsd=NULL,VB=FALSE,shape.eff=FALSE,cxx=TRUE, computelogLR = FALSE){
     disp=match.arg(disp)
     
     if(!is.numeric(x)) stop("Error: invalid parameter 'x': 'x' must be numeric")
