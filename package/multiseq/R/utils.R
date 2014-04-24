@@ -1,24 +1,32 @@
 #' Get sample counts in a genomic region from bam, hdf5, or bigWig file
 #'
-#' If samples$bamReads is specified then this function extracts reads from the bam files in samples$bamReads using `samtools` (which must be in the USER's path). Else if samples$h5FullPath is specified this function extracts reads from the hdf5 files in samples$h5FullPath using the R package rhdf5. Else if samples$bigWigPath is specified this function extracts reads from bigWig files using the executable `bigWigToWig` (which must be in the USER's path).
+#' If samples$bamReads is specified then this function extracts reads from the bam files in samples$bamReads using `samtools` (which must be in the USER's path) (no filter applied). Else if samples$h5FullPath is specified this function extracts reads from the hdf5 files in samples$h5FullPath using the R package rhdf5. Else if samples$bigWigPath is specified this function extracts reads from bigWig files using the executable `bigWigToWig` (which must be in the USER's path).
 #'
-#' @param samples: a data frame extracted from the samplesheet with N rows
+#' @param samples: a data frame containing attributes on N samples (extracted from a samplesheet)
 #' @param chr: a string representing a reference sequence name
 #' @param locus.start: an integer representing a position on chr
 #' @param locus.end: an integer representing a position on chr (must be locus.end>locus.start)
 #'
 #' @return a matrix with N rows and locus.end-locus.start+1 columns containing the number of reads that start at each base in the specified region in each sample 
-get.counts <- function(samples, chr, locus.start, locus.end){
-    if (locus.start%%1 | locus.end%%1 | locus.end-locus.start<1) #check that locus.start and locus.end are integers
+get.counts <- function(samples, region){
+    split_region = unlist(strsplit(region, "\\:|\\-"))
+    if (length(split_region) != 3)
+        stop("invalid region: example of a valid region is chr1:2345-234567 ")
+    chr          = split_region[1]
+    locus.start  = as.numeric(split_region[2])
+    locus.end    = as.numeric(split_region[3])
+    locus.length = locus.end - locus.start + 1
+    if (locus.start%%1 | locus.end%%1 | locus.length<1) #check that locus.start and locus.end are integers
         stop("Incorrect parameters locus.start and/or locus.end")
-    M <-  NULL
+
+    #load counts
+    M <- NULL
     if (is.null(samples$bigWigPath)){
         if (is.null(samples$h5FullPath)){
             if (is.null(samples$bamReads)){
                 stop("no input file provided: provide paths to input files (in hdf5, bigWig or bam format) in the sample sheet file.")
             }else{
                 #read bam files into matrix
-                locus.length <- locus.end - locus.start + 1
                 command.line <- paste0(chr,
                                        ":",
                                        locus.start,
@@ -46,7 +54,7 @@ get.counts <- function(samples, chr, locus.start, locus.end){
                 }
             }
         }else{
-                                        #read hdf5 files into R matrix
+            #read hdf5 files into R matrix
             for (h5file in samples$h5FullPath){
                 print(paste0("Loading ", h5file))
                 print(paste0("h5read(", h5file, ",", chr, ", index=list(", locus.start, ":", locus.end, ")"))
@@ -77,7 +85,7 @@ getTranscripts <- function(GenePredIn, chr, locus.start, locus.end){
                                         header=FALSE),
                              as.character),
                       stringsAsFactors=FALSE)
-    return(genePred[genePred[,2]==chr,((genePred[,4]<=locus.start & genePred[,5]>=locus.start)|genePred[,4]<=locus.end & genePred[,5]>=locus.start)])
+    return(genePred[genePred[,2]==chr &((genePred[,4]<=locus.start & genePred[,5]>=locus.start)|genePred[,4]<=locus.end & genePred[,5]>=locus.start),])
 }
 
 get.exons.start.end <- function(transcript){	

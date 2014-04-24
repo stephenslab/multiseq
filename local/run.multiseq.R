@@ -31,13 +31,13 @@ samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)
 g               <- factor(samples$Tissue)
 g               <- match(g, levels(g)) - 1  
 
-split_region = unlist(strsplit(region, "\\:|\\-"))
-chr=split_region[1]
-locus.start=split_region[2]
-locus.end=split_region[3]
-locus.name <- paste(chr, locus.start, locus.end, sep=".")
+split_region <- unlist(strsplit(region, "\\:|\\-"))
+chr          <- split_region[1]
+locus.start  <- as.numeric(split_region[2])
+locus.end    <- as.numeric(split_region[3])
+locus.name   <- paste(chr, locus.start, locus.end, sep=".")
 dir.create(dir.name)
-dir.name   <- file.path(dir.name, locus.name)
+dir.name     <- file.path(dir.name, locus.name)
 dir.create(dir.name)
                              
 M <- get.counts(samples, region)

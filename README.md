@@ -80,14 +80,12 @@ The samplesheet should have the following format (see file ~/src/multiseq/data/s
 Run multiseq on all samples in samplesheet or select a subset of samples
 
     samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
-    chr="chr5"
-    start=131989505
-    end=132120576
+    region="chr5:131989505-132120576"
 
     samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
     g=factor(samples$Tissue) 
-    g=match(g,levels(g))-1
-    M=get.counts(samples, chr, start, end) 
+    g=match(g, levels(g))-1
+    M=get.counts(samples, region) 
     res=multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
     fra=2 #fraction of sd
     get.effect.intervals(res,fra)
@@ -95,9 +93,9 @@ Run multiseq on all samples in samplesheet or select a subset of samples
     #to save results in dir.name
     dir.name="~/src/multiseq/data/multiseq_sim/"
     # this function saves results in file effect_mean_var.txt.gz, a file with two columns: first column is effect mean and second column is effect variance
-    write.effect.mean.variance.gz(res,dir.name)
+    write.effect.mean.variance.gz(res, dir.name)
     # To write intervals where multiseq found an effect at 2 sd in a bed file
-    write.effect.intervals(res,dir.name,fra)
+    write.effect.intervals(res, dir.name, fra)
 
 Smooth by group
 
@@ -162,4 +160,4 @@ Use
     chrom_file=$HOME/src/multiseq/data/chromosome.lengths.hg19.txt
     sh write_list_loci.sh $window_size $chrom_file | head -n 5000 > list_loci.bed
 
-to create a bed file list_loci.bed with 5000 adjacent intervals of size 131072 from chr1
+to create a bed file list_loci.bed with 5000 adjacent intervals of size 131072 from chr1.

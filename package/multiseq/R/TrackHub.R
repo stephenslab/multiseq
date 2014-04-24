@@ -229,8 +229,11 @@ multiseqToTrackHub <- function(region, hub_name="multiseq", multiseq_folder="./r
     if (length(split_region) != 3)
            stop("invalid region: example of a valid region is chr1:2345-234567 ")
     chrom = split_region[1]
-    locus_start = split_region[2]
-    locus_end = split_region[3]
+    locus_start = as.numeric(split_region[2])
+    locus_end = as.numeric(split_region[3])
+
+    if (locus_start%%1 | locus_end%%1 | locus_end-locus_start<1) #check that locus.start
+         stop("Incorrect parameters locus_start and/or locus_end") 
     hub_dir = file.path(mountpoint, hub_name)
     hub_name_string = gsub("/", ".", hub_name)
     dir.create(hub_dir, showWarnings = FALSE)
