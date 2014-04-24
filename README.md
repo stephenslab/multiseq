@@ -136,23 +136,23 @@ in the UCSC Genome Browser. If multiseq output is in folder ~/src/multiseq/data/
     chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt"
     multiseqToTrackHub(region, hub_name, multiseq_folder, chrom_file)
 
-will create a track hub named *multiseq* in the "https:some/address/test/" folder and will print the following message:
+will create a track hub named *multiseq* in the "https:some/address/testMultiseq/multiseq_sim/" folder and will print the following message:
   
     go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window
     copy paste the following string in the URL field
-    https:some/address/test/multiseq/hub.txt
+    https:some/address/testMultiseq/multiseq_sim/hub.txt
     note: center your genome browser around chr5:131989505-132120576 and make track visible
 
 This is a screenshot of the track hub from the Genome Browser:
-![Image](data/sim/plots/multiseq.png?raw=true)
+![Image](data/sim/multiseq.png?raw=true)
 
 ### Running multiseq on multiple loci on the PPS cluster
 
-If you want to run multiseq in the list of loci in list_loci.bed (a bed file) then we can use the script in the folder "local" from spudhead:
+If you want to run multiseq in the list of loci in a bed file (e.g.: list_loci.bed) then you can use the script in the folder "local". From spudhead:
    sh qsub_run_multiseq.sh < list_loci.bed
 This script will submit to the cluster as many jobs as there are lines in list_loci.bed.
 
-[Note: the bash script qsub_run_multiseq.R runs the R script run.multiseq.R on each locus in list_loci.bed. run.multiseq.R calls multiseq with the appropriate arguments.]
+[Note: the bash script qsub_run_multiseq.sh runs the R script run.multiseq.R on each locus in list_loci.bed. run.multiseq.R calls multiseq with the appropriate arguments.]
  
 Use 
     window_size=131072
