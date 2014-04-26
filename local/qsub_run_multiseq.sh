@@ -40,7 +40,7 @@ fi
 while read region; do
     locus="`echo ${region} | awk '{print $1':'$2+1'-'$3}'`"
     PROCESS_NAME=`echo ${region} | awk '{print $1"."$2"."$3}'`
-    echo "Rscript run_multiseq.R ${sample_sheet} ${locus} ${OUT_DIR} ${hub_name} ${chrom_file} ${assembly} ${annotation_file}" | \
+    echo "Rscript run.multiseq.R ${sample_sheet} ${locus} ${OUT_DIR} ${hub_name} ${chrom_file} ${assembly} ${annotation_file}" | \
 	qsub -l h_vmem=${MEM} -v PATH -cwd -N ${PROCESS_NAME} \
         -o ${LOG_DIR}${PROCESS_NAME}"_log.out" -e ${LOG_DIR}${PROCESS_NAME}"_log.err"
 done 

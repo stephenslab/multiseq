@@ -66,7 +66,9 @@ get.counts <- function(samples, region){
         for (bigWigfile in samples$bigWigPath){
             print(paste0("Loading ", bigWigfile))
             wigfile <- paste0(bigWigfile,".wig")
-            system(paste("bigWigToWig", bigWigfile, "stdout | grep -v fixed >" , wigfile))
+            command=paste("bigWigToWig", bigWigfile, "stdout | grep -v fixed >" , wigfile)
+            print(command)
+            system(command)
             M <- rbind(M, as.numeric(as.matrix(read.table(wigfile, stringsAsFactors=F, header=FALSE))))
             file.remove(wigfile)
         }
@@ -192,12 +194,12 @@ plotResults <- function(res, fra=2, title=NULL, ylim=NULL, intervals=TRUE, type=
                                   c(ymin-2, ymax+2, ymax+2, ymin-2),
                                   col=rgb(1, 0, 0,0.5),
                                   border = NA)))
-        return(N.polygons)
     }
 }
 
 
 get.effect.intervals <- function(res,fra){
+    toreturn=res
     if (is.null(res$effect.mean))
         stop("Error: no effect in multiseq output")
     
@@ -232,7 +234,13 @@ get.effect.intervals <- function(res,fra){
         }else
             "WARNING: missing locus start or locus end; effect start and end are local and not relative to the sequence"
     }
-    return(list(effect.start=effect.start,effect.end=effect.end,effect.sign=effect.sign,effect.fra=fra,effect.coordinates="sequence"))
+    toreturn$effect.start=effect.start
+    toreturn$effect.end=effect.end
+    toreturn$effect.sign=effect.sign
+    toreturn$fra=fra
+    toreturn$effect.coordinates="sequence"
+
+    return(toreturn)
 }
 
 write.effect.intervals <- function(res,dir.name,fra=2){

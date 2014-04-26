@@ -1,6 +1,6 @@
 #usage
 #Rscript run.multiseq.R $samplesheet $chr":"$locus.start"-"$locus.end $multiseq.output.folder "test/multiseq" "chromosome.lengths.hg19.txt" "hg19.ensGene.gp.gz" 
-
+library(multiseq)
 
 
 #********************************************************************
@@ -8,6 +8,7 @@
 #     Get arguments
 #
 #********************************************************************
+
 args            <- commandArgs(TRUE)
 samplesheet     <- args[1]
 region          <- args[2]
@@ -15,17 +16,17 @@ dir.name        <- file.path(args[3])
 hub.name        <- args[4]
 chrom.file      <- file.path(args[5])
 assembly        <- args[6]
-annotation.file <- file.path(args([7]) 
-#locus.start     <- as.numeric(args[2])+1
+annotation.file <- file.path(args[7])
 
-#PARAMETERS
-#how many sd to plot when plotting effect size 
-fra             <- 2  
+#PARAMETERS  
+fra             <- 2      #how many sd to plot when plotting effect size    
 do.plot         <- FALSE
 do.smooth       <- FALSE
-do.summary      <- TRUE
-do.save         <- TRUE
+do.summary      <- FALSE
+do.save         <- FALSE
+computelogLR    <- TRUE
 
+                             
                              
 samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)   
 g               <- factor(samples$Tissue)
@@ -53,18 +54,32 @@ if (sum(M)<10){
     stop("Total number of reads over all samples is <10. Stopping.")
 }
 
-print("Compute effect")
+if (computelogLR==TRUE){
+    print("only compute loglikelihood")
+}else{
+    print("Compute effect")
+}
+
 if (do.summary)
     ptm      <- proc.time()
-res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
+res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR)
 if (do.summary)
     my.time  <- proc.time() - ptm
 
+if (computelogLR==TRUE){
+    write.table(t(c(res$logLR, res$logLR.each.scale, quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR.txt"))))
+    stop("run successfully")
+}
 res$chr=chr
 res$locus.start=locus.start
 res$locus.end=locus.end
 res <- get.effect.intervals(res,fra)
-    
+
+if (do.summary){
+    Neffect2=get.effect.length(res,fra=2)
+    Neffect3=get.effect.length(res,fra=3) 
+    write.table(t(c(chr, locus.start, locus.end, length(Neffect2, Neffect3, my.time[1])), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summary.txt"))
+}
 if (do.save){
         #save results in a compressed file 
     write.effect.mean.variance.gz(res,dir.name)
