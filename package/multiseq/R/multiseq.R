@@ -222,8 +222,8 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
         beta.fm=tfmoment(zdat.ash_post$mu, zdat.ash_post$sigma,4,zdat.ash_post$pi)
         wSq=(w[2]+mbvar)^2-(w[1]+mbvar)^2
         PosteriorSq=zdat.ash$PosteriorSD^2+zdat.ash$PosteriorMean^2
-        lpratio=ffwrapper(alpha$mean, alpha$var, zdat.ash$PosteriorMean, PosteriorSq, beta.tm, beta.fm, wSq, g)
-        lqratio=ffwrapper(-alpha$mean, alpha$var, -zdat.ash$PosteriorMean, PosteriorSq, -beta.tm, beta.fm, wSq, g)
+                lpratio=ffwrapper(alpha$mean, alpha$var, zdat.ash$PosteriorMean, PosteriorSq, wSq, beta.tm, beta.fm, g)
+        lqratio=ffwrapper(-alpha$mean, alpha$var, -zdat.ash$PosteriorMean, PosteriorSq, wSq, -beta.tm, beta.fm, g)
         return(list(lp.mean=lp$mean, lp.var=lp$var, lq.mean=lq$mean, lq.var=lq$var, lpratio.mean=lpratio$mean, lpratio.var=lpratio$var, lqratio.mean=lqratio$mean, lqratio.var=lqratio$var))
     }
 }            
