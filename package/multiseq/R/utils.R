@@ -1,6 +1,7 @@
 #' Get sample counts in a genomic region from bam, hdf5, or bigWig file
 #'
-#' If samples$bamReads is specified then this function extracts reads from the bam files in samples$bamReads using `samtools` (which must be in the USER's path) (no filter applied). Else if samples$h5FullPath is specified this function extracts reads from the hdf5 files in samples$h5FullPath using the R package rhdf5. Else if samples$bigWigPath is specified this function extracts reads from bigWig files using the executable `bigWigToWig` (which must be in the USER's path).
+#' If samples$bamReads is specified then this function extracts reads from the bam files in samples$bamReads using `samtools` (which must be in the USER's path) (no filter applied). Else if samples$h5FullPath is specified this function extracts reads from the hdf5 files in samples$h5FullPath using the R package rhdf5.
+#[this still has to be tested: Else if samples$bigWigPath is specified this function extracts reads from bigWig files using the executable `bigWigToWig` (which must be in the USER's path).]
 #'
 #' @param samples: a data frame containing attributes on N samples (extracted from a samplesheet)
 #' @param chr: a string representing a reference sequence name
@@ -78,15 +79,13 @@ get.counts <- function(samples, region){
     return(M)
 }
 
-
-
 getTranscripts <- function(GenePredIn, chr, locus.start, locus.end){
     genePred = data.frame(lapply(read.table(GenePredIn,
-                                        fill=1,
-                                        comment.char="",
-                                        header=FALSE),
-                             as.character),
-                      stringsAsFactors=FALSE)
+        fill=1,
+        comment.char="",
+        header=FALSE),
+        as.character),
+        stringsAsFactors=FALSE)
     return(genePred[genePred[,2]==chr &((genePred[,4]<=locus.start & genePred[,5]>=locus.start)|genePred[,4]<=locus.end & genePred[,5]>=locus.start),])
 }
 
@@ -212,27 +211,29 @@ get.effect.intervals <- function(res,fra){
 
     x=cumsum(rle(x)$lengths)
     xl=length(x)
-    if (xl>0){
+    if (xl>2){
         effect.start=c(effect.start,x[seq(1,xl,2)]+1)
-        effect.end=c(effect.end,x[seq(2,xl-1,2)])
+        effect.end=c(effect.end,x[seq(2,xl,2)])
         effect.sign=c(effect.sign,rep("-",xl))
     }
 
     y=cumsum(rle(y)$lengths)
     yl=length(y)
-    if (yl>0){
+    if (yl>2){
         effect.start=c(effect.start,y[seq(1,yl,2)]+1)
         effect.end=c(effect.end,y[seq(2,yl-1,2)])
         effect.sign=c(effect.sign,rep("+",yl))
     }
     effect.coordinates="local"
-    if (!is.null(res$chr)){
-        if (!is.null(res$locus.start)&!is.null(res$locus.end)){
-            effect.start=locus.start+effect.start-1
-            effect.end=locus.start+effect.end
-            effect.coordinates="sequence"
-        }else
-            "WARNING: missing locus start or locus end; effect start and end are local and not relative to the sequence"
+    if (!is.null(effect.start)){
+        if (!is.null(res$chr)){
+            if (!is.null(res$locus.start)&!is.null(res$locus.end)){
+                effect.start=locus.start+effect.start-1
+                effect.end=locus.start+effect.end
+                effect.coordinates="sequence"
+            }else
+                "WARNING: missing locus start or locus end; effect start and end are local and not relative to the sequence"
+        }
     }
     toreturn$effect.start=effect.start
     toreturn$effect.end=effect.end
@@ -245,9 +246,19 @@ get.effect.intervals <- function(res,fra){
 
 write.effect.intervals <- function(res,dir.name,fra=2){
     if (res$effect.coordinates=="sequence"){
-        bedfile <- file.path(dir.name, paste0("multiseq.effect.",fra, "sd.bed"))
-        write(paste(res$chr,res$effect.start,res$effect.end,".","1000",res$effect.sign,sep="\t"),
-              file=file.path(dir.name, paste0("multiseq.effect.",fra, "sd.bed")))
+        if (!is.null(effect.start)){
+            bedfile <- file.path(dir.name, paste0("multiseq.effect.",fra, "sd.bed"))
+            write(paste(res$chr,
+                        res$effect.start,
+                        res$effect.end,
+                        ".",
+                        "1000",
+                        res$effect.sign,
+                        sep="\t"),
+                  file=file.path(dir.name, paste0("multiseq.effect.",
+                      fra,
+                      "sd.bed")))
+        }
     }else
         warning(paste("WARNING: missing effect.start or effect.end; cannot generate",bedfile))
 }

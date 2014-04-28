@@ -23,8 +23,8 @@ fra             <- 2      #how many sd to plot when plotting effect size
 do.plot         <- FALSE
 do.smooth       <- FALSE
 do.summary      <- FALSE
-do.save         <- FALSE
-computelogLR    <- TRUE
+do.save         <- TRUE
+computelogLR    <- FALSE
 
                              
                              
@@ -62,12 +62,12 @@ if (computelogLR==TRUE){
 
 if (do.summary)
     ptm      <- proc.time()
-res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR)
+res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR=computelogLR)
 if (do.summary)
     my.time  <- proc.time() - ptm
 
 if (computelogLR==TRUE){
-    write.table(t(c(res$logLR, res$logLR.each.scale, quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR.txt"))))
+    write.table(t(c(res$logLR, res$logLR.each.scale)), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR.txt"))
     stop("run successfully")
 }
 res$chr=chr
@@ -78,7 +78,8 @@ res <- get.effect.intervals(res,fra)
 if (do.summary){
     Neffect2=get.effect.length(res,fra=2)
     Neffect3=get.effect.length(res,fra=3) 
-    write.table(t(c(chr, locus.start, locus.end, length(Neffect2, Neffect3, my.time[1])), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summary.txt"))
+    write.table(t(c(chr, locus.start, locus.end, length(Neffect2, Neffect3, my.time[1]))),
+                quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summary.txt"))
 }
 if (do.save){
         #save results in a compressed file 
