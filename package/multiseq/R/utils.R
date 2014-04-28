@@ -66,7 +66,7 @@ get.counts <- function(samples, region){
                                         #read bigWig files into R matrix
         for (bigWigfile in samples$bigWigPath){
             print(paste0("Loading ", bigWigfile))
-            wigfile <- paste0(bigWigfile,".wig")
+            wigfile <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".wig")
             command=paste("bigWigToWig", bigWigfile, "stdout | grep -v fixed >" , wigfile)
             print(command)
             system(command)
