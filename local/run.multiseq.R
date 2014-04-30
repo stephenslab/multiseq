@@ -23,8 +23,8 @@ fra             <- 2      #how many sd to plot when plotting effect size
 do.plot         <- FALSE
 do.smooth       <- FALSE
 do.summary      <- FALSE
-do.save         <- TRUE
-computelogLR    <- FALSE
+do.save         <- FALSE
+computelogLR    <- TRUE
 
                              
                              

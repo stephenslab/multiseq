@@ -292,7 +292,7 @@ multiseqToTrackHub <- function(region, hub_name="multiseq", multiseq_folder="./r
     multiseq_bed_file = file.path(multiseq_folder, "multiseq.effect.2sd.bed")
     #check if bed file is empty
     no_bed=TRUE
-    if (file.info(multiseq_bed_file)$size > 1){
+    if (!is.null(file.info(multiseq_bed_file)$size)){
         no_bed=FALSE
         multiseq_peaks_track = file.path(assembly_dir, "multiseq_bed_file.bb")
         cmd = paste("bedToBigBed",

@@ -246,7 +246,7 @@ get.effect.intervals <- function(res,fra){
 
 write.effect.intervals <- function(res,dir.name,fra=2){
     if (res$effect.coordinates=="sequence"){
-        if (!is.null(effect.start)){
+        if (!is.null(res$effect.start)){
             bedfile <- file.path(dir.name, paste0("multiseq.effect.",fra, "sd.bed"))
             write(paste(res$chr,
                         res$effect.start,
