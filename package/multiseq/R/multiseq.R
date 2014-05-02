@@ -293,7 +293,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     if(computelogLR == TRUE){
         if(is.null(g)) stop("Error: g should be provided to compute logLR (computelogLR = TRUE) ") 
         pointmass <- TRUE     # if computelogLR is true, pointmass should be true.
-        prior <- "uniform"    # uniform prior
+        #prior <- "uniform"    # uniform prior
         logLR = rep(NA, J + 1)
     }
 
