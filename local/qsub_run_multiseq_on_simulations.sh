@@ -34,8 +34,8 @@ for peak_type in "high" "low" "average"; do
 	locus_dot=`echo ${region} | awk '{start=$2+1; print $1"."start"."$3}'`
 	locus="`echo ${region} | awk -v d=':' -v m='-' '{print $1,d,$2+1,m,$3}' OFS='' `"
 	for sim_type in "Null" "NonNull"; do
-	    OUT_DIR="/KG/epantaleo/simulations/"$DATA_NAME"_new/"$sim_type"/"$peak_type
-	    hub_name="simulations/"$DATA_NAME"/"$sim_type"/"$peak_type"/"$locus_dot"/multiseq_new"
+	    OUT_DIR="/KG/epantaleo/simulations/"$DATA_NAME"/"$sim_type"/"$peak_type
+	    #hub_name="simulations/"$DATA_NAME"/"$sim_type"/"$peak_type"/"$locus_dot"/multiseq_new"
 	    #if [ ! -d "${OUT_DIR}" ]; then
 	    #	mkdir ${OUT_DIR}
 	    #fi

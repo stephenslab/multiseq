@@ -13,7 +13,7 @@
 
 MEM=10g
 sample_sheet=$1
-OUT_DIR=$2
+OUT_DIR=$2"/"
 hub_name="my_multiseq_results"
 chrom_file="~/src/multiseq/data/hg19/chromosome.lengths.hg19.txt"
 assembly="hg19"

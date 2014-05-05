@@ -25,7 +25,7 @@ do.smooth       <- FALSE
 do.summary      <- FALSE
 do.save         <- FALSE
 computelogLR    <- TRUE
-
+#prior           <- "uniform"
                              
                              
 samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)   
@@ -67,7 +67,7 @@ if (do.summary)
     my.time  <- proc.time() - ptm
 
 if (computelogLR==TRUE){
-    write.table(t(c(res$logLR, res$logLR.each.scale)), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR.txt"))
+    write.table(t(c(res$logLR, res$logLR.each.scale)), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR_prior_nullbiased.txt"))
     stop("run successfully")
 }
 res$chr=chr
