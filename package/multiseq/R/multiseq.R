@@ -236,7 +236,7 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param x: a matrix of nsig by n counts where n should be a power of 2 or a vector of size n (nsig will be set to 1).
 #' @param read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
 #' @param reflect: bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflect}} for details.
-#' @param baseline: can be "inter" or "grp" or a positive integer. Uses intercept g=0 as baseline ("inter") or the group with the smallest g as baseline ("grp") or specifies value of g that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp"
+#' @param baseline: can be "inter" or "grp" or a number. Uses intercept g=0 as baseline ("inter") or the group with the smallest g as baseline ("grp") or specifies value of g that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp"
 #' @param g: an nsig-vector containing group indicators/covariate value for each sample
 #' @param minobs: minimum number of obs required to be in each logistic model 
 #' @param pseudocounts: a number to be added to counts

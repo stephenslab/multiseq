@@ -1,21 +1,37 @@
-#the following functions are approximately unbiased variance estimates
-#for the estimators for logit(p) when n is small
+#' Compute approximately unbiased variance estimates for the estimators for logit(p) when n is small
+#' @param n: number of trials
+#' @param s: number of successes
+#' @param f: number of failures
 v3=function(n,s,f){
     return((n+1)/n*(1/(s+1)+1/(f+1)))
 }
 
+#' Compute approximately unbiased variance estimates for the estimators for logit(p) when n is small
+#' @param n: number of trials
+#' @param s: number of successes
+#' @param f: number of failures
 vs=function(n,s,f){
     vv=v3(n,s,f)
     return(vv*(1-2/n+vv/2))
 }
 
+#' Compute approximately unbiased variance estimates for the estimators for logit(p) when n is small
+#' @param n: number of trials
+#' @param s: number of successes
+#' @param f: number of failures
 vss=function(n,s,f){
     vv=v3(n,s,f)
     return(vs(n,s,f)-1/2*vv^2*(vv-4/n))
 }
 
 
-# use glm to fit quasibinomial, but don't allow for underdispersion!
+#' Modified glm function to return relevant outputs, not allowing for underdispersion
+#' @param x: covariante
+#' @param y: response
+#' @param forcebin: see glm.approx
+#' @param repara: see glm.approx
+#' @param ...: other inputs to glm.fit
+#' @return a vector of intercept and slope estimates and their SEs
 safe.quasibinomial.glm.fit=function(x,y,forcebin=FALSE,repara=FALSE,...){
     if(forcebin){
         z=glm.fit(x,y,family=binomial(),...)
@@ -64,14 +80,16 @@ safe.quasibinomial.glm.fit=function(x,y,forcebin=FALSE,repara=FALSE,...){
 }
 
 
-# x is a 2n by 1 vector, with first n observations giving
-#number of successes, and next n giving number of failures in a series
-#of binomial experiments.
-#returns estimated binomial p (actually logit(p))
-# and standard error
-#if g is supplied also provides estimate and standard error of effect of g
-#the repara option simply returns the covariance between intercept and 
-#slope when called
+
+#' Returns estimates of intercept and slope as well as their SEs, given other input options. Called in glm.approx
+#' @param x: a 2n by 1 vector, with first n observations giving number of successes, and next n giving number of failures in a series of binomial experiments.
+#' @param g: covariate. Can be null, in which case only the intercept estimate and its SE is returned
+#' @param minobs: see glm.approx
+#' @param pseudocounts: see glm.approx
+#' @param all: see glm.approx
+#' @param forcebin: see glm.approx
+#' @param repara: see glm.approx
+#' @return a vector of intercept and slope estimates and their SEs
 bintest = function(x,g,minobs=1,pseudocounts=0.5,all=FALSE,forcebin=FALSE,repara=FALSE){
     xmat = matrix(x,ncol=2)
     zerosum = (apply(xmat,1,sum)==0)
@@ -110,13 +128,13 @@ bintest = function(x,g,minobs=1,pseudocounts=0.5,all=FALSE,forcebin=FALSE,repara
     }
 }
 
-#Extracts success and failure counts from a matrix of successes and failures
+#' @return a list with elements "x.s", "x.f"
 extract.sf=function(x,n){
     return(list(x.s=as.vector(t(x[,(1:(2*n))%%2==1])),x.f=as.vector(t(x[,(1:(2*n))%%2==0]))))
 }
 
 
-#Adds pseudocounts to successes and failures according to specified parameters
+#' @return a list with elements "x.s", "x.f"
 add.counts=function(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn=NULL){
     if(pseudocounts==0){                    
         x.s[index1]=x.s[index1]+eps
@@ -138,6 +156,8 @@ add.counts=function(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn=NULL){
 }
   
 
+#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates
+#' @return a list with elements "mu", "var" and optionally "p"
 compute.approx.z=function(x.s,x.f,bound,eps,pseudocounts,all,indexn=NULL,return.p=FALSE){
     #compute mu
     index1=(x.s/x.f)<=bound                  #find indices for which binomial success or failures are too small
@@ -164,7 +184,8 @@ compute.approx.z=function(x.s,x.f,bound,eps,pseudocounts,all,indexn=NULL,return.
 }
 
 
-#Obtain estimates and standard errors for mu and beta when using fitting WLS
+#' Compute estimates and standard errors for mu and beta when fitting WLS, as well as the covariance between mu and beta
+#' @return a list elements "coef", "se", "mbvar"
 wls.coef=function(z,disp,indexnm,n,ng,forcebin,g=NULL,repara=NULL){
     #compute vector of dfs for all n linear models (disregarding obs with missing data)
     if(is.null(g))
@@ -197,7 +218,7 @@ wls.coef=function(z,disp,indexnm,n,ng,forcebin,g=NULL,repara=NULL){
 }
 
 
-#Function used in wls.coef 
+#' @return a list with elements "coef", "se", "wrse2" if g is not specified, or a list with elements "muhat", "semuhat", "betahat", "sebetahat", "covmubeta", "wrse2" otherwise
 wls.mb=function(z,v,disp,indexnm,ng,df,forcebin,g=NULL,n=NULL,vv=NULL){
     if(is.null(vv)){                       #compute weights for each of the n models
         w=1/v                                
@@ -245,7 +266,8 @@ wls.mb=function(z,v,disp,indexnm,ng,df,forcebin,g=NULL,n=NULL,vv=NULL){
     }
 }
 
-#Computes the dispersion factor
+#' Computes the dispersion parameter when fitting glm
+#' @return a vector of dispersion parameters for each fitted model, or 1 if dispersion is absent
 compute.dispersion=function(p,n,ng,indexnm,forcebin,ind=NULL,ord=NULL,lg=NULL,x=NULL,x.s=NULL,x.f=NULL){
    if(is.null(lg)){
      if(forcebin|ng==1)                         #force dispersion to be absent
@@ -290,9 +312,9 @@ compute.dispersion=function(p,n,ng,indexnm,forcebin,ind=NULL,ord=NULL,lg=NULL,x=
 
 
 
-#Computes the estimates and SEs for the models using glm, taking different scenarios into account
-#covv is only defined when lg=3
-#mbvar is only defined when lg=2 and repara=TRUE
+
+#' Compute estimates and standard errors for mu and beta when fitting WLS, as well as the covariance between mu and beta. 
+#' @return a list elements "coef", "se" and optionally "mbvar" if lg=2 and repara=TRUE, or "covv" if lg=3
 glm.coef=function(z,g,n,center,repara){
     lg=length(levels(g))
     mbvar=NULL
@@ -344,7 +366,7 @@ glm.coef=function(z,g,n,center,repara){
     return(list(mu=coef,var=var,mbvar=mbvar,covv=covv))
 }
 
-#Set NA to models with insufficient data and returns output for wls
+#' @return a matrix with estimates for mu and beta, as well as their SEs. Optionally returns "mbvar" if specified
 compute.lm=function(g,coef,se,mbvar,n,index,repara){
     if(is.null(g)){
         na.ind=is.na(coef[1:n])|is.na(se[1:n])  
@@ -368,7 +390,7 @@ compute.lm=function(g,coef,se,mbvar,n,index,repara){
 }
 
 
-#Set NA to models with insufficient data and returns output for glm
+#' @return a matrix with estimates for mu and beta, as well as their SEs. Optionally returns "mbvar" if specified
 compute.glm=function(x,g,d,n,na.index,repara){
     se=sqrt(x$var*d)           #dispersion
     mu=x$mu
@@ -403,25 +425,23 @@ compute.glm=function(x,g,d,n,na.index,repara){
 
 
 
-
-#fast alternative to the glm function
-#inputs: 
-#eps: (usually small) number added to the cases when either
-#there are 0 successes or 0 failures
-#pseudocounts: as in bintest
-#all: indicates if pseudocounts should be added to all entries rather
-#than just 0 entries. default FALSE
-#minobs: the minimum number of observations with no missing data to estimate intercept and slope
-#center: chooses if to center g. does not work for categorical g with more than 2 groups
-#forcebin: forcibly sets dispersion to 1 or not
-# minReads
-# filter : 0 no filtering
-#          1 filter if min(s1,f1, s2, f2) < minReads
-#          2 filter if min(s1+f1, s2+f2) < minReads
+#' This function essentially fits the model specified in documentation, using either a weighted least squares approach or a generalized linear model approach, with some modifications. It is optimized for fitting multiple models simultaneously
+#' @param x: a matrix of successes and failures for each individual at each location and each scale
+#' @param g: a vector of covariates. Can be a factor (2 groups only) or quantitative
+#' @param pseudocounts: adds pseudocounts in the case of low success of failure counts.
+#' @param all: bool,  when success or failure counts are low, controls whether or not to add pseudocounts to all observations or only the low counts.
+#' @param eps: adds tiny pseudocounts in the case of 0 successes or 0 failures. Only used when pseoducounts=0
+#' @param center: bool, specifies if g should be centered or not
+#' @param repara: bool, specifies if model should be reparametrized so that muhat and betahat are uncorrelated
+#' @param forcebin: bool, if TRUE don't allow for overdipersion.
+#' @param lm.approx: bool, specifies if WLS should be used (TRUE), or GLM (FALSE)
+#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#'
+#' @export
+#' @return a 4 by n matrix of muhats, SEs of muhats, betahats and SEs of betahats when repara=TRUE, and a 5 by n matrix of muhats, SEs of muhats, betahats, SEs of betahats and the covariance between muhats and betahats otherwise
 #repara: specifies whether or not to reparametrize linear model to have independent parameters in multiscale model
 #lm.approx: uses a modified WLS to approximate the GLM
-glm.approx=function(x,g=NULL,eps=1e-8,minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,filter=0,forcebin=FALSE,repara=FALSE,minReads=1,lm.approx=FALSE,disp=c("add","mult")){
-#   thresh = minReads
+glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center=FALSE,repara=FALSE,forcebin=FALSE,lm.approx=FALSE,disp=c("add","mult")){
     disp=match.arg(disp)
     if(is.vector(x)){dim(x)<- c(1,length(x))}  #if x is a vector convert to matrix 
     n=ncol(x)/2
