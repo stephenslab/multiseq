@@ -8,11 +8,7 @@ Date: 2013-11-05
 Description: Requires the executables samtools, wigToBigWig, bigWigInfo, and
     bedToBigBed to be in the USER's path.
 License: GPL-3
-Depends:
-    Rcpp (>= 0.10.4),
-    ashr,
-    rhdf5,
-    tools,
-    data.table
+Depends: Rcpp (>= 0.10.4), ashr, tools, data.table
+Suggests: rhdf5
 LinkingTo: Rcpp
-Packaged: 2013-11-05 22:18:16 UTC; epantaleo
+Packaged: 2014-05-07 20:50:27 UTC; esterpantaleo

@@ -64,7 +64,7 @@ printGoToMessage <- function(hub_name, hub_dir, http_address, region=NULL){
 #' @param bigWig_track: name of new bigWig track
 #' @param assembly: genome assembly that reads were mapped to; default="hg19"
 
-#' @return: no return; it prints a Track Hub folder
+#' @return no return; it prints a Track Hub folder
 #' @examples
 #' hdf5ToBigWig(in.h5, chromosome_file, out)
 #' converts in.h5 into out.bw using chromosome names and lengths in chromosome_file

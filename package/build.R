@@ -9,9 +9,14 @@ library(Rcpp)
 Rcpp.package.skeleton("multiseq", path=".", code <- files=c("multiseq.R", "PoissonBinomial.funcs.R", "deltamethod.R"), cpp <- files="multiseq.cpp", example <- code = FALSE, attributes = TRUE)
 
 #/data/tools/R-3.0.3/bin/R
+#devtools::install_github("klutometis/roxygen")
 require(roxygen2)
 require(devtools)
-roxygenize()
+roxygenize("~/Downloads/multiseq")
+document("~/Downloads/multiseq")
+
+
+
 
 #in the terminal
 #cd ..
