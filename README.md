@@ -31,7 +31,13 @@ After installing *ashr* from within R use:
       install.packages("data.table")
       install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
 
-Some functions for sequencing data extraction/manipulation require additional executables to be in the user's PATH. The required executables are: `samtools`, `wigToBigWig`, `bigWigInfo`, and `bedToBigBed`.
+### Add required executables to the USER's path
+
+Some functions for sequencing data extraction/manipulation require additional executables to be in the user's PATH. The required executables are: `samtools`, `wigToBigWig`, `bigWigInfo`, and `bedToBigBed`. If you are installing the		   package on the cluster add the following lines to your ~/.bashrc file:
+
+    export PATH=$PATH:/data/tools/ucsctools/:/usr/local/bin/
+
+Make sure that you remember to set these variables after adding them to your .bashrc for the first time. You can login again, or do source ~/.bashrc
 
 ### Setting up a mountpoint to visualize results in the UCSC Genome Browser
 
