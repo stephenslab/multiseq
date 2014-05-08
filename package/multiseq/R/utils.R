@@ -7,7 +7,7 @@
 #' @param chr: a string representing a reference sequence name
 #' @param locus.start: an integer representing a position on chr
 #' @param locus.end: an integer representing a position on chr (must be locus.end>locus.start)
-#'
+#' @export 
 #' @return a matrix with N rows and locus.end-locus.start+1 columns containing the number of reads that start at each base in the specified region in each sample 
 get.counts <- function(samples, region){
     split_region = unlist(strsplit(region, "\\:|\\-"))
@@ -79,6 +79,8 @@ get.counts <- function(samples, region){
     return(M)
 }
 
+#' getTranscripts
+#' @export
 getTranscripts <- function(GenePredIn, chr, locus.start, locus.end){
     genePred = data.frame(lapply(read.table(GenePredIn,
         fill=1,
@@ -95,6 +97,8 @@ get.exons.start.end <- function(transcript){
     return(list(exst=exst, exen=exen))
 }
 
+#' plotTranscripts
+#' #' @export    
 plotTranscripts <- function(Transcripts, plotStart=NULL, plotEnd=NULL, is.xaxis=1, main=NULL, expressions=NULL, cex=1){
     if (is.null(Transcripts)){
         plot(1, type="n", axes=F, xlab="", ylab="")
@@ -160,6 +164,8 @@ plotTranscripts <- function(Transcripts, plotStart=NULL, plotEnd=NULL, is.xaxis=
     }    
 }
 
+#' plotResults
+#' @export    
 plotResults <- function(res, fra=2, title=NULL, ylim=NULL, intervals=TRUE, type="effect"){
     if (is.null(title))
         paste0(title, " ", type, " (", fra, " standard deviations)")
@@ -196,7 +202,8 @@ plotResults <- function(res, fra=2, title=NULL, ylim=NULL, intervals=TRUE, type=
     }
 }
 
-
+#' get.effect.intervals
+#' @export    
 get.effect.intervals <- function(res,fra){
     toreturn=res
     if (is.null(res$effect.mean))
@@ -244,6 +251,8 @@ get.effect.intervals <- function(res,fra){
     return(toreturn)
 }
 
+#' write.effect.intervals
+#' @export
 write.effect.intervals <- function(res,dir.name,fra=2){
     if (res$effect.coordinates=="sequence"){
         if (!is.null(res$effect.start)){
@@ -263,20 +272,25 @@ write.effect.intervals <- function(res,dir.name,fra=2){
         warning(paste("WARNING: missing effect.start or effect.end; cannot generate",bedfile))
 }
 
+#' get.effect.length
+#' @export   
 get.effect.length <- function(res,fra){
     if (is.null(res$effect.start)|res$fra!=fra)
         res <- get.effect.intervals(res,fra)
     return(sum(res$effect.end-res$effect.start))
 }
 
+#' write.effect.mean.variance.gz
+#' @export 
 write.effect.mean.variance.gz <- function(res,dir.name){
     gz1      <- gzfile(file.path(dir.name, "effect_mean_var.txt.gz"), "w")
     write.table(cbind(res$effect.mean, res$effect.var), col.names=FALSE, row.names=FALSE, file=gz1)
     close(gz1)
 }
 
-#this file has 6 columns
-#chr, locus start, locus end, number of bases with effect at 2sd, number of bases with effect at 3sd, running time of multiseq 
+#' write.summary 
+#' File summary has 6 columns: chr, locus start, locus end, number of bases with effect at 2sd, number of bases with effect at 3sd, running time of multiseq 
+#' @export
 write.summary <- function(res,dir.name,timing){
     Neffect2=get.effect.length(res,2)
     Neffect3=get.effect.length(res,3)

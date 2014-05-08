@@ -3,6 +3,7 @@ MOUNTPOINT_HTTP_ADDRESS=Sys.getenv("MOUNTPOINT_HTTP_ADDRESS")
 
 
 #' @title Write genomes.txt and hub.txt files
+#' @export
 writeTrackHubSkeleton <- function(hub_dir, assembly="hg19", hub_name_string, email="esterpantaleo@gmail.com"){
     assembly_dir = file.path(hub_dir, assembly)
 
@@ -97,6 +98,7 @@ hdf5ToBigWig <- function(h5_track, chrom_file, bigWig_track, assembly="hg19"){
 #' @param assembly: genome assembly that reads were mapped to; default="hg19" 
 #' @param mountpoint: path to the directory where the track hub folder will be saved in. This directory should be associated with an http address or an ftp address; default=Sys.getenv("MOUNTPOINT_PATH")
 #' @param http_address: http or ftp address associated with the mountpoint; default=Sys.getenv("MOUNTPOINT_PATH")
+#' @export
 samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt", assembly="hg19", mountpoint=MOUNTPOINT_PATH, http_address=MOUNTPOINT_HTTP_ADDRESS){
     if (is.null(hub_name)) hub_name=paste0(basename(samplesheet),".TrackHub")
     samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)
@@ -224,6 +226,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/
 #' @param assembly: genome assembly that reads were mapped to; default="hg19"
 #' @param mountpoint: path to the directory where the track hub folder will be saved in. This directory should be associated with an http address or an ftp address; default=Sys.getenv("MOUNTPOINT_PATH")
 #' @param http_address: http or ftp address associated with the mountpoint; default=Sys.getenv("MOUNTPOINT_PATH")
+#' @export
 multiseqToTrackHub <- function(region, hub_name="multiseq", multiseq_folder="./results_run_multiseq/", chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt", assembly="hg19", mountpoint=MOUNTPOINT_PATH, http_address=MOUNTPOINT_HTTP_ADDRESS){
     split_region = unlist(strsplit(region, "\\:|\\-"))
     if (length(split_region) != 3)
