@@ -160,7 +160,7 @@ ffwrapper <- function(mean, var, Mean, Sq, wSq, beta.tm, beta.fm, g){
 
 #' @title compute.res.rate
 #' @return a list with elements "lp.mean", "lp.var", "lpratio.mean", "lpratio.var"
-compute.res.rate <- function(zdat, repara, w, g=NULL, zdat.o=NULL){
+compute.res.rate <- function(zdat, repara, w, read.depth, g=NULL){
     if (repara==TRUE)
         mbvar=zdat[5]
     else
@@ -168,21 +168,17 @@ compute.res.rate <- function(zdat, repara, w, g=NULL, zdat.o=NULL){
 
     #compute lpratio.m and lpratio.v    
     #computes mean and variance for the ratio of overall intensities in different groups (used in reconstructing the effect estimate later)
-    if (is.null(zdat.o)){
+    if (is.null(read.depth)){
         lp=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=0)        
         lpratio=list(mean=zdat[3], var=0)
     }else{
-        if(repara==TRUE)
-            mbvar.o=zdat.o[5]
-        else
-            mbvar.o=0
         lp=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=zdat[2]^2+((w[1]+mbvar)*zdat[4])^2)
 
-        beta.tm = tfmoment(zdat.o[3],zdat.o[4],3)
-        beta.fm = tfmoment(zdat.o[3],zdat.o[4],4)
-        wSq=(w[2]+mbvar.o)^2-(w[1]+mbvar.o)^2
-        zdatSq=zdat.o[4]^2+zdat.o[3]^2
-        lpratio=ffwrapper(zdat.o[1], zdat.o[2]^2, zdat.o[3], zdatSq, wSq, beta.tm, beta.fm, g)
+        beta.tm = tfmoment(zdat[3],zdat[4],3)
+        beta.fm = tfmoment(zdat[3],zdat[4],4)
+        wSq=(w[2]+mbvar)^2-(w[1]+mbvar)^2
+        zdatSq=zdat[4]^2+zdat[3]^2
+        lpratio=ffwrapper(zdat[1], zdat[2]^2, zdat[3], zdatSq, wSq, beta.tm, beta.fm, g)
     }
     
     return(list(lp.mean=lp$mean, lp.var=lp$var, lpratio.mean=lpratio$mean, lpratio.var=lpratio$var))
@@ -329,7 +325,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             if(computelogLR){
                 logLR[J+1] = fast.ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
-                res.rate=compute.res.rate(zdat.rate.o, repara, w)
+                res.rate=compute.res.rate(zdat.rate.o, repara, w, read.depth)
             }
         }else{
             ##run glm.approx to get zdat.rate
@@ -341,9 +337,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
                 logLR[J+1] = fast.ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
-                y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
-                zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-                res.rate=compute.res.rate(zdat.rate.o, repara, w, g, zdat.rate)
+                res.rate=compute.res.rate(zdat.rate, repara, w, read.depth, g)
             }
         }
     }
