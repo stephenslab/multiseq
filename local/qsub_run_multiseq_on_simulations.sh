@@ -25,7 +25,7 @@ else if [ $DATA_NAME=="Encode" ]; then
 fi
 fi
 
-LOG_DIR=$course_repodir"/tests/simulations/"$DATA_NAME"/logs_new/"
+LOG_DIR=$course_repodir"/tests/simulations/"$DATA_NAME"/logs/"
 if [ ! -d "${LOG_DIR}" ]; then
     mkdir ${LOG_DIR}
 fi

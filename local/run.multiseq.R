@@ -25,7 +25,7 @@ do.smooth       <- FALSE
 do.summary      <- FALSE
 do.save         <- FALSE
 computelogLR    <- TRUE
-#prior           <- "uniform"
+prior           <- "uniform"
                              
                              
 samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)   
@@ -62,12 +62,12 @@ if (computelogLR==TRUE){
 
 if (do.summary)
     ptm      <- proc.time()
-res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR=computelogLR)
+res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR=computelogLR, prior=prior)
 if (do.summary)
     my.time  <- proc.time() - ptm
 
 if (computelogLR==TRUE){
-    write.table(t(c(res$logLR, res$logLR.each.scale)), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR_prior_nullbiased.txt"))
+    write.table(t(c(res$logLR, res$logLR.each.scale)), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR_prior_uniform.txt"))
     stop("run successfully")
 }
 res$chr=chr
