@@ -251,10 +251,11 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param shape.eff: bool, indicating whether to consider only shape effects
 #' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
 #' @param computelogLR: bool, indicating whether to compute logLR or not
+#' @param maxlogLR: a positive number, default=NULL, the function returns this number if logLR is infinite. If maxlogLR==NULL, the function returns inf as logLR.
 #'
 #' @export
-#' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "logLR.each.scale" 
-multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,repara=TRUE,forcebin=FALSE,lm.approx=TRUE,disp=c("add","mult"),nullcheck=TRUE,pointmass=TRUE,prior="nullbiased",gridmult=2,mixsd=NULL,VB=FALSE,shape.eff=FALSE,cxx=TRUE, computelogLR = FALSE){
+#' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "logLR.each.scale", "finite.logLR" 
+multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,repara=TRUE,forcebin=FALSE,lm.approx=TRUE,disp=c("add","mult"),nullcheck=TRUE,pointmass=TRUE,prior="nullbiased",gridmult=2,mixsd=NULL,VB=FALSE,shape.eff=FALSE,cxx=TRUE, computelogLR = FALSE, maxlogLR = NULL){
     disp=match.arg(disp)
     
     if(!is.numeric(x)) stop("Error: invalid parameter 'x': 'x' must be numeric")
@@ -362,7 +363,17 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             ind = ((j-1)*n+1):(j*n)
             logLR[j] = fast.ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
         }
-        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = sum(logLR), logLR.each.scale = logLR))  
+
+        # combine logLR from different scales
+        all.logLR = sum(logLR)
+        # check if logLR is infinite
+        finite.logLR = is.finite(all.logLR)
+        # if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite. 
+        if((!finite.logLR) & (!is.null(maxlogLR))){
+            all.logLR = maxlogLR
+        }
+        
+        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = all.logLR, logLR.each.scale = logLR, finite.logLR = finite.logLR))  
     }
     
     res=list()
@@ -409,7 +420,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         effect.mean=effect.mean[reflect.indices]
         effect.var=effect.var[reflect.indices]
     }
-    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, logLR.each.scale = NULL))  
+    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, logLR.each.scale = NULL, finite.logLR = NULL))  
 }
 
 
