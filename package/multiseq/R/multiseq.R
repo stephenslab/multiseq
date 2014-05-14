@@ -251,7 +251,7 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param shape.eff: bool, indicating whether to consider only shape effects
 #' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
 #' @param computelogLR: bool, indicating whether to compute logLR or not
-#' @param maxlogLR: a positive number, default=NULL, the function returns this number if logLR is infinite. If maxlogLR==NULL, the function returns inf as logLR.
+#' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
 #'
 #' @export
 #' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "logLR.each.scale", "finite.logLR" 
