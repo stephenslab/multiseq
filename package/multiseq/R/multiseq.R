@@ -172,7 +172,8 @@ compute.res.rate <- function(zdat, repara, w, read.depth, g=NULL){
         lp=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=0)        
         lpratio=list(mean=zdat[3], var=0)
     }else{
-        lp=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=zdat[2]^2+((w[1]+mbvar)*zdat[4])^2)
+        gamma=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=zdat[2]^2+((w[1]+mbvar)*zdat[4])^2)
+        lp=ff.moments(gamma$mean,gamma$var)      
 
         beta.tm = tfmoment(zdat[3],zdat[4],3)
         beta.fm = tfmoment(zdat[3],zdat[4],4)
