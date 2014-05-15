@@ -362,8 +362,9 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         for(j in 1:J){
             ind = ((j-1)*n+1):(j*n)
             logLR[j] = fast.ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+            logLR[j] = logLR[j]/2^j
         }
-
+        
         # combine logLR from different scales
         all.logLR = sum(logLR)
         # check if logLR is infinite
