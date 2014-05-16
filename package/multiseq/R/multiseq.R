@@ -245,7 +245,6 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
 #' @param prior: used in EM
 #' @param gridmult: density of grid of sigma vector
-#' @param method: if "fdr", pointmass=TRUE and prior="nullbiased"; if "shrink", pointmass=FALSE and prior="nullbiased"
 #' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
 #' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
 #' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
