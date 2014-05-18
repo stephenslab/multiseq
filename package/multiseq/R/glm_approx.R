@@ -440,7 +440,7 @@ compute.glm=function(x,g,d,n,na.index,repara){
 #' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
 #'
 #' @export
-#' @return a matrix of 2 (or 5 if g is provided) by T (# of WCs); Each row contains alphahat (1st row), SE of alphahat (2nd), betahat (3rd), SE of betahat (4th), covariance between muhat and betahat (5th) for each WC.
+#' @return a matrix of 2 (or 5 if g is provided) by T (# of WCs); Each row contains alphahat (1st row), standard error of alphahat (2nd), betahat (3rd), standard error of betahat (4th), covariance between alphahat and betahat (5th) for each WC.
 glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center=FALSE,repara=FALSE,forcebin=FALSE,lm.approx=FALSE,disp=c("add","mult")){
     disp=match.arg(disp)
     if(is.vector(x)){dim(x)<- c(1,length(x))}  #if x is a vector convert to matrix 
