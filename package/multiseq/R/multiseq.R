@@ -248,6 +248,7 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param pseudocounts: a number to be added to counts
 #' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
 #' @param center: bool, indicating whether to center g
+#' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
 #' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used
 #' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
