@@ -113,6 +113,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/
     if ("bigWigPath" %in%  colnames(samples)){
         for (bigwig_track in samples$bigWigPath){
             track_name    <- basename(bigwig_track)
+            dir.create(file.path(assembly_dir, dirname(track_name)), showWarnings = FALSE, recursive=TRUE)
             file.copy(from=bigwig_track,
                       to=file.path(assembly_dir, track_name))
             bigwig_tracks <- c(bigwig_tracks, track_name)
@@ -135,7 +136,9 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/
     #if bigwig files cover a region smaller than 2^20
     #use viewLimits
     command      <- paste0("bigWigInfo ", file.path(assembly_dir,bigwig_tracks[1]), " | grep basesCovered | tr -d \",\"" )
+    print(command)
     bigWigLength <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2]
+    print(bigWigLength)
     if (bigWigLength<2^20){
         #find ymax over all bigwig files
         bigWigM=0
@@ -192,6 +195,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/
                 for (peaks_track in peaks_files){
                         track_name <- basename(peaks_track)
                         if (file_ext(track_name)=="bb"){
+                            dir.create(file.path(assembly_dir, dirname(track_name)), showWarnings = FALSE, recursive=TRUE)
                             file.copy(from=peaks_track, to=file.path(assembly_dir, track_name))
                             bigbed_tracks <- c(bigbed_tracks, track_name)
                         }else{

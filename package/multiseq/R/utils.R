@@ -107,9 +107,9 @@ plotTranscripts <- function(Transcripts, plotStart=NULL, plotEnd=NULL, is.xaxis=
     nr  <- nrow(Transcripts)
     chr <- Transcripts[1,2]
     if (is.null(plotStart)==1)
-        plotStart <- min(as.numeric(OutTranscripts[,4]))
+        plotStart <- min(as.numeric(Transcripts[,4]))
     if (is.null(plotEnd)==1)
-        plotEnd   <- max(as.numeric(OutTranscripts[,5]))
+        plotEnd   <- max(as.numeric(Transcripts[,5]))
     plot("NA",
          axes="F",
          yaxt="n",

@@ -21,7 +21,7 @@ MEM=10g
 if [ $DATA_NAME=="RonHepg2sim" ]; then
     chrom_file=$course_repodir"/data/chromosome_short.lengths.hg19.txt"
 else if [ $DATA_NAME=="Encode" ]; then
-    chrom_file=$course_repodir"data/chromosome.lengths.hg19.txt"  
+    chrom_file=$course_repodir"/data/chromosome.lengths.hg19.txt"  
 fi
 fi
 
@@ -35,15 +35,12 @@ for peak_type in "high" "low" "average"; do
 	locus="`echo ${region} | awk -v d=':' -v m='-' '{print $1,d,$2+1,m,$3}' OFS='' `"
 	for sim_type in "Null" "NonNull"; do
 	    OUT_DIR="/KG/epantaleo/simulations/"$DATA_NAME"/"$sim_type"/"$peak_type
-	    #hub_name="simulations/"$DATA_NAME"/"$sim_type"/"$peak_type"/"$locus_dot"/multiseq_new"
-	    #if [ ! -d "${OUT_DIR}" ]; then
-	    #	mkdir ${OUT_DIR}
-	    #fi
+	    hub_name="simulations/"$DATA_NAME"/"$sim_type"/"$peak_type"/"$locus_dot"/multiseq_new"
 	    PROCESS_NAME=$peak_type"."$sim_type"."`echo ${region} | awk '{print $1"."$2"."$3}'`
 	    echo $PROCESS_NAME
 	    sim_samplesheet=$course_repodir"/tests/simulations/"$DATA_NAME"/data/"$peak_type"/"$locus_dot"/"$sim_type"Samplesheet.txt"
 
-	    echo "Rscript run.multiseq.R $sim_samplesheet $locus $OUT_DIR $hub_name $chrom_file hg19" | \
+	    echo "mkdir -p $OUT_DIR; Rscript run.multiseq.R $sim_samplesheet $locus $OUT_DIR $hub_name $chrom_file hg19" | \
                 qsub -l h_vmem=${MEM} -v PATH -cwd -N ${PROCESS_NAME} \
                 -o ${LOG_DIR}${PROCESS_NAME}"_log.out" -e ${LOG_DIR}${PROCESS_NAME}"_log.err" 
 	done
