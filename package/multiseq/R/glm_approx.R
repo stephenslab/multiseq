@@ -428,7 +428,7 @@ compute.glm=function(x,g,d,n,na.index,repara){
 
 
 #' This function essentially fits the model specified in documentation, using either a weighted least squares approach or a generalized linear model approach, with some modifications. It is optimized for fitting multiple models simultaneously
-#' @param x: a matrix of successes and failures for each individual at each location and each scale
+#' @param x: a matrix of N (# of samples) by 2*T (T: # of WCs or, more precisely, of different scales and locations in multi-scale space); Two consecutive columns correspond to a particular scale and location; The first column (the second column) contains # of successes (# of failures) for each sample at corresponding scale and location.
 #' @param g: a vector of covariates. Can be a factor (2 groups only) or quantitative
 #' @param pseudocounts: adds pseudocounts in the case of low success of failure counts.
 #' @param all: bool,  when success or failure counts are low, controls whether or not to add pseudocounts to all observations or only the low counts.
@@ -440,9 +440,7 @@ compute.glm=function(x,g,d,n,na.index,repara){
 #' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
 #'
 #' @export
-#' @return a 4 by n matrix of muhats, SEs of muhats, betahats and SEs of betahats when repara=TRUE, and a 5 by n matrix of muhats, SEs of muhats, betahats, SEs of betahats and the covariance between muhats and betahats otherwise
-#repara: specifies whether or not to reparametrize linear model to have independent parameters in multiscale model
-#lm.approx: uses a modified WLS to approximate the GLM
+#' @return a matrix of 2 (or 5 if g is provided) by T (# of WCs); Each row contains alphahat (1st row), standard error of alphahat (2nd), betahat (3rd), standard error of betahat (4th), covariance between alphahat and betahat (5th) for each WC.
 glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center=FALSE,repara=FALSE,forcebin=FALSE,lm.approx=FALSE,disp=c("add","mult")){
     disp=match.arg(disp)
     if(is.vector(x)){dim(x)<- c(1,length(x))}  #if x is a vector convert to matrix 

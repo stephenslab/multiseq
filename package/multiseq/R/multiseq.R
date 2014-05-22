@@ -160,19 +160,26 @@ ffwrapper <- function(mean, var, Mean, Sq, wSq, beta.tm, beta.fm, g){
 
 #' @title compute.res.rate
 #' @return a list with elements "lp.mean", "lp.var", "lpratio.mean", "lpratio.var"
-compute.res.rate <- function(zdat, repara, w, read.depth, g=NULL){
+compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
     if (repara==TRUE)
         mbvar=zdat[5]
     else
         mbvar=0
 
+    if(baseline=="grp")
+        w1=w[1]
+    else if (baseline=="inter")
+        w1=0 
+    else
+        w1=baseline
+
     #compute lpratio.m and lpratio.v    
     #computes mean and variance for the ratio of overall intensities in different groups (used in reconstructing the effect estimate later)
     if (is.null(read.depth)){
-        lp=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=0)        
+        lp=list(mean=zdat[1]+(w1+mbvar)*zdat[3], var=0)        
         lpratio=list(mean=zdat[3], var=0)
     }else{
-        gamma=list(mean=zdat[1]+(w[1]+mbvar)*zdat[3], var=zdat[2]^2+((w[1]+mbvar)*zdat[4])^2)
+        gamma=list(mean=zdat[1]+(w1+mbvar)*zdat[3], var=zdat[2]^2+((w1+mbvar)*zdat[4])^2)
         lp=ff.moments(gamma$mean,gamma$var)      
 
         beta.tm = tfmoment(zdat[3],zdat[4],3)
@@ -205,13 +212,15 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
             mbvar=0
         }
         if(baseline=="grp")
-            baseline=w[1]
+            w1=w[1]
         else if (baseline=="inter")
-            baseline=0        
+            w1=0        
+        else
+            w1=baseline
                                         #apply ash to vector of slope estimates and SEs
         zdat.ash_post=posterior_dist(zdat.ash$fitted.g,zdat[3,],zdat[4,])
                                         #compute the posterior third and fourth moments of beta
-        gamma=list(mean=alpha$mean+(baseline+mbvar)*zdat.ash$PosteriorMean, var=alpha$var+((baseline+mbvar)*zdat.ash$PosteriorSD)^2)        
+        gamma=list(mean=alpha$mean+(w1+mbvar)*zdat.ash$PosteriorMean, var=alpha$var+((w1+mbvar)*zdat.ash$PosteriorSD)^2)        
         lp = ff.moments(gamma$mean, gamma$var)    #find mean and variance of p in baseline estimate
         lq = ff.moments(-gamma$mean, gamma$var)  #find mean and variance of q in baseline estimate
 
@@ -239,13 +248,13 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param pseudocounts: a number to be added to counts
 #' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
 #' @param center: bool, indicating whether to center g
+#' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
 #' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used
 #' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
 #' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
 #' @param prior: used in EM
 #' @param gridmult: density of grid of sigma vector
-#' @param method: if "fdr", pointmass=TRUE and prior="nullbiased"; if "shrink", pointmass=FALSE and prior="nullbiased"
 #' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
 #' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
 #' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
@@ -327,7 +336,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             if(computelogLR){
                 logLR[J+1] = fast.ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
-                res.rate=compute.res.rate(zdat.rate.o, repara, w, read.depth)
+                res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
             }
         }else{
             ##run glm.approx to get zdat.rate
@@ -339,7 +348,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
                 logLR[J+1] = fast.ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
-                res.rate=compute.res.rate(zdat.rate, repara, w, read.depth, g)
+                res.rate=compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
             }
         }
     }
