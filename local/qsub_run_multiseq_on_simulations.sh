@@ -18,9 +18,9 @@ fi
 course_repodir=$HOME"/src/stat45800/"
 MEM=10g
 
-if [ $DATA_NAME=="RonHepg2sim" ]; then
+if [ $DATA_NAME == "RonHepg2sim" ]; then
     chrom_file=$course_repodir"/data/chromosome_short.lengths.hg19.txt"
-else if [ $DATA_NAME=="Encode" ]; then
+else if [ $DATA_NAME == "Encode" ]; then
     chrom_file=$course_repodir"/data/chromosome.lengths.hg19.txt"  
 fi
 fi
