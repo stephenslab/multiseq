@@ -22,7 +22,7 @@ annotation.file <- file.path(args[7])
 fra             <- 2      #how many sd to plot when plotting effect size    
 do.plot         <- FALSE
 do.smooth       <- FALSE
-do.summary      <- FALSE
+do.summary      <- TRUE
 do.save         <- TRUE  #FALSE #TRUE
 computelogLR    <- FALSE #TRUE #FALSE
 prior           <- "nullbiased" #"uniform" #"nullbiased"
@@ -63,28 +63,33 @@ if (computelogLR==TRUE){
 if (do.summary)
     ptm      <- proc.time()
 res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR=computelogLR, prior=prior)
+warning() #print warnings 
 if (do.summary)
     my.time  <- proc.time() - ptm
 
 if (computelogLR==TRUE){
-    write.table(t(c(res$logLR, res$logLR.each.scale)), quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR_prior_uniform.txt"))
+    write.table(t(c(res$logLR, res$logLR.each.scale)), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR_prior_uniform.txt"))
+    if (do.summary)
+        write.table(t(c(chr, locus.start, locus.end, my.time[1])), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summaryLogLR.txt"))
     stop("run successfully")
 }
+
 res$chr=chr
 res$locus.start=locus.start
 res$locus.end=locus.end
 res <- get.effect.intervals(res,fra)
 
+if (do.save){
+    #save results in a compressed file
+    write.effect.mean.variance.gz(res,dir.name)
+    write.effect.intervals(res,dir.name,fra=2)
+}
+
 if (do.summary){
     Neffect2=get.effect.length(res,fra=2)
     Neffect3=get.effect.length(res,fra=3) 
-    write.table(t(c(chr, locus.start, locus.end, length(Neffect2, Neffect3, my.time[1]))),
-                quote = FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summary.txt"))
-}
-if (do.save){
-        #save results in a compressed file 
-    write.effect.mean.variance.gz(res,dir.name)
-    write.effect.intervals(res,dir.name,fra=2)
+    write.table(t(c(chr, locus.start, locus.end, Neffect2, Neffect3, my.time[1])),
+                quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summary.txt"))
 }
 
 #plotting
