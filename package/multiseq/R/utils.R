@@ -203,6 +203,7 @@ plotResults <- function(res, fra=2, title=NULL, ylim=NULL, intervals=TRUE, type=
 }
 
 #' get.effect.intervals
+#' intervals are printed as bed files, i.e., start is 0-based
 #' @export    
 get.effect.intervals <- function(res,fra){
     toreturn=res
@@ -216,21 +217,32 @@ get.effect.intervals <- function(res,fra){
     x=(res$effect.mean + fra * sqrt(res$effect.var) < 0)
     y=(res$effect.mean - fra * sqrt(res$effect.var) > 0)
 
-    x=cumsum(rle(x)$lengths)
-    xl=length(x)
-    if (xl>2){
-        effect.start=c(effect.start,x[seq(1,xl,2)]+1)
-        effect.end=c(effect.end,x[seq(2,xl,2)])
-        effect.sign=c(effect.sign,rep("-",xl))
+    xs=sum(x)
+    if (xs>0){ #if res$effect.mean + fra * sqrt(res$effect.var) < 0 at at least one position
+        rlex=rle(x)
+        boundaries=c(0,cumsum(rlex$lengths))
+        for (i in 1:(length(boundaries)-1)){
+            if (rlex$values[i]){ #is TRUE
+                effect.start=c(effect.start,boundaries[i]) #0-based
+                effect.end=c(effect.end,boundaries[i+1]) #1-based
+                effect.sign=c(effect.sign,"-")
+            }
+        }
     }
 
-    y=cumsum(rle(y)$lengths)
-    yl=length(y)
-    if (yl>2){
-        effect.start=c(effect.start,y[seq(1,yl,2)]+1)
-        effect.end=c(effect.end,y[seq(2,yl-1,2)])
-        effect.sign=c(effect.sign,rep("+",yl))
+    ys=sum(y)
+    if (ys>0){
+        rley=rle(y)
+        boundaries=c(0,cumsum(rley$lengths))
+        for (i in 1:(length(boundaries)-1)){
+            if (rley$values[i]){ #is TRUE
+                effect.start=c(effect.start,boundaries[i]) #0-based
+                effect.end=c(effect.end,boundaries[i+1]) #1-based
+                effect.sign=c(effect.sign,"-")
+            }
+        }
     }
+    
     effect.coordinates="local"
     if (!is.null(effect.start)){
         if (!is.null(res$chr)){

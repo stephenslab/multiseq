@@ -5,7 +5,7 @@
 #    This is a bash script containing code to run multiseq on the simulated reads for each locus
 #
 #    usage: sh qsub_run_multiseq_on_simulations.sh Encode
-#    results will be saved in /KG/epantaleo/simulations/"$DATA_NAME"/data/"$peak_type
+#    results will be saved in ~/src/stat45800/tests/simulations/"$DATA_NAME"/results/"$sim_type"/"$peak_type
 #**************************************************************************************************#  
 DATA_NAME=$1
 
@@ -34,7 +34,7 @@ for peak_type in "high" "low" "average"; do
 	locus_dot=`echo ${region} | awk '{start=$2+1; print $1"."start"."$3}'`
 	locus="`echo ${region} | awk -v d=':' -v m='-' '{print $1,d,$2+1,m,$3}' OFS='' `"
 	for sim_type in "Null" "NonNull"; do
-	    OUT_DIR="/KG/epantaleo/simulations/"$DATA_NAME"/"$sim_type"/"$peak_type
+	    OUT_DIR="~/src/stat45800/tests/simulations/"$DATA_NAME"/results/"$sim_type"/"$peak_type
 	    hub_name="simulations/"$DATA_NAME"/"$sim_type"/"$peak_type"/"$locus_dot"/multiseq_new"
 	    PROCESS_NAME=$peak_type"."$sim_type"."`echo ${region} | awk '{print $1"."$2"."$3}'`
 	    echo $PROCESS_NAME

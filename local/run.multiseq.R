@@ -23,9 +23,9 @@ fra             <- 2      #how many sd to plot when plotting effect size
 do.plot         <- FALSE
 do.smooth       <- FALSE
 do.summary      <- FALSE
-do.save         <- FALSE #TRUE
-computelogLR    <- TRUE #FALSE
-prior           <- "uniform" #"nullbiased"
+do.save         <- TRUE  #FALSE #TRUE
+computelogLR    <- FALSE #TRUE #FALSE
+prior           <- "nullbiased" #"uniform" #"nullbiased"
                              
                              
 samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)   
