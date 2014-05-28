@@ -435,4 +435,286 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
 }
 
 
+
+
+
+
+#' Compute logLR 
+#' 
+#' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row and covariate \code{g} for each sample, and compute logLR to test for association between \code{x} and \code{g}. If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
+#'
+#' @param x: a matrix of nsig by n counts where n should be a power of 2
+#' @param read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
+#' @param g: an nsig-vector containing group indicators/covariate value for each sample
+#' @param TItable: pre-calculated TItable; If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test.  
+#' @param minobs: minimum number of obs required to be in each logistic model 
+#' @param pseudocounts: a number to be added to counts
+#' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
+#' @param center: bool, indicating whether to center g
+#' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
+#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
+#' @param lm.approx: bool, indicating whether a WLS alternative should be used
+#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
+#' @param prior: used in EM
+#' @param gridmult: density of grid of sigma vector
+#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
+#' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
+#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
+#' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
+#' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
+#'
+#' @export
+#' @return a list of "logLR", "logLR.each.scale", "finite.logLR"; "logLR.each.scale" contains logLR for each scale. "finite.logLR" takes 0 or 1 indicating whether "logLR" is finite or not.    
+compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp="add", nullcheck=TRUE, pointmass=TRUE, prior="uniform", gridmult=2, mixsd=NULL, VB=FALSE, cxx=TRUE, maxlogLR = NULL){
+
+    
+    if(!is.numeric(x)) stop("Error: invalid parameter 'x': 'x' must be numeric")
+    if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor")
+    if(!is.logical(center)) stop("Error: invalid parameter 'center', 'center' must be bool")
+    if(!(((minobs%%1)==0)&minobs>0)) stop("Error: invalid parameter 'minobs', 'minobs' must be positive integer")
+    if(!(is.numeric(pseudocounts)&pseudocounts>0)) stop("Error: invalid parameter 'pseudocounts', 'pseudocounts' must be a positive number")
+    if(!is.logical(all)) stop("Error: invalid parameter 'all', 'all'  must be bool")
+    if(!is.logical(repara)) stop("Error: invalid parameter 'repara', 'repara'  must be bool")
+    if(!is.logical(forcebin)) stop("Error: invalid parameter 'forcebin', 'forcebin'  must be bool")
+    if(!is.logical(lm.approx)) stop("Error: invalid parameter 'lm.approx', 'lm.approx'  must be bool")
+    if(!((is.null(mixsd))|(is.numeric(mixsd)&(length(mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
+    if(!is.element(disp,c("add","mult"))) stop("Error: invalid parameter 'disp', 'disp'  must be either 'add' or 'mult' ")
+    if(!((prior=="nullbiased")|(prior=="uniform")|is.numeric(prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
+
+    if(is.vector(x)){dim(x)<- c(1,length(x))} 
+    nsig = nrow(x)
+    n = ncol(x)
+    J = log2(n)
+    if((J%%1)!=0){stop("Error: number of columns in x is not power of two!")}
+
+    #create the parent TI table for each signal, and put into rows of matrix y
+    if(is.null(TItable)){
+        if (cxx==FALSE){
+            TItable = matrix(nrow=nsig, ncol=2*J*n)
+            for(i in 1:nsig){
+                tt = ParentTItable(x[i,])
+                TItable[i,] = as.vector(t(tt$parent))
+            }        
+        }else{
+            TItable = cxxParentTItable(x)
+        }
+    }
+                     
+   
+    if(!is.null(read.depth)) if(length(read.depth)!=nsig) stop("Error: read depths for all samples are not provided")
+    if(!is.null(g)) if(length(g)!=nsig) stop("Error: covariate g for all samples are not provided")
+    if(nrow(TItable)!=nsig) stop("Error: sample sizes from x and TItable are different.")
+    if(nsig==1){forcebin=TRUE} #if only one observation, don't allow overdispersion
+    if(ncol(TItable) != n*J*2) stop("Error: number of columns in TItable is not 2^J*J*2")
+
+    pointmass <- TRUE     # if computelogLR is true, pointmass should be true.
+    logLR = rep(NA, J + 1)
+   
+    if(is.factor(g)){
+        g.num = as.numeric(levels(g))[g]
+    }else{
+        g.num=g
+        if(length(unique(g))==2)
+            g=factor(g)
+    }
+
+    xRowSums = rowSums(x)
+    if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
+        y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
+        zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
+        logLR[J+1] = fast.ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+        
+    }else{
+        #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
+        y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
+        zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
+        logLR[J+1] = fast.ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+    }
+ 
+    #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
+    zdat=glm.approx(TItable,g,minobs=minobs,pseudocounts=pseudocounts,center=center,all=all,forcebin=forcebin,repara=repara,lm.approx=lm.approx,disp=disp)
+    
+    # loop through resolutions,
+    # calculate logLR using ash function.
+    for(j in 1:J){
+        ind = ((j-1)*n+1):(j*n)
+        logLR[j] = fast.ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+        logLR[j] = logLR[j]/2^j
+    }
+        
+    # combine logLR from different scales
+    all.logLR = sum(logLR)
+    # check if logLR is infinite
+    finite.logLR = is.finite(all.logLR)
+    # if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite. 
+    if((!finite.logLR) & (!is.null(maxlogLR))){
+        all.logLR = maxlogLR
+    }
+
+    return(list(logLR = all.logLR, logLR.each.scale = logLR, finite.logLR = finite.logLR))
+}
+
+
+
+
+#' Perform permutation-based test using logLR as a test statistic.
+#' 
+#' This function takes a series of Poisson count signals \code{pheno.dat}, with data on different samples in each row and genotype from multiple SNPs (or any covariate) \code{geno.dat} for each sample, and returns p-value obtained by permutation (use logLR as a test statistic). If multiple SNPs are provided, this function use max(logLR) as a test statistic.  
+#' Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
+#'
+#' 
+#' @param pheno.dat: a matrix of nsig (# of samples) by n counts where n should be a power of 2
+#' @param geno.dat: a matrix of numC (number of SNPs or number of covariates) by nsig; each row contains genotypes/covariate value for each sample. 
+#' @param library.read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
+#' @param numPerm: number of permutations
+#' @param numSig: permutation stops when number of permuted data with significant test statistic reaches this number.
+#' @param eps: when logLR == 0, we use a value sampled from Unif(-eps, 0) as logLR. 
+#' @param use.default.compute.logLR: bool, if TRUE, it uses default options in \code{\link{compute.logLR}}. Otherwise, it passes parameters to \code{\link{compute.logLR}}. 
+#' @param minobs: minimum number of obs required to be in each logistic model 
+#' @param pseudocounts: a number to be added to counts
+#' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
+#' @param center: bool, indicating whether to center g
+#' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
+#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
+#' @param lm.approx: bool, indicating whether a WLS alternative should be used
+#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
+#' @param prior: used in EM
+#' @param gridmult: density of grid of sigma vector
+#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
+#' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
+#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
+#' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
+#' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
+#'
+#' @export
+#' @return a list of "most.sig.SNP.posi" (if there are multiple SNPs, returns position of SNPs with strongest signal), "pval", "logLR" (output from compute.logLR for each SNP), "Count_stop" (when permutaton stops), "Count_sig" (number of permuted data with significant test statistic), "numPerm" (parameter), and "numSig" (parameter).
+permutation.logLR <-function(pheno.dat, geno.dat, library.read.depth=NULL, numPerm = 100, numSig  = 10, eps=0.01, use.default.compute.logLR = TRUE, minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp="add", nullcheck=TRUE, pointmass=TRUE, prior="uniform", gridmult=2, mixsd=NULL, VB=FALSE, cxx=TRUE, maxlogLR = NULL){
+
+
+    if(is.vector(geno.dat)){dim(geno.dat)<- c(1,length(geno.dat))} 
+  
+    numIND = nrow(pheno.dat)
+    n = ncol(pheno.dat)
+    J = log2(n)
+
+
+    #create the parent TI table for each signal, and put into rows of matrix y
+    if (cxx==FALSE){
+        TItable = matrix(nrow=numIND, ncol=2*J*n)
+        for(i in 1:numIND){
+            tt = ParentTItable(pheno.dat[i,])
+            TItable[i,] = as.vector(t(tt$parent))
+        }        
+    }else{
+        TItable = cxxParentTItable(x)
+    }
+
+ 
+    numSNPs = dim(geno.dat)[1]
+    doneSNPs = rep(0, numSNPs)      # to handle SNPs with no variatoin 
+    reslogLR = matrix(data=NA, nc = 1 + J + 1, nr = numSNPs)	
+    for(g in 1:numSNPs){
+        genoD = as.numeric(geno.dat[g,])
+        if(length(unique(genoD)) == 1){
+            doneSNPs[g] = 1
+        }else{
+            if(use.default.compute.logLR){
+                res.logLR = compute.logLR(pheno.dat, g=genoD, TItable=TItable, read.depth = library.read.depth)
+            }else{
+                res.logLR = compute.logLR(pheno.dat, g=genoD, TItable=TItable, read.depth = library.read.depth, minobs = minobs, pseudocounts=pseudocounts, all=all, center=center, repara=repara, forcebin=forcebin, lm.approx=lm.approx, disp=disp, nullcheck=nullcheck, pointmass=pointmass, prior=prior, gridmult=gridmult, mixsd=mixsd, VB=VB, cxx=cxx, maxlogLR =maxlogLR)
+            }
+            reslogLR[g,1] = res.logLR$logLR
+            reslogLR[g,2:(2+J)] = res.logLR$logLR.each.scale
+        }
+    }
+
+    # take maxlogLR among multipe SNPs 
+    ours = as.numeric(reslogLR[,1])  
+    targetSNP_posi = which.max(ours)
+
+    if(length(targetSNP_posi) == 0){
+        stop("ERROR: there is no SNP with maximum logLR")
+    }else{
+
+	targetlogLR = ours[targetSNP_posi[1]]
+
+	if(targetlogLR == 0){ # handle zero logLR
+		targetlogLR = runif(1, -eps, 0)
+	}
+
+        # for permutation 
+	Count_sig = 0                  # number of significnat permuted data
+	logLR_perm = rep(NA, numSNPs)  # save logLR from multiple SNPs
+	Count_stop = NA                # where a permutation stops because # of significant permuted data == numSig
+
+	wh = which(doneSNPs == 0)      # will skip SNP with no variation 
+	len_wh = length(wh)
+	doneAll = NA   # doneAll = 1, permutation stops before it reaches "numPerm"
+	if(len_wh > 0){
+            doneAll = 0   
+            for(p in 1:numPerm){
+                new_IX = sample(1:numIND, numIND) # permute label
+                TItable_new = TItable[new_IX,]
+                if(!is.null(library.read.depth)){
+                    library.read.depth_new =library.read.depth[new_IX]
+                }else{
+                    library.read.depth_new = NULL
+                }
+                pheno.dat_new = pheno.dat[new_IX,]
+                for(m in 1:len_wh){
+                    g = wh[m]
+                    genoD = as.numeric(geno.dat[g,])
+                    if(use.default.compute.logLR){
+                        res.logLR = compute.logLR(pheno.dat_new, g=genoD, TItable=TItable_new, read.depth = library.read.depth_new)
+                    }else{
+                        res.logLR = compute.logLR(pheno.dat_new, g=genoD, TItable=TItable_new, read.depth = library.read.depth_new, minobs = minobs, pseudocounts=pseudocounts, all=all, center=center, repara=repara, forcebin=forcebin, lm.approx=lm.approx, disp=disp, nullcheck=nullcheck, pointmass=pointmass, prior=prior, gridmult=gridmult, mixsd=mixsd, VB=VB, cxx=cxx, maxlogLR =maxlogLR)
+                    }
+                    logLR_perm[g] = res.logLR$logLR
+                }
+
+                MAX_logLR_perm = max(logLR_perm, na.rm=TRUE) # take maxlogLR among multiple SNPs
+                if(MAX_logLR_perm == 0){                     # handle logLR == 0
+                    MAX_logLR_perm = runif(1, -eps, 0)
+                }
+
+                if(MAX_logLR_perm >= targetlogLR){ # significant?
+                    Count_sig = Count_sig + 1
+                    if(Count_sig == numSig){       # stop??
+                        st_val = (Count_sig + 1)/(p + 2)
+                        en_val = (Count_sig + 1)/(p + 1)
+                        final_pval = runif(1, st_val, en_val)
+                        Count_stop = p
+                        doneAll = 1
+                    }
+                }
+
+                if(doneAll == 1){			
+                    break
+                }
+            }
+
+            # if permutation stops because it reaches "numPerm"
+            if(doneAll == 0){
+                Count_stop = NA
+                final_pval = (Count_sig + 1)/(numPerm +1)			
+            }	
+            
+	}else{
+           # in case no SNP has a variation!!!
+            Count_stop = NA		
+            Count_sig = NA
+            final_pval = 10
+        }
+    }
+
+    if(numSNPs == 1)
+        targetSNP_posi = NULL 
+    return(list(most.sig.SNP.posi = targetSNP_posi, pval = final_pval, logLR = reslogLR, Count_stop = Count_stop, Count_sig = Count_sig, numPerm = numPerm, numSig = numSig))
+
+}
+
+
+
   
