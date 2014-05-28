@@ -25,7 +25,7 @@ do.smooth       <- FALSE
 do.summary      <- TRUE
 do.save         <- TRUE  #FALSE #TRUE
 computelogLR    <- FALSE #TRUE #FALSE
-prior           <- "nullbiased" #"uniform" #"nullbiased"
+prior           <- "nullbiased" 
                              
                              
 samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)   
@@ -63,7 +63,7 @@ if (computelogLR==TRUE){
 if (do.summary)
     ptm      <- proc.time()
 res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR=computelogLR, prior=prior)
-warning() #print warnings 
+warnings() #print warnings 
 if (do.summary)
     my.time  <- proc.time() - ptm
 
