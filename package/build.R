@@ -15,6 +15,18 @@ require(devtools)
 roxygenize("~/Downloads/multiseq")
 document("~/Downloads/multiseq")
 
+######################
+# Instruction to build the package using Rstudio
+######################
+1. open Rstudio
+2. specify project : file -> new project -> existing directory ->  specify "multiseq" directory under "package" directory 
+3. install all necessary packages 
+4. require(roxygen2)
+5. require(devtools)
+6. roxygenize()
+7. document()
+8. build -> build source package 
+9. before push, be careful! You don't want to push some unnecessary files created during building package.
 
 
 
