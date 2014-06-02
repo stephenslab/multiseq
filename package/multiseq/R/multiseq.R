@@ -608,7 +608,7 @@ permutation.logLR <-function(pheno.dat, geno.dat, library.read.depth=NULL, numPe
             TItable[i,] = as.vector(t(tt$parent))
         }        
     }else{
-        TItable = cxxParentTItable(x)
+        TItable = cxxParentTItable(pheno.dat)
     }
 
  
