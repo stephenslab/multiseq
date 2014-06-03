@@ -334,7 +334,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
 
             if(computelogLR){
-                logLR[J+1] = fast.ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
                 res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
             }
@@ -345,7 +345,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
 
             if(computelogLR){
-                logLR[J+1] = fast.ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
                 res.rate=compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
@@ -365,13 +365,13 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     
     # loop through resolutions,
     # if computelogLR is true, calculate logLR using ash function.
-    # otherwise, smoothing each resolution separately using fast.ash
+    # otherwise, smoothing each resolution separately using ash
     # compute.res returns posterior means and variances of log(p), log(q), log(p0/p1) and log(q0/q1) as lp, lq,lpratio and lqratio, respectively, where p
     # is the probability of going left, q=1-p.
     if(computelogLR){
         for(j in 1:J){
             ind = ((j-1)*n+1):(j*n)
-            logLR[j] = fast.ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+            logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
             logLR[j] = logLR[j]/2^j
         }
         
@@ -390,13 +390,13 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     res=list()
     for(j in 1:J){
         ind = ((j-1)*n+1):(j*n)
-        zdat.ash.intercept=fast.ash(zdat[1,ind], zdat[2,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB)
+        zdat.ash.intercept=ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB)
            
         #apply ash to vector of intercept estimates and SEs
         if (is.null(g))
             res.j=compute.res(zdat.ash.intercept, repara)
         else{
-            zdat.ash=fast.ash(zdat[3,ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB)
+            zdat.ash=ash(zdat[3,ind],zdat[4,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB)
             res.j=compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
         }
         res=rbindlist(list(res,res.j))
@@ -523,13 +523,13 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
     if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
         y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
         zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
-        logLR[J+1] = fast.ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+        logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
         
     }else{
         #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
         y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
         zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-        logLR[J+1] = fast.ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+        logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
     }
  
     #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
@@ -539,7 +539,7 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
     # calculate logLR using ash function.
     for(j in 1:J){
         ind = ((j-1)*n+1):(j*n)
-        logLR[j] = fast.ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+        logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
         logLR[j] = logLR[j]/2^j
     }
         
