@@ -282,6 +282,8 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     if(!((is.null(mixsd))|(is.numeric(mixsd)&(length(mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
     if(!is.element(disp,c("add","mult"))) stop("Error: invalid parameter 'disp', 'disp'  must be either 'add' or 'mult' ")
     if(!((prior=="nullbiased")|(prior=="uniform")|is.numeric(prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
+    if(is.null(g) & computelogLR) stop("Error: g should be provided to compute logLR (computelogLR = TRUE) ")
+    if (computelogLR) pointmass <- TRUE     # if computelogLR is true, pointmass should be true.
     #to do: check other input parameters
 
     if(is.vector(x)){dim(x)<- c(1,length(x))} #change x to matrix
@@ -296,15 +298,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
 
     n = ncol(x)
     J = log2(n)
-
-    if(computelogLR == TRUE){
-        if(is.null(g)) stop("Error: g should be provided to compute logLR (computelogLR = TRUE) ") 
-        pointmass <- TRUE     # if computelogLR is true, pointmass should be true.
-        #prior <- "uniform"    # uniform prior
-        logLR = rep(NA, J + 1)
-    }
-
-    
+   
     #estimate of ratio of overall intensities in different groups if sequencing depth is present
     if(is.null(g)){
         #define res.rate the (log) total number of counts
@@ -327,6 +321,10 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             w=c(0,1)
         #compute mean and variance of the baseline overall intensity
         xRowSums = rowSums(x)
+        if(computelogLR){
+            logLR = rep(NA, J + 1)
+            pi=list()
+        }
         if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
             #define the "failures" this way so that the intercept will be the estimate of total intensity, and the slope will be the estimate of ratio of total intensities
             y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
@@ -334,7 +332,9 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
 
             if(computelogLR){
-                logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                ash.res=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+                logLR[J+1]=ash.res$logLR
+                pi[[J+1]]=ash.res$pi
             }else{
                 res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
             }
@@ -345,7 +345,9 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
 
             if(computelogLR){
-                logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+                ash.res = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+                logLR[J+1]=ash.res$logLR
+                pi[[J+1]]=ash.res$pi
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
                 res.rate=compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
@@ -371,8 +373,9 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     if(computelogLR){
         for(j in 1:J){
             ind = ((j-1)*n+1):(j*n)
-            logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
-            logLR[j] = logLR[j]/2^j
+            ash.res = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+            logLR[j] = ash.res$logLR /2^j
+            pi[[j]]=ash.res$pi
         }
         
         # combine logLR from different scales
@@ -384,7 +387,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             all.logLR = maxlogLR
         }
         
-        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = all.logLR, logLR.each.scale = logLR, finite.logLR = finite.logLR))  
+        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = all.logLR, logLR.each.scale = logLR, finite.logLR = finite.logLR, pi=pi))  
     }
     
     res=list()
@@ -431,7 +434,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         effect.mean=effect.mean[reflect.indices]
         effect.var=effect.var[reflect.indices]
     }
-    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, logLR.each.scale = NULL, finite.logLR = NULL))  
+    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, logLR.each.scale = NULL, finite.logLR = NULL, pi=NULL))  
 }
 
 

@@ -26,10 +26,10 @@ It depends on *ashr* a package in development that you can download and install 
 
 After installing *ashr* from within R use:
 
-      install.packages("tools")
-      install.packages("rhdf5")
-      install.packages("data.table")
-      install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
+    install.packages("tools")
+    install.packages("rhdf5")
+    install.packages("data.table")
+    install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
 
 ## Adding required executables to the USER's path and setting up a mountpoint to visualize results in the UCSC Genome Browser (optional: only required by some functions)
 
@@ -51,21 +51,21 @@ Remember that when you submit jobs to a compute cluster (e.g. using SGE's qsub),
 
 ## Testing multiseq
 
-   library(multiseq)
-   data(OAS1,package="multiseq")
-   M <- OAS1$M
-   g <- OAS1$g
-   read.depth <- OAS1$read.depth
-   res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
-   fra=2 #fraction of sd
-   plotResults(res,fra)
-   # To print intervals where multiseq found an effect at 2 sd:
-   get.effect.intervals(res,fra)
+    library(multiseq)
+    data(OAS1,package="multiseq")
+    M <- OAS1$M
+    g <- OAS1$g
+    read.depth <- OAS1$read.depth
+    res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
+    fra=2 #fraction of sd
+    plotResults(res,fra)
+    # To print intervals where multiseq found an effect at 2 sd:
+    get.effect.intervals(res,fra)
 
 Smooth by group
 
-   res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
-   plotResults(res0, fra, type="baseline")
+    res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
+    plotResults(res0, fra, type="baseline")
 
 ### Testing multiseq on sequencing data
 
