@@ -1,0 +1,29 @@
+Look at a sample loglr comparison between binomial vs multinomial simulations
+
+```{r}
+load("loglr_binmulti.Robj")
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+par(mfcol=c(2,2))
+hist(loglr.eff.null.4.bin,main="binomial, null",xlim=c(0,3),ylim=c(0,100),breaks=10)
+hist(loglr.eff.alt.4.bin,main="binomial, alternative",xlim=c(0,3),ylim=c(0,100),breaks=20)
+hist(loglr.eff.null.4.multi,main="multinomial, null",xlim=c(0,14),ylim=c(0,100),breaks=10)
+hist(loglr.eff.alt.4.multi,main="multinomial, alternative",xlim=c(0,14),ylim=c(0,100),breaks=10)
+
+```
+```{r}
+sort(loglr.eff.null.4.bin)
+sort(loglr.eff.alt.4.bin)
+sort(loglr.eff.null.4.multi)
+sort(loglr.eff.alt.4.multi)
+
+summary(loglr.eff.null.4.bin)
+summary(loglr.eff.alt.4.bin)
+summary(loglr.eff.null.4.multi)
+summary(loglr.eff.alt.4.multi)
+
+```
+

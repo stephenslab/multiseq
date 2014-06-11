@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title></title>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<p>Look at a sample loglr comparison between binomial vs multinomial simulations</p>
+
+<pre><code class="r">load(&quot;loglr_binmulti.Robj&quot;)
+</code></pre>
+
+<p>You can also embed plots, for example:</p>
+
+<pre><code class="r">par(mfcol = c(2, 2))
+hist(loglr.eff.null.4.bin, main = &quot;binomial, null&quot;, xlim = c(0, 3), ylim = c(0, 
+    100), breaks = 10)
+hist(loglr.eff.alt.4.bin, main = &quot;binomial, alternative&quot;, xlim = c(0, 3), ylim = c(0, 
+    100), breaks = 20)
+hist(loglr.eff.null.4.multi, main = &quot;multinomial, null&quot;, xlim = c(0, 14), ylim = c(0, 
+    100), breaks = 10)
+hist(loglr.eff.alt.4.multi, main = &quot;multinomial, alternative&quot;, xlim = c(0, 14), 
+    ylim = c(0, 100), breaks = 10)
+</code></pre>
+
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAGwCAMAAABy/YdMAAAAn1BMVEX9/v0AAAAAADkAAGUAOTkAOY8AZrU5AAA5ADk5AGU5OTk5OWU5OY85ZmU5ZrU5j9plAABlADllAGVlOTllOY9lZgBlZjllZmVlZrVlj9pltdpltf2POQCPOTmPOWWPj7WPtY+P29qP2/21ZgC1Zjm1ZmW1jzm1j4+1tWW124+1/v3ajznatWXa/rXa/tra/v39tWX924/9/rX9/tr9/v3teLukAAAANXRSTlP/////////////////////////////////////////////////////////////////////AHy10AoAAAAJcEhZcwAACxIAAAsSAdLdfvwAABNRSURBVHic7Z0Lu9o2EobrwwLd9ORA2rRpC9m2OOkFpwHD+f+/ba2LL1gj4fEF2zPzPs92jSVZ/uaTLB0ii29eBZZ8M/YNCOMgxjNFjGeKGM8UMZ4pYjxTxHimiPFMEeOZIsYzRYxnihjPFDGeKWI8U8R4pojxTBHjmSLGM0WMZ4oYz5SHGH+ONub/doEsO+eoniFUfvqou09fJhOERxrfNDNZ4y/bVfPMntMzM/7tOvM+u+d0rY9e03X0dDDnl39GJu01ifIjjc2rWk28OM7M+BtpVsCv+yhafplIEB5k/PKU6HtO18uv+8VRNf3k6WDOr6yk9NuDPTKlbN65Gl+RlgtQsqcShIc96tP1RmvWAjK95oRt5Ur+TuWL7JHC5p2r8RVpjvETCMKDjN+9ZqJvNesTVc3penGMmRk/XhAm1OPVydunHH3jxwvC48Z426C1gHS9ykNS0awio4+MuCLv5rKds/GlgFvjxw3Cw2f1Wkcxoa1qvmaT3g9a2Y3m1zha/Dhn40sB6ujviQRhmt/cxfNxeDiGDcIkjU9fxr6DCTBwECZpvDA8YjxTxHimiPFMEeOZIsYzRYxnihjPFDGeKWI8U8R4pojxTAkaf44UPP+ljLr2kPHXj4fsv+l/j4+6mQlBXnvI+Mv7U/bf6//Iig9AXnvQ+HfEW30A8tpljPdAXbvM6pkiPd4Dde0yq4chrx0zq48MD7ir8SGvHT+rJyQ+AHnt+DGekPgQ1LXjZ/WExKMhpF2Mx0BIe3CM3+rH3YLsOBeAvPZgj0+fT+5JQuJDUNceftQnwBcYhMQH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" alt="plot of chunk unnamed-chunk-2"/> </p>
+
+<pre><code class="r">sort(loglr.eff.null.4.bin)
+</code></pre>
+
+<pre><code>##   [1] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##   [8] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##  [15] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##  [22] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##  [29] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##  [36] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##  [43] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##  [50] 0.0000000 0.0000000 0.0000000 0.0003568 0.0004320 0.0012774 0.0017372
+##  [57] 0.0030504 0.0045558 0.0066034 0.0094026 0.0111119 0.0114171 0.0130348
+##  [64] 0.0132277 0.0134053 0.0186433 0.0254969 0.0295364 0.0338328 0.0347846
+##  [71] 0.0396586 0.0512756 0.0551385 0.0667994 0.0700240 0.0710144 0.0804613
+##  [78] 0.1008930 0.1173044 0.1295194 0.1332757 0.1341711 0.1351388 0.1585738
+##  [85] 0.1705439 0.2088799 0.2194465 0.2213205 0.2595632 0.3743400 0.3763176
+##  [92] 0.3976291 0.4050142 0.4078326 0.4626284 0.5731489 0.7262034 0.8694626
+##  [99] 0.8892467 0.9555101
+</code></pre>
+
+<pre><code class="r">sort(loglr.eff.alt.4.bin)
+</code></pre>
+
+<pre><code>##   [1] 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+##   [8] 0.0000000 0.0005398 0.0009788 0.0010318 0.0010764 0.0023494 0.0025155
+##  [15] 0.0035199 0.0043866 0.0257454 0.0325965 0.0330251 0.0346575 0.0382355
+##  [22] 0.0387650 0.0500613 0.0620091 0.0636093 0.0643354 0.0675819 0.0752609
+##  [29] 0.0784041 0.0853511 0.0878768 0.0977915 0.0983727 0.1065821 0.1117914
+##  [36] 0.1295819 0.1328672 0.1353402 0.1572578 0.1577052 0.1615078 0.1640562
+##  [43] 0.1661069 0.1734875 0.1850989 0.1986462 0.1990115 0.2393648 0.2402516
+##  [50] 0.2522716 0.2593937 0.2872219 0.2899303 0.3087714 0.3353598 0.3550386
+##  [57] 0.3654544 0.3829030 0.3899620 0.4041223 0.4098756 0.4334292 0.4404174
+##  [64] 0.4477192 0.4538603 0.4561717 0.4845407 0.4906328 0.4925706 0.4968793
+##  [71] 0.5025749 0.5101454 0.6020337 0.6765549 0.6882337 0.6890843 0.6942861
+##  [78] 0.7071428 0.8233128 0.8285980 0.9152412 0.9609026 0.9915345 1.0095510
+##  [85] 1.0274228 1.0782155 1.0990781 1.1022527 1.1343891 1.1437818 1.2813695
+##  [92] 1.3285125 1.3960991 1.4013139 1.5669139 1.5919410 1.7533986 1.8612402
+##  [99] 1.9211396 2.8176988
+</code></pre>
+
+<pre><code class="r">sort(loglr.eff.null.4.multi)
+</code></pre>
+
+<pre><code>##   [1] 0.0000000 0.0000000 0.0000000 0.0000000 0.0004733 0.0022308 0.0051874
+##   [8] 0.0105688 0.0157954 0.0165238 0.0307144 0.0401905 0.0412710 0.0471027
+##  [15] 0.0473484 0.0503362 0.0580969 0.0669600 0.0734467 0.0841750 0.0882699
+##  [22] 0.0927650 0.0933542 0.0980097 0.0999847 0.1082765 0.1158612 0.1192918
+##  [29] 0.1354147 0.1417308 0.1540704 0.1687946 0.1702470 0.1872484 0.2133194
+##  [36] 0.2168316 0.2216645 0.2281663 0.2470680 0.2523110 0.2677202 0.2714523
+##  [43] 0.2855782 0.2859934 0.3061882 0.3256488 0.3305934 0.3347877 0.3488970
+##  [50] 0.3547601 0.3744273 0.3919847 0.4003593 0.4120790 0.4132490 0.4226800
+##  [57] 0.4470323 0.4596094 0.4607534 0.4736239 0.4764610 0.4831904 0.5026710
+##  [64] 0.5113962 0.5128397 0.5137550 0.5145388 0.5256581 0.5345988 0.5616521
+##  [71] 0.5993679 0.6326696 0.6444807 0.6655648 0.6693641 0.6799282 0.7105591
+##  [78] 0.7163291 0.7631706 0.8117960 0.9895268 0.9989817 1.0086672 1.0105109
+##  [85] 1.0558908 1.0738330 1.0776899 1.1633292 1.2118329 1.2947710 1.3511706
+##  [92] 1.6053454 1.6720478 1.6939162 1.8285544 1.9540828 2.4284051 2.5877650
+##  [99] 3.6088160 4.3148303
+</code></pre>
+
+<pre><code class="r">sort(loglr.eff.alt.4.multi)
+</code></pre>
+
+<pre><code>##   [1]  0.2971  0.5584  0.7350  0.8674  1.2853  1.5030  1.5087  1.6110
+##   [9]  1.6323  1.8294  1.8815  2.0007  2.2623  2.4314  2.4392  2.4693
+##  [17]  2.4794  2.5055  2.5165  2.5181  2.5744  2.6416  2.6930  2.8410
+##  [25]  2.9185  2.9590  2.9620  2.9740  3.0879  3.1955  3.2055  3.2589
+##  [33]  3.2648  3.2986  3.4120  3.5513  3.5948  3.6291  3.6722  3.7525
+##  [41]  3.7809  3.7991  3.8018  3.9240  3.9652  3.9654  4.0011  4.0691
+##  [49]  4.1438  4.1627  4.1812  4.2164  4.2310  4.2401  4.2442  4.5388
+##  [57]  4.6545  4.6639  4.6745  4.7929  4.8319  4.8621  4.8762  4.8975
+##  [65]  5.0770  5.1323  5.4495  5.4521  5.6653  5.7252  5.7626  5.9303
+##  [73]  6.0963  6.3112  6.3352  6.3358  6.4127  6.5875  6.6294  6.6543
+##  [81]  6.7601  7.2033  7.3088  7.3607  7.3618  7.4718  7.5232  7.6212
+##  [89]  7.7900  8.2627  8.3926  8.5397  8.8035  9.2721  9.5689  9.6575
+##  [97]  9.9262 10.2962 11.2309 12.2688
+</code></pre>
+
+<pre><code class="r">
+summary(loglr.eff.null.4.bin)
+</code></pre>
+
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##  0.0000  0.0000  0.0000  0.0909  0.0703  0.9560
+</code></pre>
+
+<pre><code class="r">summary(loglr.eff.alt.4.bin)
+</code></pre>
+
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##  0.0000  0.0642  0.2560  0.4600  0.6880  2.8200
+</code></pre>
+
+<pre><code class="r">summary(loglr.eff.null.4.multi)
+</code></pre>
+
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   0.000   0.106   0.365   0.571   0.672   4.310
+</code></pre>
+
+<pre><code class="r">summary(loglr.eff.alt.4.multi)
+</code></pre>
+
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   0.297   2.950   4.170   4.710   6.340  12.300
+</code></pre>
+
+</body>
+
+</html>
