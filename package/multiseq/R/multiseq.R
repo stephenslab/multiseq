@@ -331,8 +331,8 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
 
             if(computelogLR){
-                ash.res=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                scales[[J+1]]=list(logLR=ash.res$logLR, fitted.g=ash.res$fitted.g)
+                zdat.ash=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+                scales[[J+1]]=list(logLR=zdat.ash$logLR, fitted.g=zdat.ash$fitted.g)
             }else{
                 res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
             }
@@ -343,8 +343,8 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
 
             if(computelogLR){
-                ash.res = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                scales[[J+1]]=list(logLR=ash.res$logLR,fitted.g=ash.res$fitted.g)
+                zdat.rate.ash = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+                scales[[J+1]]=list(logLR=zdat.rate.ash$logLR,fitted.g=zdat.rate.ash$fitted.g)
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
                 res.rate=compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
@@ -370,8 +370,8 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
     if(computelogLR){
         for(j in 1:J){
             ind = ((j-1)*n+1):(j*n)
-            ash.res = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-            scales[[j]]=list(logLR=ash.res$logLR/2^j, fitted.g=ash.res$fitted.g)
+            zdat.ash = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+            scales[[j]]=list(logLR=zdat.ash$logLR/2^j, fitted.g=zdat.ash$fitted.g)
         }
         
         # combine logLR from different scales
@@ -430,7 +430,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         effect.mean=effect.mean[reflect.indices]
         effect.var=effect.var[reflect.indices]
     }
-    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, scales=NULLL, finite.logLR = NULL))  
+    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, scales=NULL, finite.logLR = NULL))  
 }
 
 
