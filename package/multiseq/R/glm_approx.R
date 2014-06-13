@@ -506,7 +506,7 @@ glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center
                 x=matrix(x,ncol=n)
                 if(center==TRUE) g=g-mean(g)
                 #use the bintest function to fit a GLM separately to each case for quantitative covariate
-                return(apply(x,2,bintest,g=g,minobs=minobs,pseudocounts=pseudocounts,all=all,forcebin=forcebin,repara=repara))#return?
+                return(apply(x,2,bintest,g=g,minobs=minobs,pseudocounts=pseudocounts,all=all,forcebin=forcebin,repara=repara))
             }
         }
     }
