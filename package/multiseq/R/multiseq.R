@@ -264,7 +264,7 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
 #'
 #' @export
-#' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "logLR.each.scale", "finite.logLR" 
+#' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "scales", "finite.logLR". In particular, scales contains (part of) ash output for each scale.
 multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,repara=TRUE,forcebin=FALSE,lm.approx=TRUE,disp=c("add","mult"),nullcheck=TRUE,pointmass=TRUE,prior="nullbiased",gridmult=2,mixsd=NULL,VB=FALSE,shape.eff=FALSE,cxx=TRUE, computelogLR = FALSE, maxlogLR = NULL){
     disp=match.arg(disp)
     
@@ -322,8 +322,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         #compute mean and variance of the baseline overall intensity
         xRowSums = rowSums(x)
         if(computelogLR){
-            logLR = rep(NA, J + 1)
-            g.fit=list()
+            scales=list()
         }
         if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
             #define the "failures" this way so that the intercept will be the estimate of total intensity, and the slope will be the estimate of ratio of total intensities
@@ -333,8 +332,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
 
             if(computelogLR){
                 ash.res=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                logLR[J+1]=ash.res$logLR
-                g.fit[[J+1]]=ash.res$fitted.g
+                scales[[J+1]]=list(logLR=ash.res$logLR, fitted.g=ash.res$fitted.g)
             }else{
                 res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
             }
@@ -346,8 +344,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
 
             if(computelogLR){
                 ash.res = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                logLR[J+1]=ash.res$logLR
-                g.fit[[J+1]]=ash.res$fitted.g
+                scales[[J+1]]=list(logLR=ash.res$logLR,fitted.g=ash.res$fitted.g)
             }else{
                 #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
                 res.rate=compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
@@ -374,20 +371,19 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         for(j in 1:J){
             ind = ((j-1)*n+1):(j*n)
             ash.res = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-            logLR[j] = ash.res$logLR /2^j
-            g.fit[[j]]=ash.res$fitted.g
+            scales[[j]]=list(logLR=ash.res$logLR/2^j, fitted.g=ash.res$fitted.g)
         }
         
         # combine logLR from different scales
-        all.logLR = sum(logLR)
+        logLR = sum(sapply(scales,function(x){x$logLR}))
         # check if logLR is infinite
-        finite.logLR = is.finite(all.logLR)
+        finite.logLR = is.finite(logLR)
         # if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite. 
         if((!finite.logLR) & (!is.null(maxlogLR))){
-            all.logLR = maxlogLR
+            logLR = maxlogLR
         }
         
-        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = all.logLR, logLR.each.scale = logLR, finite.logLR = finite.logLR, g.fit=g.fit))  
+        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = logLR, scales = scales, finite.logLR = finite.logLR))  
     }
     
     res=list()
@@ -434,7 +430,7 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
         effect.mean=effect.mean[reflect.indices]
         effect.var=effect.var[reflect.indices]
     }
-    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, logLR.each.scale = NULL, finite.logLR = NULL, g.fit=NULL))  
+    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, scales=NULLL, finite.logLR = NULL))  
 }
 
 

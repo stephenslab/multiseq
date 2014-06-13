@@ -1,5 +1,13 @@
 #usage
+#non interactively
 #Rscript run.multiseq.R $samplesheet $chr":"$locus.start"-"$locus.end $multiseq.output.folder "test/multiseq" "chromosome.lengths.hg19.txt" "hg19.ensGene.gp.gz" 
+#interactively
+#data_name="Encode"
+#peak_type="high"
+#sim_type="NonNull"
+#samplesheet=paste0("~/src/stat45800/tests/simulations/",data_name,"/data/",peak_type,"/chr1.153616385.153747456/",sim_type,"Samplesheet.txt")
+#region="chr1:153616385-153747456"
+#dir.name="tmp"
 library(multiseq)
 
 
@@ -23,8 +31,8 @@ fra             <- 2      #how many sd to plot when plotting effect size
 do.plot         <- FALSE
 do.smooth       <- FALSE
 do.summary      <- TRUE
-do.save         <- TRUE  #FALSE #TRUE
-computelogLR    <- FALSE #TRUE #FALSE
+do.save         <- FALSE #TRUE
+computelogLR    <- TRUE #FALSE
 prior           <- "nullbiased" 
                              
                              
@@ -68,7 +76,9 @@ if (do.summary)
     my.time  <- proc.time() - ptm
 
 if (computelogLR==TRUE){
-    write.table(t(c(res$logLR, res$logLR.each.scale)), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"logLR_prior_uniform.txt"))
+    write.table(t(c(res$logLR, sapply(res$scales,function(x){x$logLR}))), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,paste0("logLR_",prior,".txt")))
+    #if (file.exists(file.path(dir.name,"g.fit.txt"))) file.remove(file.path(dir.name,"g.fit.txt"))
+    #lapply(res$g.fit, write, append=TRUE, ncolumns=1000, file=file.path(dir.name,"gi.fit.txt"))
     if (do.summary)
         write.table(t(c(chr, locus.start, locus.end, my.time[1])), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summaryLogLR.txt"))
     stop("run successfully")
