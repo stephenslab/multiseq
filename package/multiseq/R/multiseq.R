@@ -331,8 +331,8 @@ multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",mi
             zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
 
             if(computelogLR){
-                zdat.ash=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                scales[[J+1]]=list(logLR=zdat.ash$logLR, fitted.g=zdat.ash$fitted.g)
+                zdat.rate.o.ash=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
+                scales[[J+1]]=list(logLR=zdat.rate.o.ash$logLR, fitted.g=zdat.rate.o.ash$fitted.g)
             }else{
                 res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
             }
