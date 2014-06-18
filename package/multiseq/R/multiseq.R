@@ -1,3 +1,24 @@
+#' Get data at all scales
+#'
+#' This function takes a matrix x of Poisson counts, nind by 2^k, and returns a nind by (2*2^k)-2
+#' matrix that sums up columns of x at different scales. The last two columns of the aggregate are the
+#' sums of the first half of x and the sums of the second half. This function is needed to
+#' estimate the pi-s by aggregating data from multiple regions.
+#' @param x: nind by 2^k matrix of Poisson counts 
+#' @return a nind by (2*2^k)-2 matrix that sums up columns of x at different scales
+haar.aggregate= function(x){
+   if(is.vector(x)){dim(x)<- c(1,length(x))} #convert x to matrix
+   y = x
+   k = log2(ncol(x))
+   for(i in 1:(k-1)){
+       nc = ncol(x)
+       oddcols = ((1:nc) %% 2)==1
+       x = x[,!oddcols,drop="FALSE"]+x[,oddcols,drop="FALSE"]
+       y = cbind(y,x)
+   }
+   y
+}
+
 #' Compute the third and fourth moments of a normal or a mixture of normals distribution
 #' @param mu
 #' @param sigma
@@ -234,7 +255,6 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
     }
 }            
 
-
 #' Estimate underlying signal from count data \code{x} and optionally the effect of a covariate \code{g}.
 #' 
 #' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
@@ -257,180 +277,234 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param gridmult: density of grid of sigma vector
 #' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
 #' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
-#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
-#' @param shape.eff: bool, indicating whether to consider only shape effects
-#' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
-#' @param computelogLR: bool, indicating whether to compute logLR or not
+#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM (TRUE) or not (FALSE)
+#' @param shape.eff: bool, indicating whether to consider only shape effects (TRUE) or not (FALSE)
+#' @param cxx: bool, indicating whether to use c++ code (faster) (TRUE) or R code (FALSE)
+#' @param onlylogLR: bool, indicating whether to compute only logLR (TRUE) or not
 #' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
-#'
+#' @param smoothing: bool, indicating whether to apply ash to smooth the signal (TRUE) or not (FALSE); if smoothing==FALSE then reverse is set to FALSE; this option is only used when inferring shared pi.s 
+#' @param cyclespin: bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If cyclespin==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.
+#' @param reverse: bool, indicating whether to reverse wavelet (TRUE) or not
+#' @param fitted.g: a list of J+1 mixture of normal models fitted using ash, J=log2(n)
+#' @param fitted.g.intercept: a list of J mixture of normal models fitted using ash on the intercept, J=log2(n)  
+#' @param get.fitted.g: bool, indicating whether to save fitted.g 
+#' @param listy: a list of elements 'y','y.rate','intervals'; if listy is provided as an argument different from NULL, then y and y.rate are forced to listy$y and listy$y.rate respectively; this option is used when inferring shared pi.
 #' @export
 #' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "scales", "finite.logLR". In particular, scales contains (part of) ash output for each scale.
-multiseq = function(x,g=NULL,read.depth = NULL,reflect=FALSE,baseline="inter",minobs=1,pseudocounts=0.5,all=FALSE,center=FALSE,repara=TRUE,forcebin=FALSE,lm.approx=TRUE,disp=c("add","mult"),nullcheck=TRUE,pointmass=TRUE,prior="nullbiased",gridmult=2,mixsd=NULL,VB=FALSE,shape.eff=FALSE,cxx=TRUE, computelogLR = FALSE, maxlogLR = NULL){
+multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), nullcheck=TRUE, pointmass=TRUE, prior="nullbiased", gridmult=2, mixsd=NULL, VB=FALSE, shape.eff=FALSE, cxx=TRUE, onlylogLR=FALSE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL){
     disp=match.arg(disp)
     
-    if(!is.numeric(x)) stop("Error: invalid parameter 'x': 'x' must be numeric")
     if(!is.null(g)) if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor or NULL")
     if(!is.logical(center)) stop("Error: invalid parameter 'center', 'center' must be bool")#need this
-    if(!((baseline=="inter")|(baseline=="grp")|is.numeric(baseline))) stop("Error: invalid parameter 'baseline', 'baseline' can be a number or 'inter' or 'grp'")
+    if(!((baseline == "inter") | (baseline=="grp") | is.numeric(baseline))) stop("Error: invalid parameter 'baseline', 'baseline' can be a number or 'inter' or 'grp'")
+    if(center == FALSE & baseline == "inter") baseline = "grp"
     if(!is.logical(reflect)) stop("Error: invalid parameter 'reflect', 'reflect' must be bool")
-    if(!(((minobs%%1)==0)&minobs>0)) stop("Error: invalid parameter 'minobs', 'minobs' must be positive integer")
-    if(!(is.numeric(pseudocounts)&pseudocounts>0)) stop("Error: invalid parameter 'pseudocounts', 'pseudocounts' must be a positive number")
+    if(!(((minobs%%1)==0) & minobs>0)) stop("Error: invalid parameter 'minobs', 'minobs' must be positive integer")
+    if(!(is.numeric(pseudocounts) & pseudocounts>0)) stop("Error: invalid parameter 'pseudocounts', 'pseudocounts' must be a positive number")
     if(!is.logical(all)) stop("Error: invalid parameter 'all', 'all'  must be bool")
     if(!is.logical(repara)) stop("Error: invalid parameter 'repara', 'repara'  must be bool")
     if(!is.logical(forcebin)) stop("Error: invalid parameter 'forcebin', 'forcebin'  must be bool")
     if(!is.logical(lm.approx)) stop("Error: invalid parameter 'lm.approx', 'lm.approx'  must be bool")
-    if(!((is.null(mixsd))|(is.numeric(mixsd)&(length(mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
+    if(!((is.null(mixsd))|(is.numeric(mixsd) & (length(mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
     if(!is.element(disp,c("add","mult"))) stop("Error: invalid parameter 'disp', 'disp'  must be either 'add' or 'mult' ")
-    if(!((prior=="nullbiased")|(prior=="uniform")|is.numeric(prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
-    if(is.null(g) & computelogLR) stop("Error: g should be provided to compute logLR (computelogLR = TRUE) ")
-    if (computelogLR) pointmass <- TRUE     # if computelogLR is true, pointmass should be true.
+    if(!((prior == "nullbiased") | (prior == "uniform") | is.numeric(prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
+    if(onlylogLR){
+        if(is.null(g)) stop("Error: g should be provided to compute logLR (onlylogLR = TRUE)")
+        if(pointmass != TRUE) stop("Error: logLR can be computed only when pointmass = TRUE")
+        reverse=FALSE
+    }
+    if (!smoothing) reverse = FALSE
+    if (!cyclespin) {reverse = FALSE; warning("Reversing wavelet not implemented here when cyclespin=FALSE, setting reverse=FALSE")}
     #to do: check other input parameters
 
-    if(is.vector(x)){dim(x)<- c(1,length(x))} #change x to matrix
-    nsig = nrow(x)
-    if(!is.null(read.depth)) if(length(read.depth)!=nsig) stop("Error: read depths for all samples are not provided")
-    if(!is.null(g)) if(length(g)!=nsig) stop("Error: covariate g for all samples are not provided")
-    if(nsig==1){forcebin=TRUE} #if only one observation, don't allow overdispersion
-    if(center==FALSE&baseline=="inter"){baseline="grp"}
 
-    J = log2(ncol(x)); if((J%%1)!=0){reflect=TRUE} #if ncol(x) is not a power of 2, reflect x
-    if(reflect==TRUE) reflect.indices=reflect(x) #reflect signal; this function is pseudo calling x by reference
-
-    n = ncol(x)
-    J = log2(n)
-   
-    #estimate of ratio of overall intensities in different groups if sequencing depth is present
-    if(is.null(g)){
-        #define res.rate the (log) total number of counts
-        if(is.null(read.depth))
-            res.rate=list(lp.mean=log(mean(rowSums(x))), lp.var=0)
-        else
-            res.rate=list(lp.mean=log(mean(rowSums(x/(read.depth%o%rep(1,n))))), lp.var=0)
+    if(is.null(x)&is.null(listy)) stop("Error: no data provided. Specify x (or listy)")
+    if(is.null(listy)){
+        if(!is.numeric(x)) stop("Error: invalid parameter 'x': 'x' must be numeric")
+        if(is.vector(x)) dim(x) = c(1,length(x)) #change x to matrix
+        nsig = nrow(x)
+        if(!is.null(read.depth)) if(length(read.depth) != nsig) stop("Error: read depths for all samples are not provided")
+        if(!is.null(g)) if(length(g) != nsig) stop("Error: covariate g for all samples are not provided")
+        if(nsig == 1) forcebin = TRUE #if only one observation, don't allow overdispersion
+        J = log2(ncol(x)); if((J%%1) != 0) reflect=TRUE #if ncol(x) is not a power of 2, reflect x
+        if(reflect == TRUE) reflect.indices = reflect(x) #reflect signal; this function is pseudo calling x by reference
+        n = ncol(x)
+        J = log2(n)
     }else{
+        nsig = nrow(listy$y)
+        J = length(listy$intervals)-1
+        print(paste("J =",J))
+        if(is.null(g)) stop("Error: specify argument g to multiseq")
+        if(length(g) != nsig) stop("Error: arguments g and listy not compatible")
+    }
+    if(!is.null(g)){
         if(is.factor(g))
             g.num = as.numeric(levels(g))[g]
         else{
-            g.num=g
-            if(length(unique(g))==2)
-                g=factor(g)
+            g.num = g
+            if(length(unique(g)) == 2)
+                g = factor(g)
         }
-        #weights for quantitative covariate
-        if(center==TRUE)
-            w=unique(sort(g.num-mean(g.num)))
-        else
-            w=c(0,1)
-        #compute mean and variance of the baseline overall intensity
-        xRowSums = rowSums(x)
-        if(computelogLR){
-            scales=list()
+    }
+
+    fitted.g=list()
+    fitted.g.intercept=list()
+    logLR=NULL
+    sumlogLR=NULL
+    finite.logLR=NULL
+    #estimate of ratio of overall intensities in different groups if sequencing depth is present
+    if(is.null(g)){
+        if(is.null(listy)){
+            if(reverse){
+            #define res.rate the (log) total number of counts
+                if(is.null(read.depth))
+                    res.rate = list(lp.mean=log(mean(rowSums(x))), lp.var=0)
+                else
+                    res.rate = list(lp.mean=log(mean(rowSums(x/(read.depth%o%rep(1,n))))), lp.var=0)
+            }
+        }
+    }else{
+        if(is.null(listy)){
+            if(reverse){
+            #weights for quantitative covariate
+                if(center == TRUE)
+                    w = unique(sort(g.num-mean(g.num)))
+                else
+                    w = c(0,1)
+            }
+        
+            #compute mean and variance of the baseline overall intensity(used in reconstructing the baseline estimate later)    
+            xRowSums = rowSums(x)
         }
         if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
             #define the "failures" this way so that the intercept will be the estimate of total intensity, and the slope will be the estimate of ratio of total intensities
-            y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
-            #below lm.approx=FALSE n which case disp doesn't matter
-            zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
-
-            if(computelogLR){
-                zdat.rate.o.ash=ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                scales[[J+1]]=list(logLR=zdat.rate.o.ash$logLR, fitted.g=zdat.rate.o.ash$fitted.g)
-            }else{
-                res.rate=compute.res.rate(zdat.rate.o, repara, baseline, w, read.depth)
+            if (is.null(listy))
+                y.rate = matrix(c(xRowSums, rep(1,nsig)), ncol=2)
+            else
+                y.rate = listy$y.rate
+            if(smoothing | get.fitted.g){
+                #below lm.approx=FALSE in which case disp doesn't matter
+                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE))
+                zdat.rate.ash = ash(zdat.rate[3], zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[J+1]])
+                if (get.fitted.g)
+                    fitted.g[[J+1]] = zdat.rate.ash$fitted.g
+                if (pointmass) #compute logLR
+                    logLR[J+1] = zdat.rate.ash$logLR
+                if(reverse)
+                    res.rate = compute.res.rate(zdat.rate, repara, baseline, w, read.depth)
             }
         }else{
             ##run glm.approx to get zdat.rate
             #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
-            y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
-            zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-
-            if(computelogLR){
-                zdat.rate.ash = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-                scales[[J+1]]=list(logLR=zdat.rate.ash$logLR,fitted.g=zdat.rate.ash$fitted.g)
-            }else{
-                #computes mean and variance for the baseline overall intensity (used in reconstructing the baseline estimate later)
-                res.rate=compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
+            if (is.null(listy))
+                y.rate = matrix(c(xRowSums, read.depth-xRowSums), ncol=2)
+            else
+                y.rate = listy$y.rate
+            if (smoothing | get.fitted.g){
+                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp))
+                zdat.rate.ash = ash(zdat.rate[3], zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[J+1]])
+                if (get.fitted.g)
+                    fitted.g[[J+1]] = zdat.rate.ash$fitted.g
+                if (pointmass) #compute logLR 
+                    logLR[J+1] = zdat.rate.ash$logLR
+                if (reverse)
+                    res.rate = compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
             }
         }
     }
     ##run glm.approx to get zdat
-    #create the parent TI table for each signal, and put into rows of matrix y
-    if (cxx==FALSE){
-        y = matrix(nrow=nsig, ncol=2*J*n); for(i in 1:nsig){tt = ParentTItable(x[i,]);y[i,] = as.vector(t(tt$parent))}        
-    }else
-        y = cxxParentTItable(x)
-    #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
-    zdat=glm.approx(y,g,minobs=minobs,pseudocounts=pseudocounts,center=center,all=all,forcebin=forcebin,repara=repara,lm.approx=lm.approx,disp=disp)
-
-
-    
-    # loop through resolutions,
-    # if computelogLR is true, calculate logLR using ash function.
-    # otherwise, smoothing each resolution separately using ash
-    # compute.res returns posterior means and variances of log(p), log(q), log(p0/p1) and log(q0/q1) as lp, lq,lpratio and lqratio, respectively, where p
-    # is the probability of going left, q=1-p.
-    if(computelogLR){
-        for(j in 1:J){
-            ind = ((j-1)*n+1):(j*n)
-            zdat.ash = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)
-            scales[[j]]=list(logLR=zdat.ash$logLR/2^j, fitted.g=zdat.ash$fitted.g)
-        }
-        
-        # combine logLR from different scales
-        logLR = sum(sapply(scales,function(x){x$logLR}))
-        # check if logLR is infinite
-        finite.logLR = is.finite(logLR)
-        # if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite. 
-        if((!finite.logLR) & (!is.null(maxlogLR))){
-            logLR = maxlogLR
-        }
-        
-        return(list(baseline.mean=NULL, baseline.var=NULL, effect.mean=NULL, effect.var=NULL, logLR = logLR, scales = scales, finite.logLR = finite.logLR))  
-    }
-    
-    res=list()
-    for(j in 1:J){
-        ind = ((j-1)*n+1):(j*n)
-        zdat.ash.intercept=ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB)
-           
-        #apply ash to vector of intercept estimates and SEs
-        if (is.null(g))
-            res.j=compute.res(zdat.ash.intercept, repara)
-        else{
-            zdat.ash=ash(zdat[3,ind],zdat[4,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB)
-            res.j=compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
-        }
-        res=rbindlist(list(res,res.j))
-    }
-
-    #reconstructs baseline and (if applicable) effect estimate from the "wavelet" space, taking into account the different scenarios for g
-    if(cxx==FALSE){
-        baseline.mean=reverse.pwave(res.rate$lp.mean,matrix(res$lp.mean,J,n,byrow=TRUE),matrix(res$lq.mean,J,n,byrow=TRUE))
-        baseline.var=reverse.pwave(res.rate$lp.var,matrix(res$lp.var,J,n,byrow=TRUE),matrix(res$lq.var,J,n,byrow=TRUE))
-    }else{
-        baseline.mean=cxxreverse_pwave(res.rate$lp.mean,matrix(res$lp.mean,J,n,byrow=TRUE),matrix(res$lq.mean,J,n,byrow=TRUE))
-        baseline.var=cxxreverse_pwave(res.rate$lp.var,matrix(res$lp.var,J,n,byrow=TRUE),matrix(res$lq.var,J,n,byrow=TRUE))
-    }
-
-    if (is.null(g)){#if g is null then simply take the total intensity to be (log) total counts
-        effect.mean=NULL
-        effect.var=NULL
-    }else{
-        if(shape.eff==TRUE)#if only shape effect is desired, then differences in overall intensities is not considered  
-            res$lpratio.mean=0 #lpratio.v=0  
-        if(cxx==FALSE){
-            effect.mean=reverse.pwave(res.rate$lpratio.mean,matrix(res$lpratio.mean,J,n,byrow=TRUE),matrix(res$lqratio.mean,J,n,byrow=TRUE))
-            effect.var=reverse.pwave(res.rate$lpratio.var,matrix(res$lpratio.var,J,n,byrow=TRUE),matrix(res$lqratio.var,J,n,byrow=TRUE))
+    #compute y
+    if (is.null(listy)){
+        if (cyclespin){
+            #create the parent TI table for each signal, and put into rows of matrix y
+            if (cxx==FALSE){
+                y = matrix(nrow=nsig, ncol=2*J*n); for(i in 1:nsig){tt = ParentTItable(x[i,]); y[i,] = as.vector(t(tt$parent))}        
+            }else
+                y = cxxParentTItable(x)
         }else{
-            effect.mean=cxxreverse_pwave(res.rate$lpratio.mean,matrix(res$lpratio.mean,J,n,byrow=TRUE),matrix(res$lqratio.mean,J,n,byrow=TRUE))
-            effect.var=cxxreverse_pwave(res.rate$lpratio.var,matrix(res$lpratio.var,J,n,byrow=TRUE),matrix(res$lqratio.var,J,n,byrow=TRUE))
+            y = haar.aggregate(x)
+            intervals = c(0,sapply(J:1, function(x){2^x}))
+        }
+    }else{
+       y = listy$y
+       intervals = listy$intervals
+    }
+
+    if (!smoothing)
+        return(list(y.rate=y.rate, y=y))
+    else{
+        baseline.mean=baseline.var=effect.mean=effect.var=NULL
+        #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
+        zdat = glm.approx(y, g, minobs=minobs, pseudocounts=pseudocounts, center=center, all=all, forcebin=forcebin, repara=repara, lm.approx=lm.approx, disp=disp)
+        # loop through resolutions, smoothing each resolution separately using ash
+        # compute.res returns posterior means and variances of log(p), log(q), log(p0/p1) and log(q0/q1) as lp, lq,lpratio and lqratio, respectively, where p
+        # is the probability of going left, q=1-p.
+        res=list()
+        for(j in 1:J){
+            if (cyclespin){
+                spins = 2^j
+                ind = ((j-1)*n+1):(j*n)
+            }else{ #just get fitted.g using ash 
+                spins = 1
+                ind = (intervals[j]+1):intervals[j+1]
+            }
+            if (!is.null(g)){
+                zdat.ash = ash(zdat[3,ind], zdat[4,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[j]])
+                if (get.fitted.g)
+                    fitted.g[[j]] = zdat.ash$fitted.g
+                if (pointmass)
+                    logLR[j] = zdat.ash$logLR/spins
+            }
+            if (!onlylogLR & (smoothing | get.fitted.g)){
+                zdat.ash.intercept = ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, g=set.fitted.intercept.g[[j]])
+                if (get.fitted.g)
+                    fitted.intercept.g[[j]] = zdat.ash.intercept$fitted.g
+                if (reverse)
+                    if (is.null(g))
+                        res[[j]] = compute.res(zdat.ash.intercept, repara)
+                    else
+                        res[[j]] = compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
+            }
+        }
+
+        if (pointmass){
+            sumlogLR = sum(logLR) # combine logLR from different scales
+            finite.logLR = is.finite(sumlogLR); if((!finite.logLR) & (!is.null(maxlogLR))) sumlogLR = maxlogLR  # check if logLR is infinite; if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite.
+        }
+
+        #reconstructs baseline and (if applicable) effect estimate from the "wavelet" space, taking into account the different scenarios for g
+        if (reverse){
+            if(cxx==FALSE){
+                baseline.mean = reverse.pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE), matrix(res$lq.mean, J, n, byrow=TRUE))
+                baseline.var = reverse.pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE), matrix(res$lq.var, J, n, byrow=TRUE))
+            }else{
+                baseline.mean = cxxreverse_pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE), matrix(res$lq.mean, J, n, byrow=TRUE))
+                baseline.var = cxxreverse_pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE), matrix(res$lq.var, J, n, byrow=TRUE))
+            }
+            
+            if (is.null(g)){#if g is null then simply take the total intensity to be (log) total counts
+                effect.mean = NULL
+                effect.var = NULL
+            }else{
+                if(shape.eff==TRUE)#if only shape effect is desired, then differences in overall intensities is not considered  
+                    res$lpratio.mean = 0 #lpratio.v=0  
+                if(cxx==FALSE){
+                    effect.mean = reverse.pwave(res.rate$lpratio.mean, matrix(res$lpratio.mean, J, n, byrow=TRUE), matrix(res$lqratio.mean, J, n, byrow=TRUE))
+                    effect.var = reverse.pwave(res.rate$lpratio.var, matrix(res$lpratio.var, J, n, byrow=TRUE), matrix(res$lqratio.var, J, n, byrow=TRUE))
+                }else{
+                    effect.mean = cxxreverse_pwave(res.rate$lpratio.mean, matrix(res$lpratio.mean, J, n, byrow=TRUE), matrix(res$lqratio.mean, J, n, byrow=TRUE))
+                    effect.var = cxxreverse_pwave(res.rate$lpratio.var, matrix(res$lpratio.var, J, n, byrow=TRUE), matrix(res$lqratio.var, J, n, byrow=TRUE))
+                }
+            }
+            if(reflect==TRUE){
+                baseline.mean = baseline.mean[reflect.indices]
+                baseline.var = baseline.var[reflect.indices]
+                effect.mean = effect.mean[reflect.indices]
+                effect.var = effect.var[reflect.indices]
+            }
         }
     }
-    if(reflect==TRUE){
-        baseline.mean=baseline.mean[reflect.indices]
-        baseline.var=baseline.var[reflect.indices]
-        effect.mean=effect.mean[reflect.indices]
-        effect.var=effect.var[reflect.indices]
-    }
-    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR = NULL, scales=NULL, finite.logLR = NULL))  
+    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR=list(value=sumlogLR, scales=logLR, isfinite=finite.logLR), fitted.g=fitted.g, fitted.g.intercept=fitted.g.intercept))
 }
 
 
@@ -523,7 +597,6 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
         y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
         zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
         logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
-        
     }else{
         #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
         y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)

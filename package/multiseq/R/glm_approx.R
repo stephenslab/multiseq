@@ -157,14 +157,14 @@ add.counts=function(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn=NULL){
 }
   
 
-#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates
+#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates (MLE with approximation at endpoints for mean; a mix of Berkson’s estimator and Tukey’s estimator for variance)
 #' @return a list with elements "mu", "var" and optionally "p"
 compute.approx.z=function(x.s,x.f,bound,eps,pseudocounts,all,indexn=NULL,return.p=FALSE){
     #compute mu
     index1=(x.s/x.f)<=bound                  #find indices for which binomial success or failures are too small
     index2=(x.f/x.s)<=bound
     index1[is.na(index1)]=FALSE
-    index2[is.na(index2)]=FALSE
+    index2[is.na(index2)]=FALSE              #this is the same as above!!!
     x=add.counts(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn)       #add pseudocounts
     s=x$x.s+x$x.f 
     mu=log(x$x.s/x$x.f)                          #compute logit(p) to be used as observations
@@ -207,14 +207,17 @@ wls.coef=function(z,disp,indexnm,n,ng,forcebin,g=NULL,repara=NULL){
     else{
         coef=c(res$muhat,res$betahat)
         se=c(res$semuhat,res$sebetahat)
-        if(is.null(repara)) stop("Error: invalid argument 'repara'")
         if(repara==TRUE){                            #return reparametrized muhat and behat as well as their SEs, together with gamma as defined in documentation
             mbvar=res$covmubeta/res$sebetahat^2
             coef[1:n]=res$muhat-res$betahat*mbvar
             se[1:n]=sqrt(res$semuhat^2+mbvar^2*res$sebetahat^2-2*mbvar*res$covmubeta)
-            return(list(coef=coef,se=se,mbvar=mbvar))
-        }else
-            return(list(coef=coef,se=se,mbvar=NULL))
+        }else{
+            if(repara==FALSE)
+                mbvar=NULL
+            else
+                stop("Error: invalid argument 'repara'")
+        }
+        return(list(coef=coef,se=se,mbvar=mbvar))  
     }
 }
 
