@@ -416,7 +416,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     #compute y
     if (is.null(listy)){
         if (cyclespin){
-            #create the parent TI table for each signal, and put into rows of matrix y
+            #create the parent TI table for each signal, and putfitted.g[[J+1]] = zdat.rate.ash$fitted.g  into rows of matrix y
             if (cxx==FALSE){
                 y = matrix(nrow=nsig, ncol=2*J*n); for(i in 1:nsig){tt = ParentTItable(x[i,]); y[i,] = as.vector(t(tt$parent))}        
             }else
@@ -456,17 +456,19 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                     logLR[j] = zdat.ash$logLR/spins
             }
             if (!onlylogLR & (smoothing | get.fitted.g)){
-                zdat.ash.intercept = ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, g=set.fitted.intercept.g[[j]])
+                zdat.ash.intercept = ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, g=set.fitted.g.intercept[[j]])
                 if (get.fitted.g)
-                    fitted.intercept.g[[j]] = zdat.ash.intercept$fitted.g
-                if (reverse)
+                    fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
+                if (reverse){
                     if (is.null(g))
-                        res[[j]] = compute.res(zdat.ash.intercept, repara)
+                        res.j = compute.res(zdat.ash.intercept, repara)
                     else
-                        res[[j]] = compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
-            }
+                        res.j = compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
+                    res=rbindlist(list(res,res.j))
+                }
+            }            
         }
-
+        
         if (pointmass){
             sumlogLR = sum(logLR) # combine logLR from different scales
             finite.logLR = is.finite(sumlogLR); if((!finite.logLR) & (!is.null(maxlogLR))) sumlogLR = maxlogLR  # check if logLR is infinite; if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite.
