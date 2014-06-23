@@ -9,7 +9,7 @@
 #region="chr1:153616385-153747456"
 #dir.name="tmp"
 library(multiseq)
-
+library(rhdf5)
 
 #********************************************************************
 #
@@ -21,20 +21,21 @@ args            <- commandArgs(TRUE)
 samplesheet     <- args[1]
 region          <- args[2]
 dir.name        <- file.path(args[3])
-hub.name        <- args[4]
-chrom.file      <- file.path(args[5])
-assembly        <- args[6]
-annotation.file <- file.path(args[7])
+fitted.g.file   <- file.path(args[4])
+#hub.name        <- args[4]
+#chrom.file      <- file.path(args[5])
+#assembly        <- args[6]
+#annotation.file <- file.path(args[7])
+
 
 #PARAMETERS  
 fra             <- 2      #how many sd to plot when plotting effect size    
 do.plot         <- FALSE
 do.smooth       <- FALSE
 do.summary      <- TRUE
-do.save         <- FALSE #TRUE
-computelogLR    <- TRUE #FALSE
+do.save         <- FALSE #FALSE #TRUE
 prior           <- "nullbiased" 
-                             
+lm.approx       <- FALSE #=TRUE #so far we run things with approx=FALSE
                              
 samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)   
 g               <- factor(samples$Tissue)
@@ -61,27 +62,14 @@ if (sum(M)<10){
     }
     stop("Total number of reads over all samples is <10. Stopping.")
 }
-
-if (computelogLR==TRUE){
-    print("only compute loglikelihood")
-}else{
-    print("Compute effect")
-}
-
+load(fitted.g.file)
 if (do.summary)
     ptm      <- proc.time()
-res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth, computelogLR=computelogLR, prior=prior)
-warnings() #print warnings 
-if (do.summary)
-    my.time  <- proc.time() - ptm
+res <- multiseq(M, g=g, minobs=1, lm.approx=lm.approx, read.depth=samples$ReadDepth, prior=prior, set.fitted.g=ret$fitted.g, set.fitted.g.intercept=ret$fitted.g.intercept)
+warnings() #print warnings
 
-if (computelogLR==TRUE){
-    write.table(t(c(res$logLR, sapply(res$scales,function(x){x$logLR}))), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,paste0("logLR_",prior,".txt")))
-    #if (file.exists(file.path(dir.name,"g.fit.txt"))) file.remove(file.path(dir.name,"g.fit.txt"))
-    #lapply(res$g.fit, write, append=TRUE, ncolumns=1000, file=file.path(dir.name,"gi.fit.txt"))
-    if (do.summary)
-        write.table(t(c(chr, locus.start, locus.end, my.time[1])), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,"summaryLogLR.txt"))
-    stop("run successfully")
+if (do.summary){
+    my.time  <- proc.time() - ptm
 }
 
 res$chr=chr
@@ -93,6 +81,7 @@ if (do.save){
     #save results in a compressed file
     write.effect.mean.variance.gz(res,dir.name)
     write.effect.intervals(res,dir.name,fra=2)
+    write.table(t(c(res$logLR$value, res$logLR$scales, quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,paste0("logLR_",prior,".txt"))) 
 }
 
 if (do.summary){
@@ -130,8 +119,8 @@ if (do.plot){
 #*************************************************************
 if (do.smooth==TRUE){
     print("Smooth by group")
-    res0 <- multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
-    res1 <- multiseq(M[g==1,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==1])
+    res0 <- multiseq(M[g==0,], minobs=1, lm.approx=lm.approx, read.depth=samples$ReadDepth[g==0])
+    res1 <- multiseq(M[g==1,], minobs=1, lm.approx=lm.approx, read.depth=samples$ReadDepth[g==1])
     
     if (do.plot==TRUE){
         print("Plot smoothed signals")
