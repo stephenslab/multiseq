@@ -449,11 +449,18 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 ind = (intervals[j]+1):intervals[j+1]
             }
             if (!is.null(g)){
-                zdat.ash = ash(zdat[3,ind], zdat[4,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[j]])
-                if (get.fitted.g)
-                    fitted.g[[j]] = zdat.ash$fitted.g
-                if (pointmass)
-                    logLR[j] = zdat.ash$logLR/spins
+                if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
+                    zdat.ash = ash(zdat[3,ind], zdat[4,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[j]])
+                    if (get.fitted.g)
+                        fitted.g[[j]] = zdat.ash$fitted.g
+                    if (pointmass)
+                        logLR[j] = zdat.ash$logLR/spins
+                }else{
+                    #if (get.fitted.g)
+                    #    fitted.g[[j]] = zdat.ash$fitted.g
+                    if (pointmass)
+                        logLR[j] = 0
+                }
             }
             if (!onlylogLR & (smoothing | get.fitted.g)){
                 zdat.ash.intercept = ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, g=set.fitted.g.intercept[[j]])
@@ -613,8 +620,12 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
     # calculate logLR using ash function.
     for(j in 1:J){
         ind = ((j-1)*n+1):(j*n)
-        logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
-        logLR[j] = logLR[j]/2^j
+        if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
+            logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR = TRUE)$logLR
+            logLR[j] = logLR[j]/2^j
+        }else{
+            logLR[j] = 0
+        }
     }
         
     # combine logLR from different scales
