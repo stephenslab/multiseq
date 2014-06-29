@@ -652,7 +652,7 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
 #' @param pheno.dat: a matrix of nsig (# of samples) by n counts where n should be a power of 2
 #' @param geno.dat: a matrix of numC (number of SNPs or number of covariates) by nsig; each row contains genotypes/covariate value for each sample. 
 #' @param library.read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
-#' @param numPerm: number of permutations
+#' @param numPerm: number of permutations; if numPerm == NULL, do not perform permutation, but return logLR. 
 #' @param numSig: permutation stops when number of permuted data with significant test statistic reaches this number.
 #' @param eps: when logLR == 0, we use a value sampled from Unif(-eps, 0) as logLR. 
 #' @param use.default.compute.logLR: bool, if TRUE, it uses default options in \code{\link{compute.logLR}}. Otherwise, it passes parameters to \code{\link{compute.logLR}}. 
@@ -719,85 +719,94 @@ permutation.logLR <-function(pheno.dat, geno.dat, library.read.depth=NULL, numPe
     ours = as.numeric(reslogLR[,1])  
     targetSNP_posi = which.max(ours)
 
-    if(length(targetSNP_posi) == 0){
-        stop("ERROR: there is no SNP with maximum logLR")
+    if(is.null(numPerm)){
+        # No permutation 
+        if(numSNPs == 1)
+            targetSNP_posi = NULL 
+        return(list(most.sig.SNP.posi = targetSNP_posi, pval = NULL, logLR = reslogLR, Count_stop = NULL, Count_sig = NULL, numPerm = NULL, numSig = NULL))
     }else{
+        # perform permutation 
+        if(length(targetSNP_posi) == 0){
+            stop("ERROR: there is no SNP with maximum logLR")
+        }else{
 
-	targetlogLR = ours[targetSNP_posi[1]]
+            targetlogLR = ours[targetSNP_posi[1]]
 
-	if(targetlogLR == 0){ # handle zero logLR
+            if(targetlogLR == 0){ # handle zero logLR
 		targetlogLR = runif(1, -eps, 0)
-	}
-
-        # for permutation 
-	Count_sig = 0                  # number of significnat permuted data
-	logLR_perm = rep(NA, numSNPs)  # save logLR from multiple SNPs
-	Count_stop = NA                # where a permutation stops because # of significant permuted data == numSig
-
-	wh = which(doneSNPs == 0)      # will skip SNP with no variation 
-	len_wh = length(wh)
-	doneAll = NA   # doneAll = 1, permutation stops before it reaches "numPerm"
-	if(len_wh > 0){
-            doneAll = 0   
-            for(p in 1:numPerm){
-                new_IX = sample(1:numIND, numIND) # permute label
-                TItable_new = TItable[new_IX,]
-                if(!is.null(library.read.depth)){
-                    library.read.depth_new =library.read.depth[new_IX]
-                }else{
-                    library.read.depth_new = NULL
-                }
-                pheno.dat_new = pheno.dat[new_IX,]
-                for(m in 1:len_wh){
-                    g = wh[m]
-                    genoD = as.numeric(geno.dat[g,])
-                    if(use.default.compute.logLR){
-                        res.logLR = compute.logLR(pheno.dat_new, g=genoD, TItable=TItable_new, read.depth = library.read.depth_new)
-                    }else{
-                        res.logLR = compute.logLR(pheno.dat_new, g=genoD, TItable=TItable_new, read.depth = library.read.depth_new, minobs = minobs, pseudocounts=pseudocounts, all=all, center=center, repara=repara, forcebin=forcebin, lm.approx=lm.approx, disp=disp, nullcheck=nullcheck, pointmass=pointmass, prior=prior, gridmult=gridmult, mixsd=mixsd, VB=VB, cxx=cxx, maxlogLR =maxlogLR)
-                    }
-                    logLR_perm[g] = res.logLR$logLR
-                }
-
-                MAX_logLR_perm = max(logLR_perm, na.rm=TRUE) # take maxlogLR among multiple SNPs
-                if(MAX_logLR_perm == 0){                     # handle logLR == 0
-                    MAX_logLR_perm = runif(1, -eps, 0)
-                }
-
-                if(MAX_logLR_perm >= targetlogLR){ # significant?
-                    Count_sig = Count_sig + 1
-                    if(Count_sig == numSig){       # stop??
-                        st_val = (Count_sig + 1)/(p + 2)
-                        en_val = (Count_sig + 1)/(p + 1)
-                        final_pval = runif(1, st_val, en_val)
-                        Count_stop = p
-                        doneAll = 1
-                    }
-                }
-
-                if(doneAll == 1){			
-                    break
-                }
             }
 
-            # if permutation stops because it reaches "numPerm"
-            if(doneAll == 0){
-                Count_stop = NA
-                final_pval = (Count_sig + 1)/(numPerm +1)			
-            }	
+            # for permutation 
+            Count_sig = 0                  # number of significnat permuted data
+            logLR_perm = rep(NA, numSNPs)  # save logLR from multiple SNPs
+            Count_stop = NA                # where a permutation stops because # of significant permuted data == numSig
+
+            wh = which(doneSNPs == 0)      # will skip SNP with no variation 
+            len_wh = length(wh)
+            doneAll = NA   # doneAll = 1, permutation stops before it reaches "numPerm"
+            if(len_wh > 0){
+                doneAll = 0   
+                for(p in 1:numPerm){
+                    new_IX = sample(1:numIND, numIND) # permute label
+                    TItable_new = TItable[new_IX,]
+                    if(!is.null(library.read.depth)){
+                        library.read.depth_new =library.read.depth[new_IX]
+                    }else{
+                        library.read.depth_new = NULL
+                    }
+                    pheno.dat_new = pheno.dat[new_IX,]
+                    for(m in 1:len_wh){
+                        g = wh[m]
+                        genoD = as.numeric(geno.dat[g,])
+                        if(use.default.compute.logLR){
+                            res.logLR = compute.logLR(pheno.dat_new, g=genoD, TItable=TItable_new, read.depth = library.read.depth_new)
+                        }else{
+                            res.logLR = compute.logLR(pheno.dat_new, g=genoD, TItable=TItable_new, read.depth = library.read.depth_new, minobs = minobs, pseudocounts=pseudocounts, all=all, center=center, repara=repara, forcebin=forcebin, lm.approx=lm.approx, disp=disp, nullcheck=nullcheck, pointmass=pointmass, prior=prior, gridmult=gridmult, mixsd=mixsd, VB=VB, cxx=cxx, maxlogLR =maxlogLR)
+                        }
+                        logLR_perm[g] = res.logLR$logLR
+                    }
+
+                    MAX_logLR_perm = max(logLR_perm, na.rm=TRUE) # take maxlogLR among multiple SNPs
+                    if(MAX_logLR_perm == 0){                     # handle logLR == 0
+                        MAX_logLR_perm = runif(1, -eps, 0)
+                    }
+
+                    if(MAX_logLR_perm >= targetlogLR){ # significant?
+                        Count_sig = Count_sig + 1
+                        if(Count_sig == numSig){       # stop??
+                            st_val = (Count_sig + 1)/(p + 2)
+                            en_val = (Count_sig + 1)/(p + 1)
+                            final_pval = runif(1, st_val, en_val)
+                            Count_stop = p
+                            doneAll = 1
+                        }
+                    }
+
+                    if(doneAll == 1){			
+                        break
+                    }
+                }
+
+                # if permutation stops because it reaches "numPerm"
+                if(doneAll == 0){
+                    Count_stop = NA
+                    final_pval = (Count_sig + 1)/(numPerm +1)		
+                }	
             
-	}else{
-           # in case no SNP has a variation!!!
-            Count_stop = NA		
-            Count_sig = NA
-            final_pval = 10
+            }else{
+                # in case no SNP has a variation!!!
+                Count_stop = NA		
+                Count_sig = NA
+                final_pval = 10
+            }
         }
+
+        if(numSNPs == 1)
+            targetSNP_posi = NULL 
+        return(list(most.sig.SNP.posi = targetSNP_posi, pval = final_pval, logLR = reslogLR, Count_stop = Count_stop, Count_sig = Count_sig, numPerm = numPerm, numSig = numSig))
     }
 
-    if(numSNPs == 1)
-        targetSNP_posi = NULL 
-    return(list(most.sig.SNP.posi = targetSNP_posi, pval = final_pval, logLR = reslogLR, Count_stop = Count_stop, Count_sig = Count_sig, numPerm = numPerm, numSig = numSig))
-
+    
 }
 
 
