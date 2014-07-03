@@ -157,7 +157,7 @@ add.counts=function(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn=NULL){
 }
   
 
-#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates (MLE with approximation at endpoints for mean; a mix of Berksonâ€™s estimator and Tukeyâ€™s estimator for variance)
+#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates (MLE with approximation at endpoints for mean; a mix of Berkson’s estimator and Tukey’s estimator for variance)
 #' @return a list with elements "mu", "var" and optionally "p"
 compute.approx.z=function(x.s,x.f,bound,eps,pseudocounts,all,indexn=NULL,return.p=FALSE){
     #compute mu
@@ -441,10 +441,11 @@ compute.glm=function(x,g,d,n,na.index,repara){
 #' @param forcebin: bool, if TRUE don't allow for overdipersion.
 #' @param lm.approx: bool, specifies if WLS should be used (TRUE), or GLM (FALSE)
 #' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#' @param bound: numeric, indicates the threshold of the success vs failure ratio below which pseudocounts will be added
 #'
 #' @export
 #' @return a matrix of 2 (or 5 if g is provided) by T (# of WCs); Each row contains alphahat (1st row), standard error of alphahat (2nd), betahat (3rd), standard error of betahat (4th), covariance between alphahat and betahat (5th) for each WC.
-glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center=FALSE,repara=FALSE,forcebin=FALSE,lm.approx=FALSE,disp=c("add","mult")){
+glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center=FALSE,repara=FALSE,forcebin=FALSE,lm.approx=FALSE,disp=c("add","mult"),bound=0.02){
     disp=match.arg(disp)
     if(is.vector(x)){dim(x)<- c(1,length(x))}  #if x is a vector convert to matrix 
     n=ncol(x)/2
@@ -460,7 +461,7 @@ glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center
     }
     if(lm.approx==TRUE){                        #use WLS approximation
         na.index=colSums(matrix((x.sf$x.s+x.sf$x.f)!=0,ncol=n,byrow=T))<minobs    #find indices for which there is insufficient data
-        z=compute.approx.z(x.sf$x.s,x.sf$x.f,0.02,eps,pseudocounts,all,indexn)          #obtain estimates for logit(p) and var(logit(p))
+        z=compute.approx.z(x.sf$x.s,x.sf$x.f,bound,eps,pseudocounts,all,indexn)          #obtain estimates for logit(p) and var(logit(p))
         if(is.null(g)){                           #smoothing multiple signals without covariate  
             res=wls.coef(z,disp,indexnm,n,ng,forcebin)
             return(compute.lm(g,res$coef,res$se,res$mbvar,n,na.index,repara))   
@@ -476,7 +477,7 @@ glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center
                 x=colSums(x)                              #pool data together as in GLM
             x=matrix(x,ncol=n)
             na.index=(colSums(x)==0)
-            z=compute.approx.z(x[1,],x[2,],0.05,eps,pseudocounts,all,NULL,TRUE)          #obtain estimates for logit(p) and var(logit(p)) #indexn=NULL???
+            z=compute.approx.z(x[1,],x[2,],bound,eps,pseudocounts,all,NULL,TRUE)          #obtain estimates for logit(p) and var(logit(p)) #indexn=NULL???
             d=compute.dispersion(z$p,n,ng,indexnm,forcebin,x.s=x.sf$x.s,x.f=x.sf$x.f)      #computes dispersion  
             return(compute.glm(z,g,d,n,na.index,repara))
         }else{                                        #case where g is present
@@ -501,7 +502,7 @@ glm.approx=function(x,g=NULL,minobs=1,pseudocounts=0.5,all=FALSE,eps=1e-8,center
                 x.s.m=as.vector(t(x.mer.s))               #extract successes and failures from pooled data
                 x.f.m=as.vector(t(x.mer.f))
                 indexn=(x.s.m==0&x.f.m==0)                #define indices where pooled data still has no data
-                z=compute.approx.z(x.s.m,x.f.m,0.02,eps,pseudocounts,all,indexn,TRUE)          #obtain estimates for logit(p) and var(logit(p)) #indexn?
+                z=compute.approx.z(x.s.m,x.f.m,bound,eps,pseudocounts,all,indexn,TRUE)          #obtain estimates for logit(p) and var(logit(p)) #indexn?
                 res=glm.coef(z,g,n,center,repara)
                 d=compute.dispersion(z$p,n,ng,indexnm,forcebin,ind,ord,lg,x)   #computes dispersion
                 return(compute.glm(res,g,d,n,na.index,repara))

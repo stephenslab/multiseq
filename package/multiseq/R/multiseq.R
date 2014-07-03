@@ -384,7 +384,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 y.rate = listy$y.rate
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
-                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE))
+                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE, bound=0))
                 zdat.rate.ash = ash(zdat.rate[3], zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[J+1]])
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
@@ -401,7 +401,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             else
                 y.rate = listy$y.rate
             if (smoothing | get.fitted.g){
-                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp))
+                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp, bound=0))
                 zdat.rate.ash = ash(zdat.rate[3], zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[J+1]])
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
