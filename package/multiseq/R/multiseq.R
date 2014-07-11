@@ -91,7 +91,7 @@ ParentTItable=function(sig){
 #' @return an n-vector 
 reverse.pwave=function(est,lp,lq=NULL){
   if(is.null(lq))
-     lq = log(1-exp(lp))
+     lq = log(1-pmin(exp(lp),1-1e-10))
 
   if(length(est)==1)
      est = rep(est,ncol(lp))
@@ -201,7 +201,8 @@ compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
         lpratio=list(mean=zdat[3], var=0)
     }else{
         gamma=list(mean=zdat[1]+(w1+mbvar)*zdat[3], var=zdat[2]^2+((w1+mbvar)*zdat[4])^2)
-        lp=ff.moments(gamma$mean,gamma$var)      
+        lp=ff.moments(gamma$mean,gamma$var)    
+        lp$mean=log(exp(gamma$mean)/(1+exp(gamma$mean)))
 
         beta.tm = tfmoment(zdat[3],zdat[4],3)
         beta.fm = tfmoment(zdat[3],zdat[4],4)
@@ -483,13 +484,17 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
 
         #reconstructs baseline and (if applicable) effect estimate from the "wavelet" space, taking into account the different scenarios for g
         if (reverse){
-            if(cxx==FALSE){
-                baseline.mean = reverse.pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE), matrix(res$lq.mean, J, n, byrow=TRUE))
-                baseline.var = reverse.pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE), matrix(res$lq.var, J, n, byrow=TRUE))
-            }else{
-                baseline.mean = cxxreverse_pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE), matrix(res$lq.mean, J, n, byrow=TRUE))
-                baseline.var = cxxreverse_pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE), matrix(res$lq.var, J, n, byrow=TRUE))
-            }
+            #if(cxx==FALSE){
+                #baseline.mean = reverse.pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE), matrix(res$lq.mean, J, n, byrow=TRUE))
+                #baseline.var = reverse.pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE), matrix(res$lq.var, J, n, byrow=TRUE))
+                baseline.mean = reverse.pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE))
+                baseline.var = reverse.pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE))
+            #}else{
+            #    #baseline.mean = cxxreverse_pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE), matrix(res$lq.mean, J, n, byrow=TRUE))
+            #    #baseline.var = cxxreverse_pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE), matrix(res$lq.var, J, n, byrow=TRUE))
+            #    baseline.mean = cxxreverse_pwave(res.rate$lp.mean, matrix(res$lp.mean, J, n, byrow=TRUE))
+            #    baseline.var = cxxreverse_pwave(res.rate$lp.var, matrix(res$lp.var, J, n, byrow=TRUE))
+            #}
             
             if (is.null(g)){#if g is null then simply take the total intensity to be (log) total counts
                 effect.mean = NULL
