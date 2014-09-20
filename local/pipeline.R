@@ -1,3 +1,7 @@
+#GIVEN A LIST OF SITES WHERE WE WANT TO RUN MULTISEQ (IN BED FORMAT) SELECT 1000 SITES (IF THE BED FILE CONTAINS LESS THAN 1000 SITES THEN TAKE ALL OF THEM). FOR EACH j IN 1:J select 2^(J-j)/1000  
+66 33 17  9  5  3  2  1  1  1  1  1  1  1  1  1  1
+
+
 #ql 20g
 #list_loci="list_loci_multiples"
 #tmp_list_loci="tmp"
