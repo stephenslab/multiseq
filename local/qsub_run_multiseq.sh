@@ -15,10 +15,6 @@ MEM=10g
 sample_sheet=$1
 OUT_DIR=$2"/"
 fitted_g=$OUT_DIR"/fitted.g.RData"
-#hub_name="my_multiseq_results"
-#chrom_file="~/src/multiseq/data/hg19/chromosome.lengths.hg19.txt"
-#assembly="hg19"
-#annotation_file="/mnt/lustre/home/epantaleo/data/annotations/hg19.ensGene.gp.gz"  
 
 #check arguments
 if [ -z ${OUT_DIR} ] || [ -z ${sample_sheet} ]; then
@@ -41,7 +37,7 @@ fi
 while read region; do
     locus="`echo ${region} | awk '{print $1':'$2+1'-'$3}'`"
     PROCESS_NAME=`echo ${region} | awk '{print $1"."$2"."$3}'`
-    echo "Rscript run.multiseq.R ${sample_sheet} ${locus} ${OUT_DIR} $fitted_g ${hub_name} ${chrom_file} ${assembly} ${annotation_file}" | \
+    echo "Rscript run.multiseq.R ${sample_sheet} ${locus} ${OUT_DIR} $fitted_g" | \
 	qsub -l h_vmem=${MEM} -v PATH -cwd -N ${PROCESS_NAME} \
         -o ${LOG_DIR}${PROCESS_NAME}"_log.out" -e ${LOG_DIR}${PROCESS_NAME}"_log.err"
 done 

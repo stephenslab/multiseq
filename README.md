@@ -1,165 +1,27 @@
-# Introduction
+Download the R package **multiseq**
+-----------------------------------
+This repository contains a R package, **multiseq**, to ..........smooth and or analyze functional data from one or multiple samples. This is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu/) at the University of Chicago. 
 
-This repo contains an R package, *multiseq*, to analyze sequence data from multiple samples and it is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu/) at the University of Chicago. It also contains a set of R and bash scripts for data import and plot, including R scripts to plot input and output data in the [UCSC Genome Browser](http://genome.ucsc.edu/). 
+To download the package go to [link](https://github.com/stephenslab/multiseq/tree/master/package/multiseq.tar.gz) and click on "View Raw" or, alternatively, click on [link](https://github.com/stephenslab/multiseq/blob/master/package/multiseq.tar.gz?raw=true).
 
-This document summarizes how to install the package and use it and how to use the R and bash scripts for data import and plot. If you have any questions or run into any difficulty, please don't hesitate to contact us!
+After uncompressing the downloaded archive into folder `multiseq`, you can find installation instructions in `multiseq/README.md`.
 
 
-# Setup
+Additional material in the repository
+-------------------------------------
+This repo also contains a folder `local` with scripts to run **multiseq** on multiple loci on a SGE cluster. If you want to run **multiseq** on a list of loci specified in a bed file (e.g.: `list_loci.bed`) using data contained in sample sheet `.........samplesheet` and submit jobs to the cluster, then you can use the script `qsub_run_multiseq.sh` in folder `local`:
 
-## Downloading the repository
+   #specify output folder OUT_DIR
+   OUT_DIR="."
+   sh qsub_run_multiseq.sh ..........saplesheet OUT_DIR < list_loci.bed
 
-Let's assume you want to clone this repository into a directory named ~/src:
+This script will submit as many jobs as there are lines in `list_loci.bed`.
 
-     mkdir ~/src
-     cd ~/src
-     git clone https://github.com/stephenslab/multiseq
-
-     cd ~/src/multiseq
-     git fetch
-     git merge origin/master
-
-## Installing the package
-
-The (in development) *multiseq* package is in package/multiseq.tar.gz. 
-It depends on *ashr* a package in development that you can download and install following instructions at [https://github.com/stephens999/ash/README](https://github.com/stephens999/ash/blob/master/README)
-
-After installing *ashr* from within R use:
-
-    install.packages("tools")
-    install.packages("rhdf5")
-    install.packages("data.table")
-    install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
-
-## Adding required executables to the USER's path and setting up a mountpoint to visualize results in the UCSC Genome Browser (optional: only required by some functions)
-
-Some functions for sequencing data extraction/manipulation require additional executables to be in the user's PATH. The required executables are: `samtools`, `wigToBigWig`, `bigWigInfo`, and `bedToBigBed`. If you are installing the package on the cluster add the following line to your ~/.bashrc file:
-
-    export PATH=$PATH:/data/tools/ucsctools/:/usr/local/bin/
-
-Also, to visualize data in the UCS Genome Browser some shell environment variables must be set. We recommend setting these variables in your ~/.bashrc or ~/.profile files as follows:
-
-    # specify the mountpoint and the http address associated with the mountpoint
-    export MOUNTPOINT_PATH="/some/path"
-    export MOUNTPOINT_HTTP_ADDRESS="https:some/address"
-
-where you have to replace "/some/path" with the path to the mountpoint and "https:some/address" with the http address of the mountpoint. If you have access to the PPS cluster and you are in the stephenslab group, replace "/some/path" with "/data/internal/solexa_mountpoint/$USER" where $USER is your username in the cluster; the http address associated to this mountpoint is password protected (ask Ester).
-
-Make sure that you remember to set these variables after adding them to your .bashrc for the first time. You can login again, or do source ~/.bashrc
-
-Remember that when you submit jobs to a compute cluster (e.g. using SGE's qsub), they run in "batch mode" and may not execute your ~/.bashrc. To ensure that your jobs have the correct environment variables set, you should be able to pass a flag to your cluster submission command (e.g. the -V flag to qsub).
-
-## Testing multiseq
-
-    library(multiseq)
-    data(OAS1,package="multiseq")
-    M <- OAS1$M
-    g <- OAS1$g
-    read.depth <- OAS1$read.depth
-    res <- multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
-    fra=2 #fraction of sd
-    plotResults(res,fra)
-    # To print intervals where multiseq found an effect at 2 sd:
-    get.effect.intervals(res,fra)
-
-Smooth by group
-
-    res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
-    plotResults(res0, fra, type="baseline")
-
-### Testing multiseq on sequencing data
-
-Need a sample sheet (samplesheet), a sequence name (chr), sequence start (start) and end (end) positions.
-
-The samplesheet should have the following format (see file ~/src/multiseq/data/sim/samplesheet.sim.txt):
-
-    SampleID Type Tissue Replicate Peaks ReadDepth bigWigPath
-    055A RNASeq 24hrShamControl 8 - 1550735 ~/src/multiseq/data/sim/055A.bw
-    055B RNASeq 24hr2uMsimvastatinLPDS 8 - 2350343 ~/src/multiseq/data/sim/055BNonNull.bw
-    056A RNASeq 24hrShamControl 9 - 1320166 ~/src/multiseq/data/sim/056A.bw
-    056B RNASeq 24hr2uMsimvastatinLPDS 9 - 1723647 ~/src/multiseq/data/sim/056BNonNull.bw
-
-Run multiseq on all samples in samplesheet or select a subset of samples
-
-    samplesheet="~/src/multiseq/data/sim/samplesheet.sim.txt"
-    region="chr5:131989505-132120576"
-
-    samples=read.table(samplesheet, stringsAsFactors=F, header=T) 
-    g=factor(samples$Tissue) 
-    g=match(g, levels(g))-1
-    M=get.counts(samples, region) 
-    res=multiseq(M, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-    fra=2 #fraction of sd
-    get.effect.intervals(res,fra)
-    plotResults(res,fra)
-    #to save results in dir.name
-    dir.name="~/src/multiseq/data/multiseq_sim/"
-    # this function saves results in file effect_mean_var.txt.gz, a file with two columns: first column is effect mean and second column is effect variance
-    write.effect.mean.variance.gz(res, dir.name)
-    # To write intervals where multiseq found an effect at 2 sd in a bed file
-    write.effect.intervals(res, dir.name, fra)
-
-Smooth by group
-
-    res0=multiseq(M[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0]) 
-    plotResults(res0, fra, type="baseline")
-
-### Visualizing input and output in the UCSC Genome Browser
-
-With function samplesheetToTrackHub you can create a Track Hub and visualize it in the UCSC Genome Browser.
-
-    hub_name="testMultiseq/sim"
-    samplesheetToTrackHub(samplesheet,hub_name)
-
-This will create a Track Hub in "/some/path/testMultiseq/sim/" and will print the following message:
-
-    go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window    
-    copy paste the following string in the URL field
-    https:some/address/testMultiseq/sim/hub.txt
-    center the genome browser on the region of interest
-    if the track is hidden click on show and then refresh
-
-If the read tracks or the bed files are large, make sure enough memory is available to run simulationToTrackHub (e.g., use ql 10g on the PPS cluster).
-
-This is a screenshot of the data in the Genome Browser:
-![Image](data/sim/sim.png?raw=true)
-
-As of now we can run multiseq region by region. After running multiseq and saving results using write.effect.mean.variance.gz and write.effect.intervals (as we showed above), you can create a Track Hub of results using function multiseqToTrackHub. multiseqToTrackHub will create a track hub with
-- the effect +- 2 standard errors
-- the significant intervals at 2 sd
-
-in the UCSC Genome Browser. If multiseq output is in folder ~/src/multiseq/data/multiseq_sim/ and ~/src/multiseq/data/chromosome.lengths.hg19.txt is a file with chromosome names and lengths, then:
-
-    region="chr5:131989505-132120576"
-    hub_name="testMultiseq/multiseq_sim"
-    multiseq_folder="~/src/multiseq/data/multiseq_sim"
-    chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt"
-    multiseqToTrackHub(region, hub_name, multiseq_folder, chrom_file)
-
-will create a track hub named *multiseq_sim* in the "https:some/address/testMultiseq/" folder and will print the following message:
-  
-    go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window
-    copy paste the following string in the URL field
-    https:some/address/testMultiseq/multiseq_sim/hub.txt
-    note: center your genome browser around chr5:131989505-132120576 and make track visible
-
-This is a screenshot of the track hub from the Genome Browser:
-![Image](data/sim/multiseq.png?raw=true)
-
-### Running multiseq on multiple loci on the PPS cluster
-
-If you want to run multiseq on the list of loci in a bed file (e.g.: list_loci.bed) then you can use the script in the folder "local". From spudhead:
-
-   sh qsub_run_multiseq.sh < list_loci.bed
-
-This script will submit to the cluster as many jobs as there are lines in list_loci.bed.
-
-[Note: the bash script qsub_run_multiseq.sh runs the R script run.multiseq.R on each locus in list_loci.bed. run.multiseq.R calls multiseq with the appropriate arguments.]
- 
-Use
+To generate a bed file `list_loci.bed` with 5000 adjacent intervals of size 131072 on chr1 you could do:
  
     window_size=131072
-    chrom_file=$HOME/src/multiseq/data/chromosome.lengths.hg19.txt
-    sh write_list_loci.sh $window_size $chrom_file | head -n 5000 > list_loci.bed
+    chrom_file=..........$HOME/src/multiseq/data/chromosome.lengths.hg19.txt
+    sh ........write_list_loci.sh $window_size $chrom_file | head -n 5000 > list_loci.bed
 
-to create a bed file list_loci.bed with 5000 adjacent intervals of size 131072 from chr1.
+
+

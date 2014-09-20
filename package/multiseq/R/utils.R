@@ -3,13 +3,19 @@
 #' If samples$bamReads is specified then this function extracts reads from the bam files in samples$bamReads using `samtools` (which must be in the USER's path) (no filter applied). Else if samples$h5FullPath is specified this function extracts reads from the hdf5 files in samples$h5FullPath using the R package rhdf5.
 #[this still has to be tested: Else if samples$bigWigPath is specified this function extracts reads from bigWig files using the executable `bigWigToWig` (which must be in the USER's path).]
 #'
-#' @param samples: a data frame containing attributes on N samples (extracted from a samplesheet)
-#' @param chr: a string representing a reference sequence name
-#' @param locus.start: an integer representing a position on chr
-#' @param locus.end: an integer representing a position on chr (must be locus.end>locus.start)
+#' @param samples: a data frame of size N equal to the number of samples.
+#' @param region: a string specifying a genomic region: reference sequence name, start position (locus.strt), end position (locus.end)
+#' @param onlyonene: a bool, defaults to FALSE; use TRUE if input is in bam format and only first end of the paired end read should be used.
 #' @export 
-#' @return a matrix with N rows and locus.end-locus.start+1 columns containing the number of reads that start at each base in the specified region in each sample 
-get.counts <- function(samples, region){
+#' @return a matrix with N rows and locus.end-locus.start+1 columns containing the number of reads that start at each base in the specified region in each sample
+#' @examples
+#'\dontrun{
+#' samplesheet="samplesheet.txt"
+#' samples=read.table(samplesheet, stringsAsFactors=F, header=T)
+#' region="chr5:131989505-132120576"
+#' M=get.counts(samples, region)
+#' }
+get.counts <- function(samples, region, onlyoneend=FALSE){
     split_region = unlist(strsplit(region, "\\:|\\-"))
     if (length(split_region) != 3)
         stop("invalid region: example of a valid region is chr1:2345-234567 ")
@@ -32,12 +38,16 @@ get.counts <- function(samples, region){
                                        ":",
                                        locus.start,
                                        "-",
-                                       locus.end,
+                                       locus.end)
+                if (onlyoneend==TRUE)
+                    command.line <- paste0(command.line,"| awk '{if (!($7=="=" && $4>$8)) print}'")
+                command.line <- paste0(command.line,                           
                                        " | awk -v s='",
                                        locus.start,
                                        "' 'BEGIN{start=0; count=0}",
                                        "{st=$4; if ($4>=s){if (start==st) count+=1; ",
                                        "else {if (start>0) print start, count; start=st; count=1} }}' ")
+                
                 for (bamfile in samples$bamReads){
                     command <- paste0("samtools view ",
                                       bamfile,
@@ -98,7 +108,7 @@ get.exons.start.end <- function(transcript){
 }
 
 #' plotTranscripts
-#' #' @export    
+#' @export    
 plotTranscripts <- function(Transcripts, plotStart=NULL, plotEnd=NULL, is.xaxis=1, main=NULL, expressions=NULL, cex=1){
     if (is.null(Transcripts)){
         plot(1, type="n", axes=F, xlab="", ylab="")

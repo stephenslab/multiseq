@@ -788,7 +788,3 @@ permutation.logLR <-function(pheno.dat, geno.dat, library.read.depth=NULL, numPe
     return(list(most.sig.SNP.posi = targetSNP_posi, pval = final_pval, logLR = reslogLR, Count_stop = Count_stop, Count_sig = Count_sig, numPerm = numPerm, numSig = numSig))
 
 }
-
-
-
-  
