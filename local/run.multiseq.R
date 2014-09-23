@@ -22,6 +22,8 @@ samplesheet     <- args[1]
 region          <- args[2]
 dir.name        <- file.path(args[3])
 fitted.g.file   <- file.path(args[4])
+hub.name <- NULL
+onlyoneend=TRUE #if bam files are paired end only take one of the reads in the pair
 #hub.name        <- args[4]
 #chrom.file      <- file.path(args[5])
 #assembly        <- args[6]
@@ -33,7 +35,7 @@ fra             <- 2      #how many sd to plot when plotting effect size
 do.plot         <- FALSE
 do.smooth       <- FALSE
 do.summary      <- TRUE
-do.save         <- FALSE #FALSE #TRUE
+do.save         <- TRUE #FALSE #TRUE
 prior           <- "nullbiased" 
 lm.approx       <- FALSE #=TRUE #so far we run things with approx=FALSE
                              
@@ -50,7 +52,7 @@ dir.create(dir.name)
 dir.name     <- file.path(dir.name, locus.name)
 dir.create(dir.name)
                              
-M <- get.counts(samples, region)
+M <- get.counts(samples, region, onlyoneend=TRUE)
 
 if (sum(M)<10){
     if (do.summary){
@@ -62,10 +64,17 @@ if (sum(M)<10){
     }
     stop("Total number of reads over all samples is <10. Stopping.")
 }
-load(fitted.g.file)
+set.fitted.g=NULL
+set.fitted.g.intercept=NULL
+if (fitted.g.file!="NA"){
+    load(fitted.g.file)
+    set.fitted.g=ret$fitted.g
+    set.fitted.g.intercept=ret$fitted.g.intercept
+}
 if (do.summary)
     ptm      <- proc.time()
-res <- multiseq(M, g=g, minobs=1, lm.approx=lm.approx, read.depth=samples$ReadDepth, prior=prior, set.fitted.g=ret$fitted.g, set.fitted.g.intercept=ret$fitted.g.intercept)
+
+res <- multiseq(M, g=g, minobs=1, lm.approx=lm.approx, read.depth=samples$ReadDepth, prior=prior, set.fitted.g=set.fitted.g, set.fitted.g.intercept=set.fitted.g.intercept)
 warnings() #print warnings
 
 if (do.summary){
@@ -81,7 +90,7 @@ if (do.save){
     #save results in a compressed file
     write.effect.mean.variance.gz(res,dir.name)
     write.effect.intervals(res,dir.name,fra=2)
-    write.table(t(c(res$logLR$value, res$logLR$scales, quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,paste0("logLR_",prior,".txt"))) 
+    write.table(t(c(res$logLR$value, res$logLR$scales)), quote=FALSE, col.names=FALSE, row.names=FALSE, file=file.path(dir.name,paste0("logLR_",prior,".txt")))
 }
 
 if (do.summary){

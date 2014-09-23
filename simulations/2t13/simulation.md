@@ -19,99 +19,110 @@ Results are presented below. There are 4 simulation scheme, with 4 regions for e
 
 
 ```r
-#Region 21108890-21117081, beta-binomial
+# Region 21108890-21117081, beta-binomial
 load("res_plot_betabin_21108890_21117081.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1.png) 
 
 
 
+
 ```r
-#Region 21108890-21117081, binomial
+# Region 21108890-21117081, binomial
 load("res_plot_bin_21108890_21117081.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
 
 
 
+
 ```r
-#Region 21108890-21117081, multinomial
+# Region 21108890-21117081, multinomial
 load("res_plot_multi_21108890_21117081.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
 
 
 
+
 ```r
-#Region 21108890-21117081, negative binomial
+# Region 21108890-21117081, negative binomial
 load("res_plot_negbin_21108890_21117081.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
@@ -120,100 +131,112 @@ abline(h=100,lty=3)
 
 
 
+
 ```r
-#Region 25795002-25803193, beta-binomial
+# Region 25795002-25803193, beta-binomial
 load("res_plot_betabin_25795002_25803193.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
 
 
 
+
 ```r
-#Region 25795002-25803193, binomial
+# Region 25795002-25803193, binomial
 load("res_plot_bin_25795002_25803193.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
 
 
 
+
 ```r
-#Region 25795002-25803193, multinomial
+# Region 25795002-25803193, multinomial
 load("res_plot_multi_25795002_25803193.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
 
 
 
+
 ```r
-#Region 25795002-25803193, negative binomial
+# Region 25795002-25803193, negative binomial
 load("res_plot_negbin_25795002_25803193.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
@@ -221,100 +244,112 @@ abline(h=100,lty=3)
 
 
 
+
 ```r
-#Region 27954986-27963177, beta-binomial
+# Region 27954986-27963177, beta-binomial
 load("res_plot_betabin_27954986_27963177.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
 
 
 
+
 ```r
-#Region 27954986-27963177, binomial
+# Region 27954986-27963177, binomial
 load("res_plot_bin_27954986_27963177.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
 
 
 
+
 ```r
-#Region 27954986-27963177, multinomial
+# Region 27954986-27963177, multinomial
 load("res_plot_multi_27954986_27963177.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
 
 
 
+
 ```r
-#Region 27954986-27963177, negative binomial
+# Region 27954986-27963177, negative binomial
 load("res_plot_negbin_27954986_27963177.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12.png) 
@@ -322,100 +357,113 @@ abline(h=100,lty=3)
 
 
 
+
 ```r
-#Region 206962543-206970734, beta-binomial
+# Region 206962543-206970734, beta-binomial
 load("res_plot_betabin_206962543_206970734.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13.png) 
 
 
 
+
 ```r
-#Region 206962543-206970734, binomial
+# Region 206962543-206970734, binomial
 load("res_plot_bin_206962543_206970734.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
 
 
 
+
 ```r
-#Region 206962543-206970734, multinomial
+# Region 206962543-206970734, multinomial
 load("res_plot_multi_206962543_206970734.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15.png) 
 
 
 
+
 ```r
-#Region 206962543-206970734, negative binomial
+# Region 206962543-206970734, negative binomial
 load("res_plot_negbin_206962543_206970734.Robj")
 
-par(mfrow=c(2,1))
+par(mfrow = c(2, 1))
 
-plot(res.4.reg$fpr,res.4.reg$tpr,type='l',ylim=c(0,1),xlim=c(0,1),xlab="FPR",ylab="TPR",main="ROC curve, size=4")
-lines(res.4.lr$fpr,res.4.lr$tpr,col=2)
-lines(res.4.edgeR$fpr,res.4.edgeR$tpr,col=3)
-lines(res.4.DESeq$fpr,res.4.DESeq$tpr,col=4)
-#lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
+plot(res.4.reg$fpr, res.4.reg$tpr, type = "l", ylim = c(0, 1), xlim = c(0, 1), 
+    xlab = "FPR", ylab = "TPR", main = "ROC curve, size=4")
+lines(res.4.lr$fpr, res.4.lr$tpr, col = 2)
+lines(res.4.edgeR$fpr, res.4.edgeR$tpr, col = 3)
+lines(res.4.DESeq$fpr, res.4.DESeq$tpr, col = 4)
+# lines(res.4.hmm.lr$fpr,res.4.hmm.lr$tpr,col=5)
 
 
-plot(res.4.reg$fdr,res.4.reg$tp,type='l',xlim=c(0,0.2),ylim=c(0,100),xlab="FDR",ylab="Total # discoveries",main="Total # discoveries vs. FDR, size=4")
-lines(res.4.lr$fdr,res.4.lr$tp,col=2)
-lines(res.4.edgeR$fdr,res.4.edgeR$tp,col=3)
-lines(res.4.DESeq$fdr,res.4.DESeq$tp,col=4)
-#lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
-abline(h=100,lty=3)
+plot(res.4.reg$fdr, res.4.reg$tp, type = "l", xlim = c(0, 0.2), ylim = c(0, 
+    100), xlab = "FDR", ylab = "Total # discoveries", main = "Total # discoveries vs. FDR, size=4")
+lines(res.4.lr$fdr, res.4.lr$tp, col = 2)
+lines(res.4.edgeR$fdr, res.4.edgeR$tp, col = 3)
+lines(res.4.DESeq$fdr, res.4.DESeq$tp, col = 4)
+# lines(res.4.hmm.lr$fdr,res.4.hmm.lr$tp,col=5)
+abline(h = 100, lty = 3)
 ```
 
 ![plot of chunk unnamed-chunk-16](figure/unnamed-chunk-16.png) 
+
