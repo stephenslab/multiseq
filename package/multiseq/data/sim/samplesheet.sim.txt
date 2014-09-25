@@ -1,0 +1,5 @@
+SampleID Tissue Replicate Peaks ReadDepth bigWigPath
+A1 Control 1 - 1550735 ~/src/multiseq/data/sim/A1.bw
+B1 Test 1 - 2350343 ~/src/multiseq/data/sim/B1.bw
+A2 Control 2 - 1320166 ~/src/multiseq/data/sim/A2.bw
+B2 Test 2 - 1723647 ~/src/multiseq/data/sim/B2.bw

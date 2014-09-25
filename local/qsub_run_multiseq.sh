@@ -6,7 +6,8 @@
 #           USAGE:       qsub_run_multiseq.sh sample_sheet OUT_DIR < list_loci
 #                        note: make sure that the bed file list_loci ends with a new line
 #                        sample_sheet is a text file containing sample specification
-#                        OUT_DIR is the directory where you want to save results              
+#                        OUT_DIR is the directory where you want to save results            
+#                        (If g is known you can give the path to g as a third argument to the script) 
 #     DESCRIPTION:       use this script to run run.multiseq.R on the list of loci in list_loci
 #         EXAMPLE:       qsub_run_multiseq.sh samplesheet.txt ./results_run_multiseq/ < list_loci
 #**************************************************************************************************#  

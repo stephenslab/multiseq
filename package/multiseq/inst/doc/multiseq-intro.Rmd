@@ -46,7 +46,7 @@ Loading sequencing data using function `get.counts`
 ---------------------------------------------------
 **Multiseq** provides the user with a function to load sequencing data in `bam`, `bigWig` or `hdf5` format. The function is called `get.counts` and requires as input a sample sheet and a genomic region.
 
-The samplesheet should have the following format (see file ............data/sim/samplesheet.sim.txt):
+The samplesheet should have the following format (see file ............data/sim/samplesheet.sim.txt).........bed peaks wig see trackhub.R:
 
     SampleID Type Tissue Replicate Peaks ReadDepth bigWigPath
     ......055A RNASeq ......24hrShamControl 8 - 1550735 ........data/sim/055A.bw
