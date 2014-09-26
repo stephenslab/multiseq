@@ -1,5 +1,3 @@
-## Content
-
 R package **multiseq**
 ----------------------
 This repository contains an R package, **multiseq**, that is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu/) at the University of Chicago. 
