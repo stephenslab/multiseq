@@ -26,12 +26,32 @@ document("~/Downloads/multiseq")
 6. roxygenize()
 7. document()
 8. build -> build source package 
-9. before push, be careful! You don't want to push some unnecessary files created during building package.
+9. before push, be careful! You dont want to push some unnecessary files created during building package.
 
 
 
 #in the terminal
 #cd ..
 #tar -pczf multiseq.tar.gz multiseq
-#in R
+#IMPORTANT!!! /data/tools/R-3.1.1/bin/R
 install.packages("~/src/multiseq/package/multiseq.tar.gz",repos=NULL,type="source")
+
+
+#instructions to build the vignette using Rstudio (check version of R)
+path.to.multiseq.gz="~/src/multiseq/package/multiseq.tar.gz"
+path.to.ashr.gz="~/src/ash/package/ashr.no.cxx.tar.gz"
+Sys.setenv(MOUNTPOINT_PATH="/data/internal/solexa_mountpoint/epantaleo")
+Sys.setenv(MOUNTPOINT_HTTP_ADDRESS="https://*******:pipeline@solexa-compute1.uchicago.edu/stephenslab/epantaleo")
+Sys.setenv(PATH=paste0(Sys.getenv('PATH'),":/usr/local/bin/",":/data/tools/ucsctools/"))
+install.packages(path.to.ashr.gz,repos=NULL,type="source")
+install.packages(path.to.multiseq.gz,repos=NULL,type="source")
+
+library(ashr)
+library(knitr)
+library(Rcpp)
+library(devtools)
+library(data.table)
+library(tools)
+library(rmarkdown)
+pandoc version 1.12.3 or higher is required and was not found
+build_vignettes()

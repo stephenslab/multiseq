@@ -156,8 +156,8 @@ add.counts=function(x.s,x.f,eps,pseudocounts,all,index1,index2,indexn=NULL){
     return(list(x.s=x.s,x.f=x.f))
 }
   
-
-#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates (MLE with approximation at endpoints for mean; a mix of Berkson’s estimator and Tukey’s estimator for variance)
+#' @title compute.approx.z
+#' Compute a vector of logit(p) given a vector of successes and failures, as well as its variance estimates (MLE with approximation at endpoints for mean; a mix of Berkso's estimator and Tukey's estimator for variance)
 #' @return a list with elements "mu", "var" and optionally "p"
 compute.approx.z=function(x.s,x.f,bound,eps,pseudocounts,all,indexn=NULL,return.p=FALSE){
     #compute mu

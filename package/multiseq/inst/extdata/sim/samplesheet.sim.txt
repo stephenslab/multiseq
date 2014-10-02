@@ -1,0 +1,5 @@
+SampleID Tissue Replicate Peaks ReadDepth bigWigPath
+A1 Control 1 peak.bb 16335812 A1.bw
+A2 Control 2 peak.bb 18197248 A2.bw 
+B1 Test 1 peak.bb 24225586 B1.bw
+B2 Test 2 peak.bb 12378544 B2.bw

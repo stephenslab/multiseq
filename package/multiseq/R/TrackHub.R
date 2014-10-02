@@ -46,14 +46,14 @@ appendBedSuperTrack <- function(track, shortLabel, longLabel, tracks, shortLabel
 
 #' @title Write a message containing instructions on how to visualize the Track Hub
 printGoToMessage <- function(hub_name, hub_dir, http_address, region=NULL){
-    print("go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window")
-    print("copy paste the following string in the URL field")
-    print(paste0(http_address, "/", hub_name, "/", "hub.txt"))
+    toprint=paste0("go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window\ncopy paste the following string in the URL field\n",http_address, "/", hub_name, "/hub.txt\nsubmit and ")
     if (!is.null(region))
-        print(paste("note: center your genome browser around", region, "and make track visible"))
+        toprint=paste0(toprint," center your genome browser around ", region, " and make track visible\n")
     else
-        print("center the genome browser on the region of interest")
-    print(paste("(track has been saved in folder", hub_dir, ")"))
+        toprint=paste0(toprint," center the genome browser on the region of interest\n")
+    toprint=paste0(toprint,"(track has been saved in folder ", hub_dir, ")\n")
+
+    cat(toprint)
 }
 
 #' @title convert hdf5 file (with data from a locus) to bigwig file
@@ -86,27 +86,32 @@ hdf5ToBigWig <- function(h5_track, chrom_file, bigWig_track, assembly="hg19"){
     file.remove(tmpfile_wig)
 }
 
-#' @title Create a UCSC genome browser "Track Hub" from read tracks and bed tracks listed in a samplesheet.
+#' @title Create a UCSC Genome Browser "Track Hub" from read tracks and bed tracks (of significant intervals) listed in a samplesheet.
 #'
-#' This function requires the executables "wigToBigWig", "bedToBigBed" and "bigWigInfo" to be in the user's PATH.
-#' Read tracks can be in bam, hdf5, wig or bigwig format and significant intervals can be in bed format.
+#' @description This function requires the executables "wigToBigWig", "bedToBigBed", and "bigWigInfo" to be in the user's PATH.
+#' Read tracks can be in bam, hdf5, wig or bigwig format and significant intervals can only be in bed format.
 #'
-#' @param samplesheet: path to the samplesheet; the samplesheet must contain a column with header sampleID and: either a column with header h5FullPath, or a column with header bigWigPath containing the path to the hdf5 files or the bigWig files, respectively. If the samplesheet has a column with header Peaks it must also have a column with header Tissue. Depending on the size of the hdf5 files this code might require a lot of memory
-#' @param hub_name: name of the track hub; it could contain a path, in which case the path will be relative to the mountpoint(see below). This string can be set to any value; defauly=paste0(basename(samplesheet),".TrackHub")
-#' @param chrom_file: path to the file containing chromosome names and lengths; default="~/src/multiseq/data/chromosome.lengths.hg19.txt"
-#' 
+#' @param samplesheet: a string specifying the path to the samplesheet; the samplesheet must contain a column with header sampleID and: either a column with header h5FullPath, or a column with header bigWigPath containing the path to the hdf5 files or the bigWig files, respectively. If the samplesheet has a column with header Peaks it must also have a column with header Tissue. Depending on the size of the hdf5 files this code might require a lot of memory
+#' @param hub_name: name of the Track Hub. This string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint (see below); default=paste0(basename(samplesheet),".TrackHub")
+#' @param chrom_file: path to the file containing chromosome names and lengths; default=file.path(path.package("multiseq"),"data","chromosome.lengths.hg19.txt")
 #' @param assembly: genome assembly that reads were mapped to; default="hg19" 
 #' @param mountpoint: path to the directory where the track hub folder will be saved in. This directory should be associated with an http address or an ftp address; default=Sys.getenv("MOUNTPOINT_PATH")
 #' @param http_address: http or ftp address associated with the mountpoint; default=Sys.getenv("MOUNTPOINT_PATH")
 #' @export
-samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt", assembly="hg19", mountpoint=MOUNTPOINT_PATH, http_address=MOUNTPOINT_HTTP_ADDRESS){
+#' @examples
+#'\dontrun{
+#' setwd(file.path(path.package("multiseq"),"extdata","sim"))
+#' samplesheet="samplesheet.sim.txt"
+#' samplesheetToTrackHub(samplesheet)
+#' }  
+samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file=file.path(path.package("multiseq"),"data","chromosome.lengths.hg19.txt"), assembly="hg19", mountpoint=MOUNTPOINT_PATH, http_address=MOUNTPOINT_HTTP_ADDRESS){
     if (is.null(hub_name)) hub_name=paste0(basename(samplesheet),".TrackHub")
     samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)
     hub_dir         <- file.path(mountpoint, hub_name)
     hub_name_string <- gsub("/", ".", hub_name)
-    dir.create(hub_dir, showWarnings = FALSE)
+    dir.create(hub_dir, showWarnings = FALSE, recursive=TRUE)
     assembly_dir    <- file.path(hub_dir, assembly)
-    dir.create(assembly_dir, showWarnings = FALSE) 
+    dir.create(assembly_dir, showWarnings = FALSE, recursive=TRUE) 
     sampleids = samples$SampleID
 
     bigwig_tracks <- NULL
@@ -219,19 +224,23 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=NULL, chrom_file="~/src/
 
 #' @title Create a UCSC genome browser "Track Hub" from multiseq output.
 #'
-#' This funxtion requires the executables 
-#' "wigToBigWig" and "bedToBigBed" to be in the user's PATH
+#' @description This function requires the executables "wigToBigWig" and "bedToBigBed" to be in the user's PATH
 #'
 #' @param region: a region (e.g. chr1:2345-234567)
-#' @param hub_name: name of the track hub; it could contain a path, in which case the path will be relative to the mountpoint. This string can be set to any value; default="multiseq"
+#' @param hub_name: name of the Track Hub. This string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint; default="multiseq"
 #' @param multiseq_folder: path to the folder containing results from multiseq; this script requires output from multiseq to be in the format effect_mean_var.txt.gz where first column is effect and second column variance
-#' @param chrom_file: path to the file containing chromosome names and lengths; default="~/src/multiseq/data/chromosome.lengths.hg19.txt"
-#'
+#' @param chrom_file: path to the file containing chromosome names and lengths; default=file.path(path.package("multiseq"),"data","chromosome.lengths.hg19.txt")
 #' @param assembly: genome assembly that reads were mapped to; default="hg19"
-#' @param mountpoint: path to the directory where the track hub folder will be saved in. This directory should be associated with an http address or an ftp address; default=Sys.getenv("MOUNTPOINT_PATH")
+#' @param mountpoint: path to the directory where the Track Hub folder will be saved in. This directory should be associated with an http address or an ftp address; default=Sys.getenv("MOUNTPOINT_PATH")
 #' @param http_address: http or ftp address associated with the mountpoint; default=Sys.getenv("MOUNTPOINT_PATH")
 #' @export
-multiseqToTrackHub <- function(region, hub_name="multiseq", multiseq_folder="./results_run_multiseq/", chrom_file="~/src/multiseq/data/chromosome.lengths.hg19.txt", assembly="hg19", mountpoint=MOUNTPOINT_PATH, http_address=MOUNTPOINT_HTTP_ADDRESS){
+#' @examples
+#' \dontrun{
+#' region="chr1:87297710-87305901"
+#' multiseq_folder=file.path(path.package("multiseq"), "extdata", "multiseq_sim")
+#' multiseqToTrackHub(region=region, multiseq_folder=multiseq_folder)
+#' } 
+multiseqToTrackHub <- function(region, hub_name="multiseq", multiseq_folder="./results_run_multiseq/", chrom_file=file.path(path.package("multiseq"),"data","chromosome.lengths.hg19.txt"), assembly="hg19", mountpoint=MOUNTPOINT_PATH, http_address=MOUNTPOINT_HTTP_ADDRESS){
     split_region = unlist(strsplit(region, "\\:|\\-"))
     if (length(split_region) != 3)
            stop("invalid region: example of a valid region is chr1:2345-234567 ")
@@ -243,9 +252,9 @@ multiseqToTrackHub <- function(region, hub_name="multiseq", multiseq_folder="./r
          stop("Incorrect parameters locus_start and/or locus_end") 
     hub_dir = file.path(mountpoint, hub_name)
     hub_name_string = gsub("/", ".", hub_name)
-    dir.create(hub_dir, showWarnings = FALSE)
+    dir.create(hub_dir, showWarnings = FALSE, recursive=TRUE)
     assembly_dir = file.path(hub_dir, assembly)
-    dir.create(assembly_dir, showWarnings = FALSE)
+    dir.create(assembly_dir, showWarnings = FALSE, recursive=TRUE)
  
     multiseq_folder = file.path(multiseq_folder, paste0(c(chrom, locus_start, locus_end), collapse="."))
     multiseq_file = file.path(multiseq_folder, "effect_mean_var.txt.gz")

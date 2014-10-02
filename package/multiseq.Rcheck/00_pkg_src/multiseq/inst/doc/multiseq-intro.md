@@ -1,0 +1,372 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{An Introduction to the multiseq package}
+-->
+
+An Introduction to **multiseq** package
+=======================================
+
+
+
+
+
+Introduction
+------------
+
+
+The  **multiseq** package is a graphical display of a correlation matrix, confidence interval. 
+It also contains some algorithms to do matrix reordering.  In addition, corrplot is good at details, including choosing color, text labels, color labels, layout, etc.
+
+
+
+Visualization Methods
+----------------------------
+There are seven visualization methods (parameter `method`) in **corrplot** package, named `"circle"`, `"square"`, `"ellipse"`, `"number"`, `"shade"`, `"color"`, `"pie"`. 
+
+```r
+library(corrplot)
+M <- cor(mtcars)
+corrplot(M, method="circle")
+```
+
+<img src="figure/methods1.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, method="square")
+```
+
+<img src="figure/methods2.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, method="ellipse")
+```
+
+<img src="figure/methods3.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, method="number")
+```
+
+<img src="figure/methods4.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, method="shade")
+```
+
+<img src="figure/methods5.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, method="color")
+```
+
+<img src="figure/methods6.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, method="pie")
+```
+
+<img src="figure/methods7.png" title="plot of chunk methods" alt="plot of chunk methods" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Layout
+-----------------------------
+There are three layout types (parameter `type`), named `"full"` (default), `"upper"` or `"lower"`, display full matrix, lower triangular or upper triangular matrix.
+
+
+```r
+corrplot(M, type="upper")
+```
+
+<img src="figure/layout1.png" title="plot of chunk layout" alt="plot of chunk layout" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, type="lower")
+```
+
+<img src="figure/layout2.png" title="plot of chunk layout" alt="plot of chunk layout" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+`corrplot.mixed()` is a wrapped function for mixed visualization style.
+
+```r
+corrplot.mixed(M)
+```
+
+<img src="figure/mixed1.png" title="plot of chunk mixed" alt="plot of chunk mixed" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot.mixed(M, lower="ellipse", upper="circle")
+```
+
+<img src="figure/mixed2.png" title="plot of chunk mixed" alt="plot of chunk mixed" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot.mixed(M, lower="square", upper="circle")
+```
+
+<img src="figure/mixed3.png" title="plot of chunk mixed" alt="plot of chunk mixed" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Reorder A Correlation Matrix
+-----------------------------
+Matrix reorder is very important for mining the hiden structure and pattern in the matrix. There are four methods in corrplot (parameter `order`), named `"AOE"`, `"FPC"`, `"hclust"`, `"alphabet"`.  More algorithms can be found in [seriation](cran.r-project.org/package=seriation) package.
+
+You can also reorder the matrix "manually" via function `corrMatOrder()`.
+
+*  `"AOE"`  is for the angular order of the eigenvectors. It is calculated from the order of the angles. $a_i$,
+
+$$latex
+a_i = 
+\begin{cases}
+			\tan (e_{i2}/e_{i1}), & \text{if $e_{i1}>0$;}
+			     		       \newline
+							\tan (e_{i2}/e_{i1}) + \pi, & \text{otherwise.}
+\end{cases}						     		     
+$$ 
+
+where $e_1$ and $e_2$ are the largest two eigenvalues of the correlation  matrix. See [Michael Friendly (2002)](www.datavis.ca/papers/corrgram.pdf) for details.
+
+* `"FPC"` for the first principal component order.
+
+* `"hclust"` for hierarchical clustering order, and `"hclust.method"` for the agglomeration method to be used . `"hclust.method"` should be one of `"ward"`, `"single"`, `"complete"`, `"average"`, `"mcquitty"`, `"median"` or `"centroid"`.
+
+* `"alphabet"` for alphabetical order.
+
+
+```r
+corrplot(M, order ="AOE")
+```
+
+<img src="figure/order1.png" title="plot of chunk order" alt="plot of chunk order" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order ="hclust")
+```
+
+<img src="figure/order2.png" title="plot of chunk order" alt="plot of chunk order" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order ="FPC")
+```
+
+<img src="figure/order3.png" title="plot of chunk order" alt="plot of chunk order" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order ="alphabet")
+```
+
+<img src="figure/order4.png" title="plot of chunk order" alt="plot of chunk order" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+If using `"hclust"`, `corrplot()` can  draw rectangles around the chart of corrrlation matrix based on the results of  hierarchical clustering.
+
+
+```r
+corrplot(M, order="hclust", addrect=2)
+```
+
+<img src="figure/rectangles1.png" title="plot of chunk rectangles" alt="plot of chunk rectangles" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order="hclust", addrect=3)
+```
+
+<img src="figure/rectangles2.png" title="plot of chunk rectangles" alt="plot of chunk rectangles" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Using Different Color Spectrum
+------------------------------
+We can also specify the color system, `colorRampPalette()` is very convenient for generating color spectrum.
+
+
+```r
+col1 <- colorRampPalette(c("#7F0000","red","#FF7F00","yellow","white", 
+     	"cyan", "#007FFF", "blue","#00007F"))
+col2 <- colorRampPalette(c("#67001F", "#B2182B", "#D6604D", "#F4A582", "#FDDBC7",
+     				      "#FFFFFF", "#D1E5F0", "#92C5DE", "#4393C3", "#2166AC", "#053061"))	
+col3 <- colorRampPalette(c("red", "white", "blue"))	    
+col4 <- colorRampPalette(c("#7F0000","red","#FF7F00","yellow","#7FFF7F", 
+     									 "cyan", "#007FFF", "blue","#00007F"))	
+wb <- c("white","black")
+## using these color spectrums
+corrplot(M, order="hclust", addrect=2, col=col1(100))
+```
+
+<img src="figure/color1.png" title="plot of chunk color" alt="plot of chunk color" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order="hclust", addrect=2, col=col2(50))
+```
+
+<img src="figure/color2.png" title="plot of chunk color" alt="plot of chunk color" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order="hclust", addrect=2, col=col3(20))
+```
+
+<img src="figure/color3.png" title="plot of chunk color" alt="plot of chunk color" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order="hclust", addrect=2, col=col4(10))
+```
+
+<img src="figure/color4.png" title="plot of chunk color" alt="plot of chunk color" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, order="hclust", addrect=2, col=wb, bg="gold2")
+```
+
+<img src="figure/color5.png" title="plot of chunk color" alt="plot of chunk color" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Color Legend and Text Legend
+----------------------------
+Parameter `cl.*` is for color legend, and `tl.*` if for text legend.
+
+Here are some examples.
+
+```r
+## remove color legend and text legend 
+corrplot(M, order="AOE", cl.pos="n", tl.pos="n")  
+```
+
+<img src="figure/color-label1.png" title="plot of chunk color-label" alt="plot of chunk color-label" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## bottom  color legend, diagonal text legend, rotate text label
+corrplot(M, order="AOE", cl.pos="b", tl.pos="d", tl.srt=60)
+```
+
+<img src="figure/color-label2.png" title="plot of chunk color-label" alt="plot of chunk color-label" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## a wider color legend with numbers right aligned
+corrplot(M, order="AOE", cl.ratio=0.2, cl.align="r")
+```
+
+<img src="figure/color-label3.png" title="plot of chunk color-label" alt="plot of chunk color-label" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+
+
+Deal with the Non-correlation Matrix
+-------------------------------------
+
+```r
+corrplot(abs(M),order="AOE", col=col3(200), cl.lim=c(0,1))
+```
+
+<img src="figure/non-corr1.png" title="plot of chunk non-corr" alt="plot of chunk non-corr" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## visualize a  matrix in [-100, 100]
+ran <- round(matrix(runif(225, -100,100), 15))
+corrplot(ran, is.corr=FALSE, method="square")
+```
+
+<img src="figure/non-corr2.png" title="plot of chunk non-corr" alt="plot of chunk non-corr" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## a beautiful color legend 
+corrplot(ran, is.corr=FALSE, method="ellipse", cl.lim=c(-100, 100))
+```
+
+<img src="figure/non-corr3.png" title="plot of chunk non-corr" alt="plot of chunk non-corr" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Combine with the Significance Test
+----------------------------------
+
+```r
+cor.mtest <- function(mat, conf.level = 0.95){
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat <- lowCI.mat <- uppCI.mat <- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  diag(lowCI.mat) <- diag(uppCI.mat) <- 1
+  for(i in 1:(n-1)){
+  	for(j in (i+1):n){
+	      	 tmp <- cor.test(mat[,i], mat[,j], conf.level = conf.level)
+		     	p.mat[i,j] <- p.mat[j,i] <- tmp$p.value
+				      lowCI.mat[i,j] <- lowCI.mat[j,i] <- tmp$conf.int[1]
+				      		     	uppCI.mat[i,j] <- uppCI.mat[j,i] <- tmp$conf.int[2]
+								       }
+								       }
+								       return(list(p.mat, lowCI.mat, uppCI.mat))
+}
+
+res1 <- cor.mtest(mtcars,0.95)
+res2 <- cor.mtest(mtcars,0.99)
+## specialized the insignificant value according to the significant level
+corrplot(M, p.mat = res1[[1]], sig.level=0.2)
+```
+
+<img src="figure/test1.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, p.mat = res1[[1]], sig.level=0.05)
+```
+
+<img src="figure/test2.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, p.mat = res1[[1]], sig.level=0.01)
+```
+
+<img src="figure/test3.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## leave blank on no significant coefficient
+corrplot(M, p.mat = res1[[1]], insig = "blank")
+```
+
+<img src="figure/test4.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## add p-values on no significant coefficient
+corrplot(M, p.mat = res1[[1]], insig = "p-value")
+```
+
+<img src="figure/test5.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## add all p-values
+corrplot(M, p.mat = res1[[1]], insig = "p-value", sig.level=-1)
+```
+
+<img src="figure/test6.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+## add cross on no significant coefficient 
+corrplot(M, p.mat = res1[[1]], order="hclust", insig = "pch", addrect=3)
+```
+
+<img src="figure/test7.png" title="plot of chunk test" alt="plot of chunk test" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Visualize Confidence Interval
+-----------------------------
+
+```r
+## plot confidence interval(0.95, 0.95, 0.99), "rect" method
+corrplot(M, low=res1[[2]], upp=res1[[3]], order="hclust",
+  rect.col="navy", plotC="rect",cl.pos="n")
+```
+
+<img src="figure/ci1.png" title="plot of chunk ci" alt="plot of chunk ci" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+```r
+corrplot(M, p.mat = res1[[1]], low=res1[[2]], upp=res1[[3]], order="hclust",
+	    pch.col="red", sig.level = 0.01, addrect=3, rect.col="navy",
+	    plotC="rect",cl.pos="n")
+```
+
+<img src="figure/ci2.png" title="plot of chunk ci" alt="plot of chunk ci" style="display:block; margin: auto" style="display: block; margin: auto;" />
+
+Here is an animation to show the relation between significant level and confidence interval.
+
+```r
+for(i in seq(0.1, 0, -0.005)){
+  tmp <- cor.mtest(mtcars,1-i)
+  corrplot(M, p.mat = tmp[[1]], low=tmp[[2]], upp=tmp[[3]], order="hclust",
+  	      pch.col="red", sig.level = i, plotC="rect", cl.pos="n",
+	      		     mar=c(0,0,1,0), 
+			     		     title=substitute(alpha == x,list(x=format(i,digits=3,nsmall=3))))
+}
+```
+
+<div align = "center">
+ <embed width="504" height="504" name="plugin" src="http://animation.r-forge.r-project.org/swf/corrplot-ani.swf" type="application/x-shockwave-flash"> 
+</div>
+

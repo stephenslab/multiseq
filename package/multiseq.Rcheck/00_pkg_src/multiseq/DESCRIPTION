@@ -1,0 +1,15 @@
+Package: multiseq
+Maintainer: Matthew Stephens <mstephens@uchicago.edu>
+Author: Matthew Stephens lab
+Type: Package
+Title: Multiscale Sequence Analysis
+Version: 0.1
+Date: 2013-11-05
+Description: Requires the executables samtools, wigToBigWig, bigWigInfo, and
+    bedToBigBed to be in the USER's path.
+License: GPL-3
+Depends: Rcpp (>= 0.10.4), ashr, tools, data.table
+VignetteBuilder: knitr
+Suggests: rhdf5, knitr
+LinkingTo: Rcpp
+Packaged: 2014-09-18 20:14:52 UTC; epantaleo
