@@ -8,12 +8,12 @@ This repository contains an R package, **multiseq**, that is ongoing work in the
 
 To download the package click on [link](https://github.com/stephenslab/multiseq/blob/master/package/multiseq_0.1.tar.gz?raw=true).
 
-After uncompressing the downloaded archive into folder `multiseq`, you can find installation instructions in `multiseq/README.md`.
+After uncompressing the downloaded archive into folder `multiseq`, you can find installation instructions in `multiseq/README.Rmd`.
 
 
 ### Instructions for developers
 
-If you are developing the package, you can find useful (but not yet documented) instructions in file `~/src/multiseq/package.build.R` (how to build, document, archive the package).
+If you are developing the package, you can find useful (but not yet documented) instructions in file `multiseq/package/build.R` (how to build, document, archive the package).
 
 
 ### Running multiseq on multiple loci (mostly for internal use in the Stephens Lab)
