@@ -11,44 +11,44 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
   shape.eff = FALSE, cxx = TRUE, onlylogLR = FALSE, smoothing = TRUE,
   cyclespin = TRUE, reverse = TRUE, maxlogLR = NULL,
   set.fitted.g = NULL, set.fitted.g.intercept = NULL, get.fitted.g = TRUE,
-  listy = NULL)
+  listy = NULL, verbose = FALSE)
 }
 \arguments{
-\item{x:}{a matrix of nsig by n counts where n should be a power of 2 or a vector of size n (nsig will be set to 1).}
+\item{x:}{a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n} (\code{nsig} will be set to 1).}
 
-\item{read.depth:}{an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.}
+\item{read.depth:}{an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.}
 
 \item{reflect:}{bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflect}} for details.}
 
-\item{baseline:}{can be "inter" or "grp" or a number. Uses intercept g=0 as baseline ("inter") or the group with the smallest g as baseline ("grp") or specifies value of g that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp"}
+\item{baseline:}{a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".}
 
-\item{g:}{an nsig-vector containing group indicators/covariate value for each sample}
+\item{g:}{an \code{nsig}-dimensional vector containing group indicators/covariate value for each sample.}
 
-\item{minobs:}{minimum number of obs required to be in each logistic model}
+\item{minobs:}{minimum number of obs required to be in each logistic model.}
 
-\item{pseudocounts:}{a number to be added to counts}
+\item{pseudocounts:}{a number to be added to counts.}
 
-\item{all:}{bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0}
+\item{all:}{bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0.}
 
-\item{center:}{bool, indicating whether to center g}
+\item{center:}{bool, indicating whether to center \code{g}.}
 
-\item{repara:}{bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized.}
+\item{repara:}{bool, indicating whether to reparameterize \code{alpha} and \code{beta} so that their likelihoods can be factorized.}
 
-\item{forcebin:}{bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1}
+\item{forcebin:}{bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}.}
 
-\item{lm.approx:}{bool, indicating whether a WLS alternative should be used}
+\item{lm.approx:}{bool, indicating whether a WLS alternative should be used.}
 
-\item{disp:}{"all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE}
+\item{disp:}{a string, can be either "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx=TRUE}.}
 
-\item{pointmass:}{bool, indicating whether or not to use point mass in vector of sigmas}
+\item{pointmass:}{bool, indicating whether or not to use point mass in vector of sigmas.}
 
-\item{prior:}{used in EM}
+\item{prior:}{used in EM.}
 
-\item{gridmult:}{density of grid of sigma vector}
+\item{gridmult:}{density of grid of sigma vector.}
 
-\item{nullcheck:}{bool, if TRUE check that any fitted model exceeds the "null" likelihood}
+\item{nullcheck:}{bool, if TRUE check that any fitted model exceeds the "null" likelihood.}
 
-\item{mixsd:}{vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used}
+\item{mixsd:}{vector of \code{sigma} components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used}
 
 \item{VB:}{bool, indicates whether to use a variational Bayes alternative to EM (TRUE) or not (FALSE)}
 
@@ -56,28 +56,35 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 
 \item{cxx:}{bool, indicating whether to use c++ code (faster) (TRUE) or R code (FALSE)}
 
-\item{onlylogLR:}{bool, indicating whether to compute only logLR (TRUE) or not}
+\item{onlylogLR:}{bool, indicating whether to compute only \code{logLR} (TRUE) or not}
 
-\item{maxlogLR:}{a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.}
+\item{maxlogLR:}{a positive number, defaults to NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.}
 
-\item{smoothing:}{bool, indicating whether to apply ash to smooth the signal (TRUE) or not (FALSE); if smoothing==FALSE then reverse is set to FALSE; this option is only used when inferring shared pi.s}
+\item{smoothing:}{bool, indicating whether to apply \pkg{ashr} to smooth the signal (TRUE) or not (FALSE); if \code{smoothing==FALSE} then reverse is set to FALSE; this option is only used when inferring shared pi-s.}
 
-\item{cyclespin:}{bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If cyclespin==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.}
+\item{cyclespin:}{bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If \code{cyclespin}==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.}
 
-\item{reverse:}{bool, indicating whether to reverse wavelet (TRUE) or not}
+\item{reverse:}{bool, indicating whether to reverse wavelet (TRUE) or not.}
 
-\item{fitted.g:}{a list of J+1 mixture of normal models fitted using ash, J=log2(n)}
+\item{fitted.g:}{a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}.}
 
-\item{fitted.g.intercept:}{a list of J mixture of normal models fitted using ash on the intercept, J=log2(n)}
+\item{fitted.g.intercept:}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}.}
 
-\item{get.fitted.g:}{bool, indicating whether to save fitted.g}
+\item{get.fitted.g:}{bool, indicating whether to save \code{fitted.g}.}
 
-\item{listy:}{a list of elements 'y','y.rate','intervals'; if listy is provided as an argument different from NULL, then y and y.rate are forced to listy$y and listy$y.rate respectively; this option is used when inferring shared pi.}
+\item{listy:}{a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is provided as an argument different from NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi.}
+
+\item{verbose:}{bool, defaults to FALSE, if TRUE \code{multiseq} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.}
 }
 \value{
-a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "scales", "finite.logLR". In particular, scales contains (part of) ash output for each scale.
+a list with elements \code{baseline.mean}, \code{baseline.var}, \code{effect.mean}, \code{effect.var}, \code{logLR}.
 }
 \description{
 This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.
+}
+\examples{
+#load data contained in example1
+data(example1, package="multiseq")
+res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 }
 

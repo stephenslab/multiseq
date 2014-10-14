@@ -6,7 +6,7 @@
 #put all files (R and cpp files) in a directory and cd into that directory
 #in R:
 library(Rcpp)
-Rcpp.package.skeleton("multiseq", path=".", code <- files=c("multiseq.R", "PoissonBinomial.funcs.R", "deltamethod.R"), cpp <- files="multiseq.cpp", example <- code = FALSE, attributes = TRUE)
+Rcpp.package.skeleton("multiseq", path=".", code_files=c("multiseq.R", "PoissonBinomial.funcs.R", "deltamethod.R"), cpp_files="multiseq.cpp", example_code = FALSE, attributes = TRUE)
 
 #/data/tools/R-3.0.3/bin/R
 #devtools::install_github("klutometis/roxygen")
@@ -45,13 +45,3 @@ Sys.setenv(MOUNTPOINT_HTTP_ADDRESS="https://*******:pipeline@solexa-compute1.uch
 Sys.setenv(PATH=paste0(Sys.getenv('PATH'),":/usr/local/bin/",":/data/tools/ucsctools/"))
 install.packages(path.to.ashr.gz,repos=NULL,type="source")
 install.packages(path.to.multiseq.gz,repos=NULL,type="source")
-
-library(ashr)
-library(knitr)
-library(Rcpp)
-library(devtools)
-library(data.table)
-library(tools)
-library(rmarkdown)
-pandoc version 1.12.3 or higher is required and was not found
-build_vignettes()

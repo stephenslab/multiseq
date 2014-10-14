@@ -12,17 +12,17 @@ permutation.logLR(pheno.dat, geno.dat, library.read.depth = NULL,
   cxx = TRUE, maxlogLR = NULL)
 }
 \arguments{
-\item{pheno.dat:}{a matrix of nsig (# of samples) by n counts where n should be a power of 2}
+\item{pheno.dat:}{a matrix of \code{nsig} (# of samples) by \code{n} counts where \code{n} should be a power of 2}
 
-\item{geno.dat:}{a matrix of numC (number of SNPs or number of covariates) by nsig; each row contains genotypes/covariate value for each sample.}
+\item{geno.dat:}{a matrix of \code{numC} (number of SNPs or number of covariates) by \code{nsig}; each row contains genotypes/covariate value for each sample.}
 
-\item{library.read.depth:}{an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.}
+\item{library.read.depth:}{an \code{nsig}-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.}
 
-\item{numPerm:}{number of permutations; if numPerm == NULL, do not perform permutation, but return logLR.}
+\item{numPerm:}{number of permutations; if \code{numPerm} == NULL, do not perform permutation, but return \code{logLR}.}
 
 \item{numSig:}{permutation stops when number of permuted data with significant test statistic reaches this number.}
 
-\item{eps:}{when logLR == 0, we use a value sampled from Unif(-eps, 0) as logLR.}
+\item{eps:}{when \code{logLR} == 0, we use a value sampled from \code{Unif(-eps, 0)} as \code{logLR}.}
 
 \item{use.default.compute.logLR:}{bool, if TRUE, it uses default options in \code{\link{compute.logLR}}. Otherwise, it passes parameters to \code{\link{compute.logLR}}.}
 
@@ -32,15 +32,15 @@ permutation.logLR(pheno.dat, geno.dat, library.read.depth = NULL,
 
 \item{all:}{bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0}
 
-\item{center:}{bool, indicating whether to center g}
+\item{center:}{bool, indicating whether to center \code{g}}
 
 \item{repara:}{bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized.}
 
-\item{forcebin:}{bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1}
+\item{forcebin:}{bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}}
 
 \item{lm.approx:}{bool, indicating whether a WLS alternative should be used}
 
-\item{disp:}{"all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE}
+\item{disp:}{"all" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx}=TRUE}
 
 \item{pointmass:}{bool, indicating whether or not to use point mass in vector of sigmas}
 
@@ -56,10 +56,10 @@ permutation.logLR(pheno.dat, geno.dat, library.read.depth = NULL,
 
 \item{cxx:}{bool, indicating whether to use Rcode or c++ code (faster)}
 
-\item{maxlogLR:}{a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.}
+\item{maxlogLR:}{a positive number, default=NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.}
 }
 \value{
-a list of "most.sig.SNP.posi" (if there are multiple SNPs, returns position of SNPs with strongest signal), "pval", "logLR" (output from compute.logLR for each SNP), "Count_stop" (when permutaton stops), "Count_sig" (number of permuted data with significant test statistic), "numPerm" (parameter), and "numSig" (parameter).
+a list of \code{most.sig.SNP.posi} (if there are multiple SNPs, returns position of SNPs with strongest signal), \code{pval}, \code{logLR} (output from \code{\link{compute.logLR}} for each SNP), \code{Count_stop} (when permutaton stops), \code{Count_sig} (number of permuted data with significant test statistic), \code{numPerm} (parameter), and \code{numSig} (parameter).
 }
 \description{
 This function takes a series of Poisson count signals \code{pheno.dat}, with data on different samples in each row and genotype from multiple SNPs (or any covariate) \code{geno.dat} for each sample, and returns p-value obtained by permutation (use logLR as a test statistic). If multiple SNPs are provided, this function use max(logLR) as a test statistic.

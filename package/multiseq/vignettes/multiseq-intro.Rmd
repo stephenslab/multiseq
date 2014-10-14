@@ -2,9 +2,8 @@
 %\VignetteEngine{knitr}
 %\VignetteIndexEntry{An Introduction to the multiseq package}
 -->
-`r opts_chunk$set(cache=TRUE)`
 
-An Introduction to **multiseq** package
+An Introduction to the multiseq package
 =======================================
 
 
@@ -13,23 +12,13 @@ library(knitr)
 opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center")
 ```
 
-The **multiseq** package is an **R** package for multiscale sequence analysis and is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu) at the University of Chicago. *Multiseq* has two main modes of operation: smoothing and effect estimation....
+The **multiseq** package is an **R** package for multiscale sequence analysis and is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu) at the University of Chicago. **Multiseq** has two main modes of operation: smoothing and effect estimation....
 
 
-In this vignette you will learn how to install the package, run *multiseq* in its two different modes of operation, and visualize its output (and input data) either in **R** or in the [UCSC Genome Browser](https://genome.ucsc.edu/) as a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html).
+In this vignette you will learn how to install the package, run **multiseq** in its two different modes of operation, and visualize its output (and input data) either in **R** or in the [UCSC Genome Browser](https://genome.ucsc.edu/) as a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html). In the Genome Browser you will be able to compare your track with any of the available tracks (already uploaded) and to fine-tune the display (e.g. zoom and scroll the tracks display, highlight a region, change the order of the displayed tracks, etc).
 
 ```{r downloading_and_installing, child = '../README.Rmd'}
 
-```
-
-Now we can load the package
-
-```{r load_package}
-    #load the package
-    library(ashr)
-    library(multiseq)
-    library(tools)      # this is necessary to do RmdToHtml
-    library(data.table) # this is necessary to do RmdToHtml
 ```
 
 Running `multiseq`
@@ -37,100 +26,99 @@ Running `multiseq`
 
 In this section you will learn how to use `multiseq` to smooth a signal and to estimate an effect given a covariate `g`.
 
-First load the R object containing example data.
+First load the package then load the example data included in the package.
 
 ```{r load_data}
+    library(multiseq)
     #load example data - R object
-    data(OAS1,package="multiseq")    #change this into a small interval from the simulated data...
-    x <- OAS1$M
-    g <- OAS1$g
-    read.depth <- OAS1$read.depth
+    #type ?example1 to get more information
+    data(example1, package="multiseq")   
+    x          <- dat$x
+    g          <- dat$g
+    read.depth <- dat$read.depth
 ```
 
-Then select the first signal and apply `multiseq` without providing a covariate `g` to only perform smoothing of the signal.
+Then select a subset of the signal and apply `multiseq` to perform smoothing.
 
-```{r smoothing} 
+```{r smoothing, echo=c(1,3,4,5,6,8)} 
     #smoothing
-    res0         <- multiseq(x=x[g==0,], minobs=1, lm.approx=FALSE, read.depth=read.depth[g==0])
-    #plot baseline mean value +- 2 posterior standard deviations
-    fra          <- 2 #s.d.
-    #plotResults(res0, fra)
+    par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+    for (i in which(g==1)) plot(log(x[i,]), type="l", xlab="Position", ylab="log(x)")
+    unique(sort(log(x[1,])))
+    res0         <- multiseq(x=x[g==1,], minobs=1, lm.approx=FALSE, read.depth=read.depth[g==1])
+    #plot baseline mean +/- 2 posterior standard deviations
+    invisible(dev.off())
+    plot(res0, fra=2, what="baseline")
 ```
 
-Now let's use a covariate `g` and estimate an effect:
+Now, given a covariate `g`, you can estimate an effect:
 
 ```{r estimate_effect}
     #estimating an effect
     res           <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
-    #find intervals where `multiseq` found a strong effect (zero is outside of +/- fra posterior standard deviations
-    res$intervals <- get.effect.intervals(res, fra)
+    #plot estimated effect mean +/- 2 posterior standard deviations
+    plot(res, fra=2)
+
+    #print intervals where `multiseq` found a strong effect (zero is outside of +/- fra posterior standard deviations
+    res$intervals <- get.effect.intervals(res, fra=2)
     res$intervals
-    #plot estimated effect mean and posterior standard deviation
-    plotResults(res, fra)  #check effect
 ```
-Function `get.effect.intervals` outputs intervals where `multiseq` found strong effect (zero is outside of +/- 2 * posterior standard deviations). Output interval is in bed format (start is 0-based, end is 1-based).
+Function `get.effect.intervals` outputs intervals where `multiseq` found strong effect (zero is outside of +/- a specified multiple of the posterior standard deviations). Output interval is in bed format (start is 0-based, end is 1-based).
 
-Finally you can use `write.effect.mean.variance.gz` to save results.
-```{r save_results}
-    #save results in multiseq_sim
-    multiseq_folder <- "~/multiseq_sim/"
-    write.effect.mean.variance.gz(res, multiseq_folder)
-```
 
-Running multiseq on sequencing data
------------------------------------
+Running `multiseq` on sequencing data
+-------------------------------------
 
-Special tools are required to handle next generation sequencing data because of their high throughput nature. **Multiseq**'s function `get.counts` uses `samtools` or the *UCSC tools* to read data in *bam*, *bigWig*, or *hdf5* format. 
+Special tools are required to handle next generation sequencing data because of their high throughput nature. **Multiseq**'s function `get.counts` uses `samtools`, the *UCSC tools*, or the **R** package **rhdf5** to read data in *bam*, *bigWig*, or *hdf5* format. 
 
-Function `get.counts` requires as input a samplesheet and a genomic region. The samplesheet should have the following format:
+To run on sequencing data, **multiseq** requires a samplesheet with the following format:
 
     SampleID Type Replicate Peaks ReadDepth bigWigPath
-    A1 Control 1 peak.bb 16335812 A1.bw
-    A2 Control 2 peak.bb 18197248 A2.bw
-    B1 Test 1 peak.bb 24225586 B1.bw
-    B2 Test 2 peak.bb 12378544 B2.bw
+    A1 Control 1 peakA1.bb 16335812 A1.bw
+    A2 Control 2 peakA2.bb 18197248 A2.bw
+    B1 Test 1 peakB1.bb 24225586 B1.bw
+    B2 Test 2 peakB2.bb 12378544 B2.bw
 
-The following fields are required: "SampleID" containing sample IDs, "ReadDepth" specifying sequencing depth for each sample, "bigWigPath" and/or "h5FullPath" and/or "bamReads" specifying the path to countdata files in *bam*, *bigWig*, or *hdf5* format, respectively. Field "Peaks" is not required but can be used to specify the path to a *bigBed* file (e.g., the path to bed file with ChipSeq peaks).
+The following fields are required: "SampleID" containing sample IDs, "ReadDepth" specifying sequencing depth for each sample, "bigWigPath" and/or "h5FullPath" and/or "bamReads" specifying the path to count data files in *bam*, *bigWig*, or *hdf5* format, respectively. Field "Peaks" is not required but can be used to specify the path to a *bed* or *bigBed* file (e.g., the path to a *bigBed* file with ChipSeq peaks). If "Peaks" is specified then also field "Type" is required.
   
-```{r get_counts}
-    # samplesheet samplesheet.sim.txt contains paths relative to the package directory 
-    # so to use it, we need to change the working directory: 
-    setwd(file.path(path.package("multiseq"),"extdata","sim"))
+You can load data using the samplesheet as follows:
+```{r load_seq_data}
+    setwd(file.path(path.package("multiseq"),"extdata","sim"));
     samplesheet <- file.path(path.package("multiseq"),"extdata","sim","samplesheet.sim.txt")
-    region      <- "chr1:87297710-87305901"
     samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
-    x           <- get.counts(samples, region)
-    #alternatively:
-    #samples    <- read.table(samplesheet, stringsAsFactors=F, header=T)
-    g           <- factor(samples$Tissue)
-    g           <- match(g, levels(g))-1
+    g <- factor(samples$Type)
+    g <- match(g, levels(g))-1
+    if (noExecutable("wigToBigWig")){
+       data(example2, package="multiseq")
+    }else{
+       region      <- "chr1:154206209-154214400"
+       x           <- get.counts(samples, region)
+    }
 ```
 
-### Smoothing using `multiseq`
+To smooth a subset of the data:
 
-```{r testing_smoothing}
-    res0        <- multiseq(x=x[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
-    #plot estimated mean value +- 2 s.d.
-    fra         <- 2 #s.d.
-    #plotResults(res0, fra)
+```{r testing_smoothing, echo=c(2,3,4,6,7)}
+    par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+    for (i in which(g==0)) plot(log(x[i,]), type="l", xlab="Position", ylab="log(x)")
+    res0 <- multiseq(x=x[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
+    #plot estimated log baseline +- 2 s.d.
+    invisible(dev.off())
+    res0$region <- region
+    plot(res0, fra=2, what="baseline")
 ```
 
 
-### Finding an effect using `multiseq`
-
+To estimate an effect given the covariate `g`:
 
 ```{r testing_diff}
-    res           <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-    res$intervals <- get.effect.intervals(res, fra, region)
-    #plot estimated effect and s.d. and print intervals where there is an effect
-    plotResults(res, fra)  #check effect
-
-    #save results in multiseq_sim
-    multiseq_folder <- "~/multiseq_sim/chr1.87297710.87305901/"
-    #?write.effect.mean.variance.gz
-    write.effect.mean.variance.gz(res, multiseq_folder)
-    #?write.effect.intervals    
-    write.effect.intervals(res, multiseq_folder, fra)
+    res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
+    #plot estimated effect and s.d. 
+    par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
+    res$region <- region
+    plot(res, fra=2, is.xaxis=FALSE) 
+    transcripts   <- get.transcripts(file.path(path.package("multiseq"),"extdata","sim","hg19.ensGene.part.gp"), region)
+    plot(transcripts, region) 
 ```
 
 ### Visualizing input data using `samplesheetToTrackHub`
@@ -139,21 +127,20 @@ The following fields are required: "SampleID" containing sample IDs, "ReadDepth"
 With function `samplesheetToTrackHub` you can create a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html) and visualize your input data in the [UCSC Genome Browser](https://genome.ucsc.edu/). Before you use this function, follow installation instructions in the "Optional steps" paragraph above.
 
 ```{r track_hub, results='hide'}
+    setwd(file.path(path.package("multiseq"),"extdata","sim"))
     hub_name <- "testMultiseq/sim"
-    samplesheetToTrackHub(samplesheet, hub_name)
+    samplesheetToTrackHub(samplesheet, hub_name, chr="chr1")
 ```
 
 Function `samplesheetToTrackHub` will create a Track Hub in folder */some/path/testMultiseq/sim/* and will print the following message:
 
-    go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window    
-    copy paste the following string in the URL field
-    https:some/address/testMultiseq/sim/hub.txt
-    submit center the genome browser on the region of interest
-    if the track is hidden click on show and then refresh
+    go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hubUrl=https:some/address/testMultiseq/sim/hub.txt
+    center the genome browser on the region of interest
+    and make track visible
 
-If the read tracks or the bed files are large, make sure enough memory is available to run `simulationToTrackHub` (e.g., use ql 10g on the PPS cluster).
+If the read tracks or the bed files are large, make sure enough memory is available to run `simulationToTrackHub`.
 
-This is a screenshot of the Track Hub in the Genome Browser:
+This is a screenshot of the Track Hub in the UCSC Genome Browser:
 ![Image](../inst/extdata/sim/sim.png)
 
 
@@ -161,63 +148,27 @@ Visualizing output data using `multiseqToTrackHub`
 --------------------------------------------------------------------------------------
 
 
-After running multiseq and saving results using `write.effect.mean.variance.gz` and `write.effect.intervals` (see above), you can create a Track Hub of results using function `multiseqToTrackHub`. `multiseqToTrackHub` will create a Track Hub that can be visualized in the UCSC Genome Browser to display
-- the effect +- 2 standard errors
-- the significant intervals at 2 sd.
-
-Function `multiseqToTrackHub` requires two arguments: the multiseq output folder *multiseq_folder* and the path to a file with chromosome names and lengths *chrom_file*:
+After running `multiseq`, you can use function `multiseqToTrackHub` to create a Track Hub that can be visualized in the UCSC Genome Browser to display
+- the effect +- a specified multiple (fra) of the posterior standard deviation
+- the intervals where multiseq found strong effect (zero is outside of +/- a multiple of the posterior standard deviation ' e.g. 2 or 3).
 
 ```{r multiseqToTrackHub, results='hide'}
-    region          <- "chr1:87297710-87305901"
-    hub_name        <- "testMultiseq/multiseq_sim"
-    multiseq_folder <- "~/multiseq_sim/" 
-    chrom_file      <- file.path(path.package("multiseq"),"extdata","chromosome.lengths.hg19.txt")
-    multiseqToTrackHub(region, hub_name, multiseq_folder, chrom_file)
+    res$region    <- region
+    res$intervals <- get.effect.intervals(res, fra=2)
+    multiseqToTrackHub(res, fra=2, hub_name="testMultiseq/multiseq_sim")
 ```
 
 Function `multiseqToTrackHub` will create a Track Hub named *multiseq_sim* in the *https:some/address/testMultiseq/* folder and will print the following message:
   
-    go to http://genome.ucsc.edu/cgi-bin/hgHubConnect and click on the My Hubs window
-    copy paste the following string in the URL field
-    https:some/address/testMultiseq/multiseq_sim/hub.txt
-    submit and center your genome browser around chr1:87297710-87305901 and make track visible
-
-This is a screenshot of the Track Hub in the Genome Browser:
-![Image](../inst/extdata/sim/multiseq.png?raw=true)
-
-
-Something interesting from a different R package
-------------------------------------------------
-$$latex
-a_i = 
-\begin{cases}
-			\tan (e_{i2}/e_{i1}), & \text{if $e_{i1}>0$;}
-			     		       \newline
-							\tan (e_{i2}/e_{i1}) + \pi, & \text{otherwise.}
-\end{cases}						     		     
-$$ 
-
-where $e_1$ and $e_2$ are the largest two eigenvalues of the correlation  matrix. See [Michael Friendly (2002)](www.datavis.ca/papers/corrgram.pdf) for details.
-
-* `"FPC"` for the first principal component order.
-
-* `"hclust"` for hierarchical clustering order, and `"hclust.method"` for the agglomeration method to be used . `"hclust.method"` should be one of `"ward"`, `"single"`, `"complete"`, `"average"`, `"mcquitty"`, `"median"` or `"centroid"`.
-
-* `"alphabet"` for alphabetical order.
+    go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hubUrl=https:some/address/testMultiseq/multiseq_sim/hub.txt
+    center your genome browser around chr1:154206209-154214400 
+    and make track visible
+    
+By default `multiseqToTrackHub` uses the human genome hg19 but default settings can be changed by specifying additional arguments (see help).
+This is a screenshot of the Track Hub in the UCSC Genome Browser:
+![Image](../inst/extdata/sim/multiseq.png)
 
 
-Here is an animation to show the relation between significant level and confidence interval.
-```{r ani, eval=FALSE}
-#for(i in seq(0.1, 0, -0.005)){
-#  tmp <- cor.mtest(mtcars,1-i)
-#  corrplot(M, p.mat = tmp[[1]], low=tmp[[2]], upp=tmp[[3]], order="hclust",
-#  	      pch.col="red", sig.level = i, plotC="rect", cl.pos="n",
-#	      		     mar=c(0,0,1,0), 
-#			     		     title=substitute(alpha == x,list(x=format(i,digits=3,nsmall=3))))
-#}
-```
-
-<div align = "center">
- <embed width="504" height="504" name="plugin" src="http://animation.r-forge.r-project.org/swf/corrplot-ani.swf" type="application/x-shockwave-flash"> 
-</div>
-
+Note
+----
+If the Genome Browser doesn't show the Track Hub try going to http://genome.ucsc.edu/cgi-bin/hgHubConnect/MyHubs and checking the Track Hub.

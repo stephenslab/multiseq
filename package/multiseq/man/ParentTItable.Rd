@@ -21,4 +21,5 @@ keeping just the values that are *not* redundant under the shift-invariant schem
 \references{
 This is very similar to TI-tables in Donoho and Coifman's TI-denoising framework
 }
+\keyword{internal}
 

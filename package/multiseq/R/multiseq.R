@@ -1,4 +1,4 @@
-#' Get data at all scales
+#' Get data at all scales.
 #'
 #' This function takes a matrix x of Poisson counts, nind by 2^k, and returns a nind by (2*2^k)-2
 #' matrix that sums up columns of x at different scales. The last two columns of the aggregate are the
@@ -6,6 +6,8 @@
 #' estimate the pi-s by aggregating data from multiple regions.
 #' @param x: nind by 2^k matrix of Poisson counts 
 #' @return a nind by (2*2^k)-2 matrix that sums up columns of x at different scales
+#' @export
+#' @keywords internal
 haar.aggregate= function(x){
    if(is.vector(x)){dim(x)<- c(1,length(x))} #convert x to matrix
    y = x
@@ -19,10 +21,11 @@ haar.aggregate= function(x){
    y
 }
 
-#' Compute the third and fourth moments of a normal or a mixture of normals distribution
+#' Compute the third and fourth moments of a normal or a mixture of normals distribution.
 #' @param mu
 #' @param sigma
 #' @param moment: if moment=3 compute the third moment, if moment=4 compute the forth moment
+#' @keywords internal
 tfmoment=function(mu,sigma,moment,pi=NULL){
     if(moment==3){
         moment=mu^3+3*mu*sigma^2
@@ -35,12 +38,14 @@ tfmoment=function(mu,sigma,moment,pi=NULL){
     return(moment)
 }
 
-#' Interleave two vectors
+#' Interleave two vectors.
+#' @keywords internal
 interleave=function(x,y){
   return(as.vector(rbind(x,y)))
 }
 
-#' Shift a vector right and left respectively
+#' Shift a vector right and left respectively.
+#' @keywords internal
 rshift = function(x){L=length(x); return(c(x[L],x[-L]))}
 lshift = function(x){return(c(x[-1],x[1]))}
 
@@ -55,6 +60,7 @@ lshift = function(x){return(c(x[-1],x[1]))}
 #' @param sig: an n vector of Poisson counts at n locations
 #' @return a list with elements "TItable" and "parent"
 #' @references This is very similar to TI-tables in Donoho and Coifman's TI-denoising framework
+#' @keywords internal
 ParentTItable=function(sig){
   n = length(sig)
   J = log2(n)
@@ -88,7 +94,8 @@ ParentTItable=function(sig){
 #' @param lp: a J by n matrix of estimated log(p), wavelet proportions for Poisson data on the log scale. First row of lp gives the high frequency proportions (so 1/(1+2), 3/(3+4) etc), second row gives next level of resolution etc.
 #' @param lq: a J by n matrix of estimated log(1-p). If lq is not given, set lq = log(1-exp(lp)).
 #'
-#' @return an n-vector 
+#' @return an n-vector
+#' @keywords internal
 reverse.pwave=function(est,lp,lq=NULL){
   if(is.null(lq))
      lq = log(1-pmin(exp(lp),1-1e-10))
@@ -139,8 +146,9 @@ reverse.pwave=function(est,lp,lq=NULL){
   return(est)
 }
 
-#' @title Reflect signal
-#' @return an n-vector containing the indeces of the original signal x 
+#' @title Reflect signal.
+#' @return an n-vector containing the indeces of the original signal x
+#' @keywords internal
 reflect <- function(x){
     n = dim(x)[2]
     J = log2(n)
@@ -154,21 +162,36 @@ reflect <- function(x){
         if(lnum==0){
             x.lmir=NULL
         }else{
-            x.lmir=x[,lnum:1]
+            if (dim(x)[1]==1){
+                x.lmir=x[lnum:1]
+            }else{
+                x.lmir=x[,lnum:1]
+            }
         }
         if(rnum==0){
             x.rmir=NULL
         }else{
-            x.rmir=x[,n:(n-rnum+1)]
+            if (dim(x)[1]==1){
+                x.rmir=x[n:(n-rnum+1)]
+            }else{
+                x.rmir=x[,n:(n-rnum+1)]
+            }
         }
-        x.ini=cbind(x.lmir,x,x.rmir)
-        x.mir=x.ini[,n.ext:1]
-        eval.parent(substitute(x<-cbind(x.ini,x.mir)))
+        if (dim(x)[1]==1){
+            x.ini=c(x.lmir,x,x.rmir)
+            x.mir=x.ini[n.ext:1]
+            eval.parent(substitute(x<-c(x.ini,x.mir))) 
+        }else{
+            x.ini=cbind(x.lmir,x,x.rmir)
+            x.mir=x.ini[,n.ext:1]
+            eval.parent(substitute(x<-cbind(x.ini,x.mir))) 
+        }
         return((lnum+1):(lnum+n))
     }
 }
 
 #' A wrapper for code in \code{compute.res} and \code{compute.res.rate}
+#' @keywords internal
 ffwrapper <- function(mean, var, Mean, Sq, wSq, beta.tm, beta.fm, g){
     ffdash = ffdash.moments(mean,var)
     ffdd = ffdd.moments(mean,var)
@@ -181,6 +204,7 @@ ffwrapper <- function(mean, var, Mean, Sq, wSq, beta.tm, beta.fm, g){
 
 #' @title compute.res.rate
 #' @return a list with elements "lp.mean", "lp.var", "lpratio.mean", "lpratio.var"
+#' @keywords internal
 compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
     if (repara==TRUE)
         mbvar=zdat[5]
@@ -214,11 +238,13 @@ compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
     return(list(lp.mean=lp$mean, lp.var=lp$var, lpratio.mean=lpratio$mean, lpratio.var=lpratio$var))
 }
 
-#' Compute posterior mean and var for log(p), log(q), log(p0/p1) and log(q0/q1)
+#' Compute posterior mean and var for log(p), log(q), log(p0/p1) and log(q0/q1).
+#'
 #' This function returns posterior means and variances of log(p), log(q), log(p0/p1) and log(q0/q1) as lp, lq, lpratio and lqratio, respectively, where p
 #' is the probability of going left and q=1-p.
 #' @return a list with elements "lp.mean", "lp.var", "lq.mean", "lq.var" [and "lpratio.mean", "lpratio.var", "lqratio.mean", "lqratio.var"
 #' if covariate is present, i.e. \code{g} is not NULL]  
+#' @keywords internal
 compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NULL, zdat=NULL, zdat.ash=NULL){
     alpha=list(mean=zdat.ash.intercept$PosteriorMean, var=zdat.ash.intercept$PosteriorSD^2) #find mean and variance of alpha    
     if(is.null(g)){#if covariate is absent
@@ -260,39 +286,45 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' 
 #' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
 #'
-#' @param x: a matrix of nsig by n counts where n should be a power of 2 or a vector of size n (nsig will be set to 1).
-#' @param read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
+#' @param x: a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n} (\code{nsig} will be set to 1).
+#' @param read.depth: an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.
 #' @param reflect: bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflect}} for details.
-#' @param baseline: can be "inter" or "grp" or a number. Uses intercept g=0 as baseline ("inter") or the group with the smallest g as baseline ("grp") or specifies value of g that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp"
-#' @param g: an nsig-vector containing group indicators/covariate value for each sample
-#' @param minobs: minimum number of obs required to be in each logistic model 
-#' @param pseudocounts: a number to be added to counts
-#' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
-#' @param center: bool, indicating whether to center g
-#' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
-#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
-#' @param lm.approx: bool, indicating whether a WLS alternative should be used
-#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
-#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
-#' @param prior: used in EM
-#' @param gridmult: density of grid of sigma vector
-#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
-#' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
+#' @param baseline: a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".
+#' @param g: an \code{nsig}-dimensional vector containing group indicators/covariate value for each sample.
+#' @param minobs: minimum number of obs required to be in each logistic model.
+#' @param pseudocounts: a number to be added to counts.
+#' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0.
+#' @param center: bool, indicating whether to center \code{g}.
+#' @param repara: bool, indicating whether to reparameterize \code{alpha} and \code{beta} so that their likelihoods can be factorized. 
+#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}.
+#' @param lm.approx: bool, indicating whether a WLS alternative should be used.
+#' @param disp: a string, can be either "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx=TRUE}.
+#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas.
+#' @param prior: used in EM.
+#' @param gridmult: density of grid of sigma vector.
+#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood.
+#' @param mixsd: vector of \code{sigma} components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
 #' @param VB: bool, indicates whether to use a variational Bayes alternative to EM (TRUE) or not (FALSE)
 #' @param shape.eff: bool, indicating whether to consider only shape effects (TRUE) or not (FALSE)
 #' @param cxx: bool, indicating whether to use c++ code (faster) (TRUE) or R code (FALSE)
-#' @param onlylogLR: bool, indicating whether to compute only logLR (TRUE) or not
-#' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
-#' @param smoothing: bool, indicating whether to apply ash to smooth the signal (TRUE) or not (FALSE); if smoothing==FALSE then reverse is set to FALSE; this option is only used when inferring shared pi.s 
-#' @param cyclespin: bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If cyclespin==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.
-#' @param reverse: bool, indicating whether to reverse wavelet (TRUE) or not
-#' @param fitted.g: a list of J+1 mixture of normal models fitted using ash, J=log2(n)
-#' @param fitted.g.intercept: a list of J mixture of normal models fitted using ash on the intercept, J=log2(n)  
-#' @param get.fitted.g: bool, indicating whether to save fitted.g 
-#' @param listy: a list of elements 'y','y.rate','intervals'; if listy is provided as an argument different from NULL, then y and y.rate are forced to listy$y and listy$y.rate respectively; this option is used when inferring shared pi.
+#' @param onlylogLR: bool, indicating whether to compute only \code{logLR} (TRUE) or not
+#' @param maxlogLR: a positive number, defaults to NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
+#' @param smoothing: bool, indicating whether to apply \pkg{ashr} to smooth the signal (TRUE) or not (FALSE); if \code{smoothing==FALSE} then reverse is set to FALSE; this option is only used when inferring shared pi-s. 
+#' @param cyclespin: bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If \code{cyclespin}==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.
+#' @param reverse: bool, indicating whether to reverse wavelet (TRUE) or not.
+#' @param fitted.g: a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}.
+#' @param fitted.g.intercept: a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}.  
+#' @param get.fitted.g: bool, indicating whether to save \code{fitted.g}.
+#' @param listy: a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is provided as an argument different from NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi.
+#' @param verbose: bool, defaults to FALSE, if TRUE \code{multiseq} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}. 
 #' @export
-#' @return a list with elements "baseline.mean", "baseline.var", "effect.mean", "effect.var", "logLR", "scales", "finite.logLR". In particular, scales contains (part of) ash output for each scale.
-multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), nullcheck=TRUE, pointmass=TRUE, prior="nullbiased", gridmult=2, mixsd=NULL, VB=FALSE, shape.eff=FALSE, cxx=TRUE, onlylogLR=FALSE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL){
+#'
+#' @examples
+#' #load data contained in example1
+#' data(example1, package="multiseq")
+#' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
+#' @return a list with elements \code{baseline.mean}, \code{baseline.var}, \code{effect.mean}, \code{effect.var}, \code{logLR}.
+multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), nullcheck=TRUE, pointmass=TRUE, prior="nullbiased", gridmult=2, mixsd=NULL, VB=FALSE, shape.eff=FALSE, cxx=TRUE, onlylogLR=FALSE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE){
     disp=match.arg(disp)
     
     if(!is.null(g)) if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor or NULL")
@@ -518,7 +550,12 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
         }
     }
-    return(list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR=list(value=sumlogLR, scales=logLR, isfinite=finite.logLR), fitted.g=fitted.g, fitted.g.intercept=fitted.g.intercept))
+    if (verbose){
+        result <- list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR=list(value=sumlogLR, scales=logLR, isfinite=finite.logLR), fitted.g=fitted.g, fitted.g.intercept=fitted.g.intercept)
+    }else{
+        result <- list(baseline.mean=baseline.mean, baseline.var=baseline.var, effect.mean=effect.mean, effect.var=effect.var, logLR=list(value=sumlogLR, isfinite=finite.logLR))
+    }
+    return(structure(result, class="multiseq"))
 }
 
 
@@ -530,18 +567,18 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
 #' 
 #' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row and covariate \code{g} for each sample, and compute logLR to test for association between \code{x} and \code{g}. If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
 #'
-#' @param x: a matrix of nsig by n counts where n should be a power of 2
-#' @param read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
-#' @param g: an nsig-vector containing group indicators/covariate value for each sample
-#' @param TItable: pre-calculated TItable; If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test.  
+#' @param x: a matrix of \code{nsig} by \code{n} counts where \code{n} should be a power of 2
+#' @param g: an \code{nsig}-vector containing group indicators/covariate value for each sample
+#' @param TItable: pre-calculated \code{TItable}; If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test.  
+#' @param read.depth: an \code{nsig}-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
 #' @param minobs: minimum number of obs required to be in each logistic model 
 #' @param pseudocounts: a number to be added to counts
 #' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
-#' @param center: bool, indicating whether to center g
+#' @param center: bool, indicating whether to center \code{g}
 #' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
-#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
+#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used
-#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#' @param disp: "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx}=TRUE
 #' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
 #' @param prior: used in EM
 #' @param gridmult: density of grid of sigma vector
@@ -549,10 +586,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
 #' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
 #' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
 #' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
-#' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
+#' @param maxlogLR: a positive number, default=NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #'
 #' @export
-#' @return a list of "logLR", "logLR.each.scale", "finite.logLR"; "logLR.each.scale" contains logLR for each scale. "finite.logLR" takes 0 or 1 indicating whether "logLR" is finite or not.    
+#' @return a list of \code{logLR}, \code{logLR.each.scale}, \code{finite.logLR}; \code{logLR.each.scale} contains logLR for each scale. \code{finite.logLR} takes 0 or 1 indicating whether \code{logLR} is finite or not.    
 compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp="add", nullcheck=TRUE, pointmass=TRUE, prior="uniform", gridmult=2, mixsd=NULL, VB=FALSE, cxx=TRUE, maxlogLR = NULL){
 
     
@@ -654,21 +691,21 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
 #' Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
 #'
 #' 
-#' @param pheno.dat: a matrix of nsig (# of samples) by n counts where n should be a power of 2
-#' @param geno.dat: a matrix of numC (number of SNPs or number of covariates) by nsig; each row contains genotypes/covariate value for each sample. 
-#' @param library.read.depth: an nsig-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
-#' @param numPerm: number of permutations; if numPerm == NULL, do not perform permutation, but return logLR. 
+#' @param pheno.dat: a matrix of \code{nsig} (# of samples) by \code{n} counts where \code{n} should be a power of 2
+#' @param geno.dat: a matrix of \code{numC} (number of SNPs or number of covariates) by \code{nsig}; each row contains genotypes/covariate value for each sample. 
+#' @param library.read.depth: an \code{nsig}-vector containing the total number of reads for each sample (used to test for association with the total intensity). Defaults to NULL.
+#' @param numPerm: number of permutations; if \code{numPerm} == NULL, do not perform permutation, but return \code{logLR}. 
 #' @param numSig: permutation stops when number of permuted data with significant test statistic reaches this number.
-#' @param eps: when logLR == 0, we use a value sampled from Unif(-eps, 0) as logLR. 
+#' @param eps: when \code{logLR} == 0, we use a value sampled from \code{Unif(-eps, 0)} as \code{logLR}. 
 #' @param use.default.compute.logLR: bool, if TRUE, it uses default options in \code{\link{compute.logLR}}. Otherwise, it passes parameters to \code{\link{compute.logLR}}. 
 #' @param minobs: minimum number of obs required to be in each logistic model 
 #' @param pseudocounts: a number to be added to counts
 #' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0  
-#' @param center: bool, indicating whether to center g
+#' @param center: bool, indicating whether to center \code{g}
 #' @param repara: bool, indicating whether to reparameterize alpha and beta so that their likelihoods can be factorized. 
-#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if nsig=1
+#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used
-#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx}=TRUE
 #' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
 #' @param prior: used in EM
 #' @param gridmult: density of grid of sigma vector
@@ -676,10 +713,10 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
 #' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
 #' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
 #' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
-#' @param maxlogLR: a positive number, default=NULL, if maxlogLR is provided as a positive number, the function returns this number as logLR when logLR is infinite.
+#' @param maxlogLR: a positive number, default=NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #'
 #' @export
-#' @return a list of "most.sig.SNP.posi" (if there are multiple SNPs, returns position of SNPs with strongest signal), "pval", "logLR" (output from compute.logLR for each SNP), "Count_stop" (when permutaton stops), "Count_sig" (number of permuted data with significant test statistic), "numPerm" (parameter), and "numSig" (parameter).
+#' @return a list of \code{most.sig.SNP.posi} (if there are multiple SNPs, returns position of SNPs with strongest signal), \code{pval}, \code{logLR} (output from \code{\link{compute.logLR}} for each SNP), \code{Count_stop} (when permutaton stops), \code{Count_sig} (number of permuted data with significant test statistic), \code{numPerm} (parameter), and \code{numSig} (parameter).
 permutation.logLR <-function(pheno.dat, geno.dat, library.read.depth=NULL, numPerm = 100, numSig  = 10, eps=0.01, use.default.compute.logLR = TRUE, minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp="add", nullcheck=TRUE, pointmass=TRUE, prior="uniform", gridmult=2, mixsd=NULL, VB=FALSE, cxx=TRUE, maxlogLR = NULL){
 
 
@@ -704,7 +741,7 @@ permutation.logLR <-function(pheno.dat, geno.dat, library.read.depth=NULL, numPe
  
     numSNPs = dim(geno.dat)[1]
     doneSNPs = rep(0, numSNPs)      # to handle SNPs with no variatoin 
-    reslogLR = matrix(data=NA, nc = 1 + J + 1, nr = numSNPs)	
+    reslogLR = matrix(data=NA, ncol = 1 + J + 1, nrow = numSNPs)	
     for(g in 1:numSNPs){
         genoD = as.numeric(geno.dat[g,])
         if(length(unique(genoD)) == 1){

@@ -5,23 +5,19 @@ Type: Package
 Title: Multiscale Sequence Analysis
 Version: 0.1
 Date: 2013-11-05
-Description: Multiseq has two main modes of operation: smoothing and effect
-    estimation ....
+Description: Multiseq implements a Bayesian multiscale method for
+    inhomogeneous Poisson processes. An inhomogeneous Poisson process is ...
+    Multiseq can be used both for smoothing and for effect size estimation
+    given a covariate. (add more...)
+    estimation ...
 SystemRequirements: the executables samtools, bigWigToWig, wigToBigWig,
-    bigWigInfo, and bedToBigBed must be in the USER's path in order to be able
-    to run functions get.counts, multiseqToTrackHub, and samplesheetToTrackHub.
+        bigWigInfo, and bedToBigBed must be in the USER's path in order
+        to be able to run functions get.counts, multiseqToTrackHub, and
+        samplesheetToTrackHub.
 License: GPL-3
-Depends:
-    R (>= 3.0.0)
-Imports:
-    Rcpp (>= 0.10.4),
-    ashr,
-    tools,
-    data.table
+Depends: R (>= 3.0.0), Rcpp (>= 0.10.4), ashr, tools, data.table
 VignetteBuilder: knitr
-Suggests:
-    knitr,
-    rhdf5
+Suggests: knitr, rhdf5
 LinkingTo: Rcpp
 URL: https://github.com/stephenslab/multiseq
-Packaged: 2014-05-29 20:44:42 UTC; heejungshim
+Packaged: 2014-10-14 16:02:40 UTC; epantaleo

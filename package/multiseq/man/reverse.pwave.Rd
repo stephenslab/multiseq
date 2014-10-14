@@ -18,4 +18,5 @@ an n-vector
 \description{
 Reverse wavelet transform a set of probabilities in TItable format
 }
+\keyword{internal}
 

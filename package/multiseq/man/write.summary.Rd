@@ -13,6 +13,8 @@ write.summary(res, dir.name, timing, region)
 \item{timing:}{an integer indicating the running time}
 }
 \description{
-File summary has 6 columns: chr, locus start, locus end, number of bases with effect at 2sd, number of bases with effect at 3sd, running time of multiseq
+File summary has 6 columns: chr, region start, region end, number of bases where \code{multiseq}
+found strong effect (zero is outside of +/- 2 or 3 * posterior standard deviation), running time of \code{multiseq}.
 }
+\keyword{internal}
 

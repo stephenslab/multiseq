@@ -12,4 +12,5 @@ a list with elements "coef", "se", "wrse2" if g is not specified, or a list with
 \description{
 wls.mb
 }
+\keyword{internal}
 

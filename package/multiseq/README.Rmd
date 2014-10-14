@@ -7,10 +7,8 @@ To download the **multiseq** package from its [github repository](https://github
 **Multiseq** depends on **ashr**, a package in development that you can download and install following instructions [here](https://github.com/stephens999/ash/blob/master/README). It also depends on [**Rcpp**](http://cran.r-project.org/web/packages/Rcpp/index.html), and therefore it requires an **R** version higher or equal to **3.0.0**. To install the package, install **ashr** and then type the following commands in R:
 
 ```
-    install.packages("tools")
-    biocLite("rhdf5")
-    install.packages("data.table")
-    install.packages("Rcpp")
+    #in orded to install rhdf5 you have to use the Bioconductor repository (tune parameter repos in install.packages)
+    biocLite("rhdf5") 
     install.packages("path/to/multiseq.tar.gz",repos=NULL,type="source")
 ```
 where you should replace "path/to/multiseq.tar.gz" with the path to the downloaded multiseq package. 
@@ -47,6 +45,3 @@ After adding new lines to your *.bashrc* for the first time, remember to either 
 ```
 
 Remember that when you submit jobs to a compute cluster (e.g. using SGE's qsub), they run in "batch mode" and may not execute your *~/.bashrc*. To ensure that your jobs have the correct environmental variables set, you should be able to pass a flag to your cluster submission command (e.g. the `-V` flag to `qsub`).
-
-
-For PPS cluster users in the stephenslab group: replace */some/path* with */data/internal/solexa_mountpoint/$USER* where *$USER* is your username in the cluster; the http address associated to this mountpoint is password protected (ask John or Ester).]

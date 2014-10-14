@@ -11,4 +11,5 @@ a matrix with estimates for mu and beta, as well as their SEs. Optionally return
 \description{
 compute.lm
 }
+\keyword{internal}
 

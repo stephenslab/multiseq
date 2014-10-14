@@ -11,4 +11,5 @@ a list with elements "lp.mean", "lp.var", "lpratio.mean", "lpratio.var"
 \description{
 compute.res.rate
 }
+\keyword{internal}
 

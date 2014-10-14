@@ -11,4 +11,5 @@ a list with elements "x.s", "x.f"
 \description{
 add.counts
 }
+\keyword{internal}
 

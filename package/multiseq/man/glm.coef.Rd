@@ -11,4 +11,5 @@ a list elements "coef", "se" and optionally "mbvar" if lg=2 and repara=TRUE, or 
 \description{
 Compute estimates and standard errors for mu and beta when fitting WLS, as well as the covariance between mu and beta.
 }
+\keyword{internal}
 
