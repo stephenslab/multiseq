@@ -6,7 +6,7 @@ This repository contains an R package, **multiseq**, and a folder `local` with s
 
 This repository contains an R package, **multiseq**, that is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu/) at the University of Chicago. 
 
-To download the package click on [link](https://github.com/stephenslab/multiseq/blob/master/package/multiseq.tar.gz?raw=true).
+To download the package click on [link](https://github.com/stephenslab/multiseq/blob/master/package/multiseq_0.1.tar.gz?raw=true).
 
 After uncompressing the downloaded archive into folder `multiseq`, you can find installation instructions in `multiseq/README.md`.
 

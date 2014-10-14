@@ -11,13 +11,20 @@ Description: Multiseq implements a Bayesian multiscale method for
     given a covariate. (add more...)
     estimation ...
 SystemRequirements: the executables samtools, bigWigToWig, wigToBigWig,
-        bigWigInfo, and bedToBigBed must be in the USER's path in order
-        to be able to run functions get.counts, multiseqToTrackHub, and
-        samplesheetToTrackHub.
+    bigWigInfo, and bedToBigBed must be in the USER's path in order
+    to be able to run functions get.counts, multiseqToTrackHub, and
+    samplesheetToTrackHub.
 License: GPL-3
-Depends: R (>= 3.0.0), Rcpp (>= 0.10.4), ashr, tools, data.table
+Depends:
+    R (>= 3.0.0),
+    Rcpp (>= 0.10.4),
+    ashr,
+    tools,
+    data.table
 VignetteBuilder: knitr
-Suggests: knitr, rhdf5
+Suggests:
+    knitr,
+    rhdf5
 LinkingTo: Rcpp
 URL: https://github.com/stephenslab/multiseq
 Packaged: 2014-10-14 16:02:40 UTC; epantaleo
