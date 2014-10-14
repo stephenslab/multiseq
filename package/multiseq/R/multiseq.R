@@ -146,8 +146,14 @@ reverse.pwave=function(est,lp,lq=NULL){
   return(est)
 }
 
-#' @title Reflect signal.
-#' @return an n-vector containing the indeces of the original signal x
+#' Reflects the signal and extends it to a power of 2 if necessary
+#'
+#' Reflecting the signal in wavelet applications allows the signal to be periodic and usually lessen boundary bias. If the original signal 
+#' has a length which is a power of 2, this function adds a reflection of the original signal to itself. Otherwise this function extends
+#' the original signal to have length of a power of 2 by reflecting an appropriate number of observation points, and then reflecting the entire modified signal.
+#'  
+#' @param x: an m by n matrix of signals
+#' @return an n-vector containing the indices of the smoothed output corresponding to the original signal x. Also substitutes the original signal with the reflected one to be used as input.
 #' @keywords internal
 reflect <- function(x){
     n = dim(x)[2]
