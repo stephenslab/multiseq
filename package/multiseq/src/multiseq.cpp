@@ -54,12 +54,12 @@ NumericVector cxxSParentTItable(SEXP sig){
      for (int l=0; l<pD; l++){
         int a=l*nD+1, b=2*l*nD+1, c=2*D*n+b, d;
         for (int i=0; i<nD-1; i++){
-           d=TItable(D,a+i-1);
+           d=(int) TItable(D,a+i-1);
            parent(c+i-1)=d;
            parent(c+i+nD)=d;
         }
       //i=nD-1
-      d=TItable(D,a+nD-2);
+      d=(int) TItable(D,a+nD-2);
       parent(c+nD-2)=d;
       parent(c+nD-1)=d;
 
@@ -83,7 +83,7 @@ NumericVector cxxreverse_pwave(SEXP estimate, SEXP pmat, SEXP qmat){
   //for(int D=J; D-->0;){
   for(int D=0; D<J; D++){
     //int nD=pow(2., (int) (J-D)), pD=pow(2., (int) D);
-    int nD=pow(2., (int) (D+1)), pD=pow(2., (int) (J-1-D));
+    int nD=(int) pow(2., (int) (D+1)), pD=(int) pow(2., (int) (J-1-D));
     int nDo2=nD/2;
     NumericVector tempvecl(nD), tempvecr(nD);
     for(int l=0; l<pD; l++){
