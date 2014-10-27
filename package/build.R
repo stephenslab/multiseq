@@ -25,6 +25,7 @@ roxygenize()
 document()
 build_vignettes()
 #in bash
+#generate and archive from folder multiseq
 #tar -pczf multiseq.tar.gz multiseq
 install.packages("~/src/multiseq/package/multiseq_0.1.tar.gz",repos=NULL,type="source")
 help(package="multiseq")
