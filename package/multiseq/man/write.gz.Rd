@@ -10,7 +10,7 @@ write.gz(res, file = "results.mean.sd2.gz", what = "effect")
 
 \item{file:}{path to the output file.}
 
-\item{what:}{if \code{what} is "baseline" then plot \code{\link{multiseq}} baseline output; if \code{what} is "effect" then plot \code{\link{multiseq}} effect output; defaults to "effect".}
+\item{what:}{if \code{what} is "log_baseline" then write \code{\link{multiseq}} \code{res$baseline.mean} and \code{res$baseline.var}; if \code{what} is "effect" then write \code{\link{multiseq}} \code{res$effect.mean} and \code{res$effect.var} output to a compressed file; defaults to "effect".}
 }
 \description{
 The output file has two columns: first column the effect (or the baseline) mean and second column is the effect (or the baseline) posterior standard deviation ^2.
@@ -18,15 +18,8 @@ The output file has two columns: first column the effect (or the baseline) mean 
 \examples{
 \dontrun{
 #run multiseq on sample data
-samplesheet <- file.path(path.package("multiseq"), "extdata", "sim", "samplesheet.sim.txt")
-region      <- "chr1:154206209-154214400"
-x           <- get.counts(samplesheet, region)
-samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
-g           <- factor(samples$Type)
-g           <- match(g, levels(g))-1
-
-res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-
+data(dat, package="multiseq")
+res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 write.gz(res, "./results.mean.sd2.gz")
 }
 }

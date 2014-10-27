@@ -6,7 +6,7 @@
 write.bed(intervals, bedfile)
 }
 \arguments{
-\item{intervals:}{output of \code{\link{get.effect.intervals}}}
+\item{intervals:}{output of \code{\link{get.intervals}}}
 
 \item{bedfile:}{output \code{bed} file}
 }
@@ -15,10 +15,9 @@ Write effect intervals to a \code{bed} file.
 }
 \examples{
 \dontrun{
-fra=2
-region="chr1:154206209-154214400"
-res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-intervals <- get.effect.intervals(res, fra))
+data("dat",package="multiseq")
+res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
+intervals <- get.intervals(res, region=dat$region, what="effect")
 write.bed(intervals, "out.bed")
 }
 }

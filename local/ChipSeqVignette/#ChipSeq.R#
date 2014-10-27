@@ -1,0 +1,37 @@
+library(multiseq)
+
+#region="chr1:87297710-87305901"   #on hg19
+region="chr1:11740409-11756792"
+#region="chr1:151369777-151373872"
+#region="chr1:161121566-161125661"
+#region="chr1:16300300-16304395"
+
+samplesheet="samplesheetEncode.txt"
+samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
+#keep        <- (samples$Type!="NN")
+#samples     <- samples[keep,]
+
+x           <- get.counts(samplesheet,region)
+
+g           <- factor(samples$Type)
+g           <- match(g, levels(g))-1 
+
+res0        <- multiseq(x=x[which(g==0),], minobs=1, read.depth=samples$ReadDepth[which(g==0)])
+res1        <- multiseq(x=x[which(g==1),], minobs=1, read.depth=samples$ReadDepth[which(g==1)]) 
+res         <- multiseq(x=x, g=g, minobs=1, read.depth=samples$ReadDepth)
+
+
+par(mfrow=c(3,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
+res$region <- region
+plot(res0, z.threshold=2, is.xaxis=FALSE, what="baseline")
+plot(res1, z.threshold=2, is.xaxis=FALSE, what="baseline")
+plot(res, z.threshold=2)
+
+dat <- NULL
+dat$g=g
+dat$x=x
+dat$region=region
+dat$assembly="hg19"
+dat$samples=samples
+
+save(dat, file="dat.RData")

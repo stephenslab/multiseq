@@ -12,7 +12,7 @@ reflect(x)
 an n-vector containing the indices of the smoothed output corresponding to the original signal x. Also substitutes the original signal with the reflected one to be used as input.
 }
 \description{
-Reflecting the signal in wavelet applications allows the signal to be periodic and usually lessen boundary bias. If the original signal
+Reflecting the signal in wavelet applications allows the signal to be periodic and usually lessens boundary bias. If the original signal
 has a length which is a power of 2, this function adds a reflection of the original signal to itself. Otherwise this function extends
 the original signal to have length of a power of 2 by reflecting an appropriate number of observation points, and then reflecting the entire modified signal.
 }

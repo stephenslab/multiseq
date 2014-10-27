@@ -6,9 +6,9 @@
 get.counts(samplesheet = NULL, region = NULL, onlyoneend = FALSE)
 }
 \arguments{
-\item{samplesheet:}{a string or a data frame of size N equal to the number of samples. If a string it should be the path to a samplesheet; the samplesheet should contain a column with header \code{SampleID} and a column with header either \code{bigWigPath} or \code{h5FullPath} or \code{bigWigPath}. If a data frame, \code{samples$SampleID} must be specified and either \code{samples$bigWigPath} or \code{samples$h5FullPath} or \code{samples$bamReads} must be specified.}
+\item{samplesheet:}{a string specifying the path to a samplesheet; the samplesheet should contain a column with header \code{SampleID} and a column with header either \code{bamPath} or \code{hdf5Path} or \code{bigWigPath}.}
 
-\item{region:}{a string specifying a genomic region: reference sequence name, start position, end position}
+\item{region:}{a string specifying a genomic region: reference sequence name, start position, end position (see example below).}
 
 \item{onlyonend:}{a bool, defaults to FALSE; use TRUE if input is in bam format and only first end of the paired end read should be used.}
 }
@@ -16,13 +16,13 @@ get.counts(samplesheet = NULL, region = NULL, onlyoneend = FALSE)
 a matrix with \code{N} rows and \code{end-start+1} columns containing the number of reads that start at each base in the specified region in each sample. Rownames correspond to \code{samples$SampleID}
 }
 \description{
-This functions extracts read counts from \code{bam}, \code{hdf5}, or \code{bigWig} files in a genomic region, preparing input for \code{\link{multiseq}}. If \code{samples$bamReads} is specified then this function extracts reads from the bam files in \code{samples$bamReads} using \code{samtools} (which must be in the USER's path) (no filter applied). Else if \code{samples$h5FullPath} is specified this function extracts reads from the \code{hdf5} files in \code{samples$h5FullPath} using the R package \code{rhdf5}. If \code{samples$bigWigPath} is specified this function extracts reads from \code{bigWig} files using the executable \code{bigWigToWig} (which must be in the USER's path).
+This functions reads in a `samplesheet` and extracts read counts in a genomic region specified by parameter `region`, preparing input for \code{\link{multiseq}}. If in file `samplesheet` \code{samples$bamPath} is specified then this function extracts reads from the bam files in \code{samples$bamPath} using \code{samtools} (which must be in the USER's path) (no filter applied but option \code{onlyonend} can be used to extract reads from only one end if reads are paired end). Else if \code{samples$hdf5Path} is specified this function extracts reads from the \code{hdf5} files in \code{samples$hdf5Path} using the R package \code{rhdf5}. If \code{samples$bigWigPath} is specified this function extracts reads from \code{bigWig} files using the executable \code{bigWigToWig} (which must be in the USER's path).
 }
 \examples{
 \dontrun{
-setwd(file.path(path.package("multiseq"),"extdata","sim"))
-samplesheet="samplesheet.sim.txt"
-region="chr1:154206209-154214400"
+setwd(file.path(path.package("multiseq"),"extdata"))
+samplesheet="samplesheetEncode.txt"
+region="chr1:11740409-11756792"
 x=get.counts(samplesheet, region)
 }
 }

@@ -4,22 +4,22 @@
 \title{Plot transcripts; if \code{region} is specified then plot only the specified region.}
 \usage{
 \method{plot}{transcripts}(Transcripts, region = NULL, is.xaxis = TRUE,
-  fra = 2, what = "effect", axes = F, xlim = NULL, type = NULL,
-  cex = NULL, font.main = 1, ...)
+  axes = F, xlim = NULL, type = NULL, cex = NULL, font.main = 1, ...)
 }
 \arguments{
 \item{Transcripts:}{output of \code{\link{get.transcripts}}}
 
-\item{region:}{region to be plotted}
+\item{region:}{region to be plotted; defaults to NULL.}
 
-\item{is.xaxis:}{bool, if TRUE plot \code{x} axis otherwise don't plot \code{x} axis}
+\item{is.xaxis:}{bool, if TRUE plot \code{x} axis otherwise don't plot \code{x} axis; defaults to TRUE.}
 }
 \description{
 The only required field for this function is Transcripts.
 }
 \examples{
-GenePredIn  <- file.path(path.package("multiseq"),"extdata","sim","hg19.ensGene.part.gp")
-Transcripts <- get.transcripts(GenePredIn)
-plot.transcripts(Transcripts)
+region     <- "chr12:113354417-113358512"
+GenePredIn  <- file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp")
+Transcripts <- get.transcripts(GenePredIn, region)
+plot(Transcripts, region)
 }
 

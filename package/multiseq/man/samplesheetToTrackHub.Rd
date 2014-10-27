@@ -13,14 +13,13 @@ samplesheetToTrackHub(samplesheet, hub_name = paste0(basename(samplesheet),
 \item{samplesheet:}{a string specifying the path to the samplesheet;
 for specifications of the samplesheet format see the vignette.
 A column with header \code{sampleID} is required; either a column
-with header \code{h5FullPath}, or a column with header \code{bigWigPath},
-or a column with header \code{bamReads} containing the path to the \code{hdf5}
+with header \code{hdf5Path}, or a column with header \code{bigWigPath},
+or a column with header \code{bamPath} containing the path to the \code{hdf5}
 files or the \code{bigWig} files or the \code{bam} files, respectively,
-should be specified. If the samplesheet has a column with header \code{Peaks}
-(specifying the path to a \code{bed} or \code{bigBed} file) it must also
-have a column with header \code{Type}. Depending on the size of the files this code might require a lot of memory.}
+should be specified. If the samplesheet has a column with header \code{bedPath}
+(specifying the path to a \code{bed} or \code{bigBed} file). Depending on the size of the files this code might require a lot of memory.}
 
-\item{hub_name:}{name of the Track Hub; this string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint (see below); defaults ito \code{paste0(basename(samplesheet),".TrackHub")}.}
+\item{hub_name:}{name of the Track Hub; this string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint (see below); defaults to \code{paste0(basename(samplesheet),".TrackHub")}.}
 
 \item{chrom_file:}{path to the file containing chromosome names and lengths; defaults \code{system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq")}.}
 
@@ -40,8 +39,8 @@ Read tracks can be in \code{bam}, \code{hdf5}, \code{bigWig}, \code{bed} or \cod
 }
 \examples{
 \dontrun{
-setwd(file.path(path.package("multiseq"),"extdata","sim"))
-samplesheet="samplesheet.sim.txt"
+setwd(file.path(path.package("multiseq"),"extdata"))
+samplesheet="samplesheetEncode.txt"
 samplesheetToTrackHub(samplesheet, chr="chr1")
 }
 }

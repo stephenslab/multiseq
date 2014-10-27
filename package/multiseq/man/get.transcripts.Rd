@@ -16,8 +16,8 @@ Extract transcript annotation (in a specified genomic region) from a file in \co
 format (a standard gene annotation format).
 }
 \examples{
-GenePredIn <- file.path(path.package("multiseq"),"extdata","sim","hg19.ensGene.part.gp")
-region     <- "chr1:154206209-154214400"
+GenePredIn <- file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp")
+region     <- "chr12:113354417-113358512"
 get.transcripts(GenePredIn, region)
 }
 

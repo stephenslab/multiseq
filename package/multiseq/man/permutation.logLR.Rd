@@ -8,8 +8,10 @@ permutation.logLR(pheno.dat, geno.dat, library.read.depth = NULL,
   use.default.compute.logLR = TRUE, minobs = 1, pseudocounts = 0.5,
   all = FALSE, center = FALSE, repara = TRUE, forcebin = FALSE,
   lm.approx = TRUE, disp = "add", nullcheck = TRUE, pointmass = TRUE,
-  prior = "uniform", gridmult = 2, mixsd = NULL, VB = FALSE,
-  cxx = TRUE, maxlogLR = NULL)
+  prior = "uniform", gridmult = 2, mixsd = NULL, trace = FALSE,
+  mixcompdist = "normal", lambda1 = 1, lambda2 = 0, df = NULL,
+  randomstart = FALSE, minimaloutput = FALSE, maxiter = 5000,
+  VB = FALSE, cxx = TRUE, maxlogLR = NULL)
 }
 \arguments{
 \item{pheno.dat:}{a matrix of \code{nsig} (# of samples) by \code{n} counts where \code{n} should be a power of 2}
@@ -51,6 +53,22 @@ permutation.logLR(pheno.dat, geno.dat, library.read.depth = NULL,
 \item{nullcheck:}{bool, if TRUE check that any fitted model exceeds the "null" likelihood}
 
 \item{mixsd:}{vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used}
+
+\item{trace:}{a logical variable passed to \code{ash} denoting whether some of the intermediate results of iterations should be displayed to the user; defaults to FALSE.}
+
+\item{mixcompdist:}{distribution of components in mixture ("uniform","halfuniform" or "normal") passed to \code{ash}, defaults to "uniform".}
+
+\item{lambda1:}{multiplicative "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 1.}
+
+\item{lambda2:}{additive "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 0.}
+
+\item{df:}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, passed to \code{ash}; default is NULL (Gaussian)=NULL.}
+
+\item{randomstart:}{logical, passed to \code{ash} indicating whether to initialize EM randomly.}
+
+\item{minimaloutput:}{logical,  passed to \code{ash}; if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue); defaults to FALSE}
+
+\item{maxiter:}{maximum number of iterations of the EM algorithm in \code{ash}; defaults to 5000.}
 
 \item{VB:}{bool, indicates whether to use a variational Bayes alternative to EM}
 

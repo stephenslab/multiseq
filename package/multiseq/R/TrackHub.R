@@ -178,7 +178,7 @@ bamToBigWig <- function(bam_track, chrom_file, chr, track_name, onlyoneend){
                           "wigToBigWig stdin",
                           chrom_file,
                           track_name)
-            print(paste("running", cmd, "..."))
+            print(cmd)
             dir.create(dirname(track_name), showWarnings=FALSE, recursive=TRUE)
             system(cmd)
             break
@@ -196,13 +196,12 @@ bamToBigWig <- function(bam_track, chrom_file, chr, track_name, onlyoneend){
 #' @param samplesheet: a string specifying the path to the samplesheet;
 #' for specifications of the samplesheet format see the vignette.
 #' A column with header \code{sampleID} is required; either a column
-#' with header \code{h5FullPath}, or a column with header \code{bigWigPath},
-#' or a column with header \code{bamReads} containing the path to the \code{hdf5}
+#' with header \code{hdf5Path}, or a column with header \code{bigWigPath},
+#' or a column with header \code{bamPath} containing the path to the \code{hdf5}
 #' files or the \code{bigWig} files or the \code{bam} files, respectively,
-#' should be specified. If the samplesheet has a column with header \code{Peaks}
-#' (specifying the path to a \code{bed} or \code{bigBed} file) it must also
-#' have a column with header \code{Type}. Depending on the size of the files this code might require a lot of memory.
-#' @param hub_name: name of the Track Hub; this string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint (see below); defaults ito \code{paste0(basename(samplesheet),".TrackHub")}.
+#' should be specified. If the samplesheet has a column with header \code{bedPath}
+#' (specifying the path to a \code{bed} or \code{bigBed} file). Depending on the size of the files this code might require a lot of memory.
+#' @param hub_name: name of the Track Hub; this string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint (see below); defaults to \code{paste0(basename(samplesheet),".TrackHub")}.
 #' @param chrom_file: path to the file containing chromosome names and lengths; defaults \code{system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq")}.
 #' @param chr: a string, restrict ouput to the selected chromosome \code{chr}.
 #' @param assembly: genome assembly that reads were mapped to; defaults to "hg19". 
@@ -212,8 +211,8 @@ bamToBigWig <- function(bam_track, chrom_file, chr, track_name, onlyoneend){
 #' @export
 #' @examples
 #'\dontrun{
-#' setwd(file.path(path.package("multiseq"),"extdata","sim"))
-#' samplesheet="samplesheet.sim.txt"
+#' setwd(file.path(path.package("multiseq"),"extdata"))
+#' samplesheet="samplesheetEncode.txt"
 #' samplesheetToTrackHub(samplesheet, chr="chr1")
 #' }  
 samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesheet),".TrackHub"), chrom_file=system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq"), chr=NULL, assembly="hg19", mountpoint=Sys.getenv("MOUNTPOINT_PATH"), http_address=Sys.getenv("MOUNTPOINT_HTTP_ADDRESS"), onlyoneend=FALSE){
@@ -231,7 +230,9 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
         return()
     }
     
-    if (is.null(hub_name)) hub_name=paste0(basename(samplesheet),".TrackHub")
+    if (is.null(hub_name))
+        hub_name=paste0(basename(samplesheet),".TrackHub")
+
     samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)
     hub_dir         <- file.path(mountpoint, hub_name)
     hub_name_string <- gsub("/", ".", hub_name)
@@ -243,24 +244,36 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
     bigwig_tracks <- NULL
     if ("bigWigPath" %in% colnames(samples)){
         for (bigwig_track in samples$bigWigPath){
-            track_name    <- basename(bigwig_track)
-            dir.create(file.path(assembly_dir, dirname(track_name)), showWarnings = FALSE, recursive=TRUE)
-            file.copy(from=bigwig_track, to=assembly_dir, overwrite=TRUE) 
-            print(paste0("file.copy(from=", bigwig_track, "to=", file.path(assembly_dir, track_name)))
+            if (bigwig_track != "-"){
+                track_name    <- basename(bigwig_track)
+                dir.create(file.path(assembly_dir, dirname(track_name)), showWarnings = FALSE, recursive=TRUE)
+                file.copy(from=bigwig_track, to=assembly_dir, overwrite=TRUE) 
+                print(paste0("file.copy(from=", bigwig_track, "to=", file.path(assembly_dir, track_name)))
+            }else{
+                track_name <- "-"
+            }
             bigwig_tracks <- c(bigwig_tracks, track_name)
         }
-    }else if ("h5FullPath" %in% colnames(samples)){
-        for (h5_track in samples$h5FullPath){
-            track_name    <- basename(h5_track)
-            error         <- hdf5ToBigWig(h5_track, chrom_file, chr, track_name, assembly)
+    }else if ("hdf5Path" %in% colnames(samples)){
+        for (h5_track in samples$hdf5Path){
+            if (h5_track != "-"){
+                track_name    <- basename(h5_track)
+                error         <- hdf5ToBigWig(h5_track, chrom_file, chr, track_name, assembly)
+            }else{
+                track_name <- "-"
+            }
             bigwig_tracks <- c(bigwig_tracks, track_name)
         }
-    }else if ("bamReads" %in% colnames(samples)){
-        for (bam_track in samples$bamReads){
-            track_name    <- basename(bam_track)
-            error         <- bamToBigWig(bam_track, chrom_file, chr, track_name, onlyoneend=onlyoneend)
-            bigwig_tracks <- c(bigwig_tracks, track_name)
+    }else if ("bamPath" %in% colnames(samples)){
+        for (bam_track in samples$bamPath){
+            if (bam_track  != "-"){
+                track_name    <- basename(bam_track)
+                error         <- bamToBigWig(bam_track, chrom_file, chr, track_name, onlyoneend=onlyoneend)
+            }else{
+                track_name <- "-"
+            }
         }
+        bigwig_tracks <- c(bigwig_tracks, track_name)
     }else{
         stop("no input file provided: provide paths to input files (in hdf5, bigWig or bam format) in the samplesheet file.")
     }
@@ -273,41 +286,50 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
                "longLabel reads\n",
                "superTrack on none\n",
                "priority 1\n"), 
-        file=file.path(assembly_dir, "trackDbFile.txt"),
+        file = file.path(assembly_dir, "trackDbFile.txt"),
         append=FALSE)
     
     #if bigWig files cover a region smaller than 2^20
     #use viewLimits
-    command      <- paste0("bigWigInfo ", file.path(assembly_dir, bigwig_tracks[1]), " | grep basesCovered | tr -d \",\"" )
-    bigWigLength <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2]
+    for (track_name in bigwig_tracks){
+        if (track_name != "-"){
+            command      <- paste0("bigWigInfo ", file.path(assembly_dir, track_name), " | grep basesCovered | tr -d \",\"" )
+            bigWigLength <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2]
+            break
+        }
+    }
     if (bigWigLength<2^20){
         #find ymax over all bigwig files
-        bigWigM=0
+        bigWigM <- 0
         for (bigwig_track in bigwig_tracks){
-            command   <- paste("bigWigInfo -minMax", file.path(assembly_dir, bigwig_track))
-            bigWigMax <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2] 
-            bigWigM   <- max(bigWigM, bigWigMax)
+            if (track_name != "-"){
+                command   <- paste("bigWigInfo -minMax", file.path(assembly_dir, bigwig_track))
+                bigWigMax <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2] 
+                bigWigM   <- max(bigWigM, bigWigMax)
+            }
         }
-        message=paste0("autoScale off\n","viewLimits 0:",bigWigM)
+        message <- paste0("autoScale off\n","viewLimits 0:", bigWigM)
     }else{
-        message="autoScale on"
+        message <- "autoScale on"
     }
     cat(paste0(message,"\ndragAndDrop subtracks\n\n"), file=file.path(assembly_dir, "trackDbFile.txt"),append=TRUE)
 
     #write bigWig tracks
-    counter=1
+    counter <- 1
     for (bigwig_track in bigwig_tracks){
-        appendBigWigTrack(sampleids[counter], bigwig_track, hub_name_string, assembly_dir)
-        counter=counter+1
+        if (track_name != "-"){
+            appendBigWigTrack(sampleids[counter], bigwig_track, hub_name_string, assembly_dir)
+        }
+        counter <- counter+1
     }
     #if bed files are available in the samplesheet
     #convert bed files into bigBed
-    if ("Peaks" %in% colnames(samples)){
-        error=0
-        peaks_files  <- unique(samples$Peaks)
-        peaks_files  <- peaks_files[which(peaks_files!="-")]
-        if (length(peaks_files)!=0){
-            tissues       <- unique(samples$Type)
+    if ("bedPath" %in% colnames(samples)){
+        error        <- 0
+        peaks_files  <- unique(samples$bedPath)
+        names        <- basename(peaks_files)
+        peaks_files  <- peaks_files[which(peaks_files != "-")]
+        if (length(peaks_files) != 0){
             bigbed_tracks <- NULL
             for (peaks_track in peaks_files){
                 track_name <- basename(peaks_track)
@@ -320,21 +342,25 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
                     if (noExecutable("bedToBigBed")){
                         error=1
                     }else{
+                        if (file_ext(track_name)=="bed"){
                         #convert bed file into bigBed file
-                        bigbed_track <- paste0(track_name, '.bb')
-                        cmd          <- paste("bedToBigBed -type=bed6+4",
-                                              peaks_track,
-                                              chrom_file,
-                                              file.path(hub_dir, bigbed_track))
-                        print(cmd)
-                        system(cmd)
-                        bigbed_tracks <- c(bigbed_tracks, bigbed_track)
+                            bigbed_track <- paste0(track_name, '.bb')
+                            cmd          <- paste("bedToBigBed -type=bed6+4",
+                                                  peaks_track,
+                                                  chrom_file,
+                                                  file.path(hub_dir, bigbed_track))
+                            print(cmd)
+                            system(cmd)
+                            bigbed_tracks <- c(bigbed_tracks, bigbed_track)
+                        }else{
+                            stop(paste("ERROR: file", peaks_track, "should either have .bb or .bed extension"))
+                        }
                     }
                 }
             }
             #write the track hub
             if (error==0){
-                appendBedSuperTrack("peaks", "peaks", "peaks", bigbed_tracks, tissues, paste0(hub_name_string,tissues), "0,0,0", out_file=file.path(assembly_dir, "trackDbFile.txt"))
+                appendBedSuperTrack("peaks", "peaks", "peaks", bigbed_tracks, names, paste0(hub_name_string, names), "0,0,0", out_file=file.path(assembly_dir, "trackDbFile.txt"))
             }
         }
     }
@@ -354,7 +380,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
 #' @keywords internal
 vectorToBigWig <- function(x, chr, start, chrom_file, bigWigFile="out.wg"){
     cmd = paste("wigToBigWig stdin", chrom_file, bigWigFile)
-    print(paste("running", cmd, "..."))
+    print(cmd)
     dir.create(dirname(bigWigFile), showWarnings=FALSE, recursive=TRUE)
                                         #pipe results to the wigToBigWig executable
     zz <- pipe(cmd, "w")
@@ -371,29 +397,29 @@ vectorToBigWig <- function(x, chr, start, chrom_file, bigWigFile="out.wg"){
 
 
 
-#' @title Write a \code{bigBed} file given the output of \code{get.ffect.intervals}
+#' @title Write a \code{bigBed} file given the output of \code{get.intervals}
 #'
-#' @param intervals: output of get.effect.intervals
+#' @param intervals: output of get.intervals
 #' @param chrom_file: path to the file containing chromosome names and lengths
 #' @param bigBedFile: output file, defaults to "out.bb"
 #' @export
 #' @keywords internal
 intervalsToBigBed <- function(intervals, chrom_file, bigBedFile="out.bb"){
-    tmp_bed_file=paste0(dirname(bigBedFile),".bed")
+    tmp_bed_file=paste0(basename(bigBedFile),".bed")
     write.bed(intervals, tmp_bed_file)
     if (noExecutable("bedToBigBed"))
         return(1)
     cmd=paste("bedToBigBed", tmp_bed_file, chrom_file, bigBedFile)
-    print(paste("running", cmd, "..."))
+    print(cmd)
     system(cmd)
     file.remove(tmp_bed_file)
     return(0)
 }
 
-writeTrackdbFile <- function(fra, assembly_dir){
+writeTrackdbFile <- function(z.threshold, assembly_dir){
         cat("track SuperTrack\n",
             "shortLabel multiseq\n",
-            paste("longLabel Plot of multiseq effect", fra, "sd\n"),
+            paste("longLabel Plot of multiseq effect", z.threshold, "sd\n"),
             "superTrack on none\n",
             "priority 1\n\n",
             "track CompositeTrack\n",
@@ -422,9 +448,9 @@ writeTrackdbFile <- function(fra, assembly_dir){
 #' @param res: output of \code{\link{multiseq}}; \code{res$region} should be
 #' defined (e.g.: \code{res$region="chr1:2345-234567")}; a valid region must
 #' contain sequence_name:locus_start-locus_end
-#' @param fra: a multiplier of the standard deviation; this function will create
-#' a Truck Hub with the effect at plus or minus \code{fra} * posterior standard
-#' deviation; by default the function will use \code{fra=res$fra}
+#' @param z.threshold: a multiplier of the standard deviation; this function will create
+#' a Truck Hub with the effect at plus or minus \code{z.threshold} * posterior standard
+#' deviation; by default the function will use \code{z.threshold=res$z.threshold}
 
 #' @param hub_name: name of the Track Hub; this string can be set to any value;
 #' it could contain a path, in which case the path will be relative to the
@@ -445,7 +471,7 @@ writeTrackdbFile <- function(fra, assembly_dir){
 #' res$region <- region
 #' multiseqToTrackHub(res)
 #' } 
-multiseqToTrackHub <- function(res, fra=NULL, hub_name="multiseq", chrom_file=system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq"), assembly="hg19", mountpoint=Sys.getenv("MOUNTPOINT_PATH"), http_address=Sys.getenv("MOUNTPOINT_HTTP_ADDRESS")){
+multiseqToTrackHub <- function(res, z.threshold=NULL, hub_name="multiseq", chrom_file=system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq"), assembly="hg19", mountpoint=Sys.getenv("MOUNTPOINT_PATH"), http_address=Sys.getenv("MOUNTPOINT_HTTP_ADDRESS")){
                                         #check executables and input
     if (mountpoint=="" | http_address==""){
         warnings("the mountpoint and/or the mountpoint email address are not defined; in order to use this function follow package installation instructions")
@@ -453,10 +479,10 @@ multiseqToTrackHub <- function(res, fra=NULL, hub_name="multiseq", chrom_file=sy
     }
     if (noExecutable("wigToBigWig"))
         return()
-    if (is.null(fra)&is.null(res$fra))
-        stop("Define res$fra fra, see help")
-    if (is.null(fra))
-        fra=res$fra
+    if (is.null(z.threshold)&is.null(res$z.threshold))
+        stop("Define res$z.threshold threshold, see help")
+    if (is.null(z.threshold))
+        z.threshold=res$z.threshold
     if (is.null(res$region))
         stop("Define res$region, see help")
     if (is.null(res$effect.mean) | is.null(res$effect.var))
@@ -484,23 +510,23 @@ multiseqToTrackHub <- function(res, fra=NULL, hub_name="multiseq", chrom_file=sy
                    locus_start,
                    chrom_file,
                    mean_track) 
-    #create bigWig file with mean+fra*sd
+    #create bigWig file with mean+z.threshold*sd
     mean_plus_track = file.path(assembly_dir, "mean_plus_track.bw")
-    vectorToBigWig(res$effect.mean+fra*sqrt(res$effect.var),
+    vectorToBigWig(res$effect.mean+z.threshold*sqrt(res$effect.var),
                    chrom,
                    locus_start,
                    chrom_file,
                    mean_plus_track)
-    #create bigWig file with mean-fra*sd
+    #create bigWig file with mean-z.threshold*sd
     mean_minus_track = file.path(assembly_dir, "mean_minus_track.bw")
-    vectorToBigWig(res$effect.mean-fra*sqrt(res$effect.var),
+    vectorToBigWig(res$effect.mean-z.threshold*sqrt(res$effect.var),
                    chrom,
                    locus_start,
                    chrom_file,
                    mean_minus_track)
     
     #create bigBed file with regions with strong signal
-    intervals <- get.effect.intervals(res, fra=fra, res$region)
+    intervals <- get.intervals(res, z.threshold=z.threshold, region=res$region, what="effect")
     no_bed=TRUE
     if (!is.null(intervals$start)){
         if (noExecutable("bedToBigBed")){
@@ -517,13 +543,13 @@ multiseqToTrackHub <- function(res, fra=NULL, hub_name="multiseq", chrom_file=sy
     writeTrackHubSkeleton(hub_dir, assembly, hub_name_string)
     #write trackdb_file
     print("write trackdb_file")
-    writeTrackdbFile(fra, assembly_dir)
+    writeTrackdbFile(z.threshold, assembly_dir)
     shortLabel=c("Mean",
-        paste0("MeanPlus",fra,"Sd"),
-        paste0("MeanMinus",fra,"Sd"))
+        paste0("MeanPlus",z.threshold,"Sd"),
+        paste0("MeanMinus",z.threshold,"Sd"))
     longLabel=c("multiseq mean effect",
-        paste("multiseq effect mean -", fra, "* sd"),
-        paste("multiseq effect mean +", fra, "* sd"))
+        paste("multiseq effect mean -", z.threshold, "* sd"),
+        paste("multiseq effect mean +", z.threshold, "* sd"))
     bigDataUrl=c("mean_track.bw", "mean_plus_track.bw", "mean_minus_track.bw")
     color=c("0,0,0", "0,255,0", "0,255,0")
     for (i in c(1,2,3))
@@ -546,7 +572,7 @@ multiseqToTrackHub <- function(res, fra=NULL, hub_name="multiseq", chrom_file=sy
                             "multiseq signal",
                             "multiseq_bed_file.bb",
                             "multiseq_signal",
-                            paste0("multiseq signal ",fra,"sd"),
+                            paste0("multiseq signal ",z.threshold,"sd"),
                             "255,0,0",
                             out_file=file.path(assembly_dir, "trackDbFile.txt"))
     }

@@ -2,73 +2,114 @@
 library(knitr)
 opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center")
 
-## ----load_data-----------------------------------------------------------
+## ----smoothing-----------------------------------------------------------
+    #First load the package
     library(multiseq)
-    #load example data - R object
-    #type ?example1 to get more information
-    data(example1, package="multiseq")   
-    x          <- dat$x
-    g          <- dat$g
-    read.depth <- dat$read.depth
+ 
+    spikes <- function(x){
+	toreturn <- 0.75*exp(-500*(x-0.23)^2) +
+		 1.5*exp(-2000*(x-0.33)^2) +
+		 3*exp(-8000*(x-0.47)^2) +
+		 2.25*exp(-16000*(x-0.69)^2) +
+		 0.5*exp(-32000*(x-0.83)^2)
+	return(toreturn)
+    }
 
-## ----smoothing, echo=c(1,3,4,5,6,8)--------------------------------------
-    #smoothing
-    par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
-    for (i in which(g==1)) plot(log(x[i,]), type="l", xlab="Position", ylab="log(x)")
-    unique(sort(log(x[1,])))
-    res0         <- multiseq(x=x[g==1,], minobs=1, lm.approx=FALSE, read.depth=read.depth[g==1])
-    #plot baseline mean +/- 2 posterior standard deviations
-    invisible(dev.off())
-    plot(res0, fra=2, what="baseline")
+    n    <- 1024   
+    t    <- 1:n/n    
+    mu   <- 8/3*(3/16+spikes(t)) 
 
-## ----estimate_effect-----------------------------------------------------
-    #estimating an effect
-    res           <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=read.depth)
-    #plot estimated effect mean +/- 2 posterior standard deviations
-    plot(res, fra=2)
+    #use multiseq to smooth a signal
+    x    <- rpois(n, mu)
+    res  <- multiseq(x)
+    
+    #use multiseq to smooth 6 signals simultaneously
+    x6          <- t(replicate(6, rpois(n,mu)))
+    res6        <- multiseq(x6)
+   
 
-    #print intervals where `multiseq` found a strong effect (zero is outside of +/- fra posterior standard deviations
-    res$intervals <- get.effect.intervals(res, fra=2)
-    res$intervals
+    z.threshold <- 2
+    ylim        <- c(0, max(c(mu, x, exp(res$baseline.mean+z.threshold*sqrt(res$baseline.var)), exp(res6$baseline.mean+z.threshold*sqrt(res6$baseline.var)))))
+    
+
+    #plot
+    par(mfrow=c(3,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
+    
+    #plot underlying signal    		      
+    plot(mu, type="l", col="red", ylim=ylim, xaxt="n", xlab="", ylab="")
+    legend("topright", legend =c("underlying signal", "simulated data", "estimated signal 1 sample", "estimated signal 6 samples"), lty=c(1, 0, 1, 1), pch=c(".","o",".","."), col=c("red", "black", "dark green", "blue"))  
+    title("1", line=-1)    
+
+    #plot simulated data and estimated baseline
+    plot(x, ylim=ylim, xaxt="n", xlab="", ylab="")
+    lines(exp(res$baseline.mean), col="dark green")
+    title("2",line=-1)
+
+    #plot underlyng signal, estimated baseline from 1 samples, and estimated baseline from 6 samples
+    plot(mu, type="l", col="red", ylim=ylim, xaxt="n", xlab="", ylab="")
+    lines(exp(res$baseline.mean), col="dark green")
+    lines(exp(res6$baseline.mean), col="blue")
+    title("3",line=-1)
+
+## ----OAS1----------------------------------------------------------------
+    data(OAS1, package="multiseq")
+
+    res0         <- multiseq(x=OAS1$x[OAS1$g==0,], minobs=1, read.depth=OAS1$read.depth[OAS1$g==0])
+    res1         <- multiseq(x=OAS1$x[OAS1$g==1,], minobs=1, read.depth=OAS1$read.depth[OAS1$g==1])
+    res2         <- multiseq(x=OAS1$x[OAS1$g==2,], minobs=1, read.depth=OAS1$read.depth[OAS1$g==2])
+    #res          <- multiseq(x=OAS1$x, g=OAS1$g, minobs=1, read.depth=OAS1$read.depth)
+    
+    par(mfrow=c(5,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
+#    res$region   <- OAS1$region
+    ylim         <- c(0, max(res0$baseline.mean+z.threshold*sqrt(res0$baseline.var), res1$baseline.mean+z.threshold*sqrt(res1$baseline.var), res2$baseline.mean+z.threshold*sqrt(res2$baseline.var)))
+    plot(res0, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="genotype AA", ylim=ylim)
+    plot(res1, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="genotype AG", ylim=ylim)
+    plot(res2, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="genotype GG", ylim=ylim)
+    #plot(res, z.threshold=2, is.xaxis=FALSE)
+    transcripts <- get.transcripts(file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp"), OAS1$region)
+    plot(transcripts, OAS1$region)
+
+## ----plot----------------------------------------------------------------
+    res$intervals <- get.intervals(res, z.threshold=2, p.threshold=1, what="baseline")
+    res$intervals 
 
 ## ----load_seq_data-------------------------------------------------------
-    setwd(file.path(path.package("multiseq"),"extdata","sim"));
-    samplesheet <- file.path(path.package("multiseq"),"extdata","sim","samplesheet.sim.txt")
+    setwd(file.path(path.package("multiseq"), "extdata"));
+    samplesheet <- file.path(path.package("multiseq"),"extdata","samplesheetEncode.txt")
     samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
     g <- factor(samples$Type)
     g <- match(g, levels(g))-1
     if (noExecutable("wigToBigWig")){
-       data(example2, package="multiseq")
+       data(dat, package="multiseq")
+       region      <- dat$region
+       x <- dat$x
     }else{
-       region      <- "chr1:154206209-154214400"
-       x           <- get.counts(samples, region)
+       region      <- "chr1:11740409-11756792"
+       x           <- get.counts(samplesheet, region) 
     }
 
-## ----testing_smoothing, echo=c(2,3,4,6,7)--------------------------------
-    par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
-    for (i in which(g==0)) plot(log(x[i,]), type="l", xlab="Position", ylab="log(x)")
-    res0 <- multiseq(x=x[g==0,], minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth[g==0])
-    #plot estimated log baseline +- 2 s.d.
-    invisible(dev.off())
-    res0$region <- region
-    plot(res0, fra=2, what="baseline")
+## ----testing_on_chipseq--------------------------------------------------
+      #smooth data in each genotype class
+      res0        <- multiseq(x=x[which(g==0),], minobs=1, read.depth=samples$ReadDepth[which(g==0)])
+      res1  	  <- multiseq(x=x[which(g==1),], minobs=1, read.depth=samples$ReadDepth[which(g==1)]) 
+      #find an effect given a covariate
+      #res         <- multiseq(x=x, g=g, minobs=1, read.depth=samples$ReadDepth)
 
-## ----testing_diff--------------------------------------------------------
-    res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-    #plot estimated effect and s.d. 
-    par(mfrow=c(2,1), oma = c(5,4,0,0) + 0.1, mar = c(0,0,1,1) + 0.1)
-    res$region <- region
-    plot(res, fra=2, is.xaxis=FALSE) 
-    transcripts   <- get.transcripts(file.path(path.package("multiseq"),"extdata","sim","hg19.ensGene.part.gp"), region)
-    plot(transcripts, region) 
+      #plot
+      par(mfrow=c(3,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
+      #res$region <- region
+      ylim         <- c(0, max(res0$baseline.mean+z.threshold*sqrt(res0$baseline.var), res1$baseline.mean+z.threshold*sqrt(res1$baseline.var)))
+      plot(res0, z.threshold=2, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
+      plot(res1, z.threshold=2, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
+      #plot(res, z.threshold=2)
 
 ## ----track_hub, results='hide'-------------------------------------------
-    setwd(file.path(path.package("multiseq"),"extdata","sim"))
-    hub_name <- "testMultiseq/sim"
-    samplesheetToTrackHub(samplesheet, hub_name, chr="chr1")
+    setwd(file.path(path.package("multiseq"),"extdata"))
+    hub_name <- "testMultiseq/dat"
+    #samplesheetToTrackHub(samplesheet, hub_name, chr="chr1")
 
 ## ----multiseqToTrackHub, results='hide'----------------------------------
-    res$region    <- region
-    res$intervals <- get.effect.intervals(res, fra=2)
-    multiseqToTrackHub(res, fra=2, hub_name="testMultiseq/multiseq_sim")
+    #res$region    <- region
+    #res$intervals <- get.intervals(res, z.threshold=2, region=region, what="effect")
+    #multiseqToTrackHub(res, z.threshold=2, hub_name="testMultiseq/multiseq_dat")
 

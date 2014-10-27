@@ -3,7 +3,7 @@
 \alias{multiseqToTrackHub}
 \title{Create a UCSC genome browser "Track Hub" from \code{\link{multiseq}} output.}
 \usage{
-multiseqToTrackHub(res, fra = NULL, hub_name = "multiseq",
+multiseqToTrackHub(res, z.threshold = NULL, hub_name = "multiseq",
   chrom_file = system.file("extdata", "chromosome.lengths.hg19.txt", package =
   "multiseq"), assembly = "hg19",
   mountpoint = Sys.getenv("MOUNTPOINT_PATH"),
@@ -14,9 +14,9 @@ multiseqToTrackHub(res, fra = NULL, hub_name = "multiseq",
 defined (e.g.: \code{res$region="chr1:2345-234567")}; a valid region must
 contain sequence_name:locus_start-locus_end}
 
-\item{fra:}{a multiplier of the standard deviation; this function will create
-a Truck Hub with the effect at plus or minus \code{fra} * posterior standard
-deviation; by default the function will use \code{fra=res$fra}}
+\item{z.threshold:}{a multiplier of the standard deviation; this function will create
+a Truck Hub with the effect at plus or minus \code{z.threshold} * posterior standard
+deviation; by default the function will use \code{z.threshold=res$z.threshold}}
 
 \item{hub_name:}{name of the Track Hub; this string can be set to any value;
 it could contain a path, in which case the path will be relative to the

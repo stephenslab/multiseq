@@ -16,37 +16,20 @@ roxygenize("~/Downloads/multiseq")
 document("~/Downloads/multiseq")
 
 ######################
-# Instruction to document the package using Rstudio
+# Instruction to document the package using R
 ######################
-1. open Rstudio
-2. specify project : file -> new project -> existing directory ->  specify "multiseq" directory under "package" directory 
-3. install all necessary packages 
-4. require(roxygen2)
-5. require(devtools)
-6. roxygenize()
-7. document()
-8. build -> build source package 
-9. before push, be careful! You dont want to push some unnecessary files created during building package.
-
-
-
-#in the terminal
-#cd ..
+install.packages("~/src/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")
+require(roxygen2)
+require(devtools)
+roxygenize()
+document()
+build_vignettes()
+#in bash
 #tar -pczf multiseq.tar.gz multiseq
-#IMPORTANT!!! /data/tools/R-3.1.1/bin/R
 install.packages("~/src/multiseq/package/multiseq_0.1.tar.gz",repos=NULL,type="source")
+help(package="multiseq")
 
-
-#instructions to build the vignette using Rstudio (check version of R)
-path.to.multiseq.gz="~/src/multiseq/package/multiseq_0.1.tar.gz"
-path.to.ashr.gz="~/src/ash/package/ashr.no.cxx.tar.gz"
+#in Rstudio
 Sys.setenv(MOUNTPOINT_PATH="/data/internal/solexa_mountpoint/epantaleo")
 Sys.setenv(MOUNTPOINT_HTTP_ADDRESS="https://*******:pipeline@solexa-compute1.uchicago.edu/stephenslab/epantaleo")
 Sys.setenv(PATH=paste0(Sys.getenv('PATH'),":/usr/local/bin/",":/data/tools/ucsctools/"))
-install.packages(path.to.ashr.gz,repos=NULL,type="source")
-install.packages(path.to.multiseq.gz,repos=NULL,type="source")
-
-
-
-#change data
-#save(x, region, samples, file="~/src/multiseq/package/multiseq/data/example2.RData")

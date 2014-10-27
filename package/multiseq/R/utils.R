@@ -2,7 +2,7 @@
 #'
 #' @param region: a string specifying a genomic region: reference sequence name, start position, end position
 #' @examples
-#' region=split_region("chr1:2345-234567")
+#' region=split_region("chr1:11740409-11756792")
 #' print(region)
 #' print(region$chr)
 #' print(region$start)
@@ -27,18 +27,18 @@ split_region <- function(region){
 
 #' @title Prepare input for multiseq function extracting counts in a genomic region from \code{bam}, \code{hdf5}, or \code{bigWig} files.
 #'
-#' @description This functions extracts read counts from \code{bam}, \code{hdf5}, or \code{bigWig} files in a genomic region, preparing input for \code{\link{multiseq}}. If \code{samples$bamReads} is specified then this function extracts reads from the bam files in \code{samples$bamReads} using \code{samtools} (which must be in the USER's path) (no filter applied). Else if \code{samples$h5FullPath} is specified this function extracts reads from the \code{hdf5} files in \code{samples$h5FullPath} using the R package \code{rhdf5}. If \code{samples$bigWigPath} is specified this function extracts reads from \code{bigWig} files using the executable \code{bigWigToWig} (which must be in the USER's path).
+#' @description This functions reads in a `samplesheet` and extracts read counts in a genomic region specified by parameter `region`, preparing input for \code{\link{multiseq}}. If in file `samplesheet` \code{samples$bamPath} is specified then this function extracts reads from the bam files in \code{samples$bamPath} using \code{samtools} (which must be in the USER's path) (no filter applied but option \code{onlyonend} can be used to extract reads from only one end if reads are paired end). Else if \code{samples$hdf5Path} is specified this function extracts reads from the \code{hdf5} files in \code{samples$hdf5Path} using the R package \code{rhdf5}. If \code{samples$bigWigPath} is specified this function extracts reads from \code{bigWig} files using the executable \code{bigWigToWig} (which must be in the USER's path).
 #'
-#' @param samplesheet: a string or a data frame of size N equal to the number of samples. If a string it should be the path to a samplesheet; the samplesheet should contain a column with header \code{SampleID} and a column with header either \code{bigWigPath} or \code{h5FullPath} or \code{bigWigPath}. If a data frame, \code{samples$SampleID} must be specified and either \code{samples$bigWigPath} or \code{samples$h5FullPath} or \code{samples$bamReads} must be specified.
-#' @param region: a string specifying a genomic region: reference sequence name, start position, end position
+#' @param samplesheet: a string specifying the path to a samplesheet; the samplesheet should contain a column with header \code{SampleID} and a column with header either \code{bamPath} or \code{hdf5Path} or \code{bigWigPath}.
+#' @param region: a string specifying a genomic region: reference sequence name, start position, end position (see example below).
 #' @param onlyonend: a bool, defaults to FALSE; use TRUE if input is in bam format and only first end of the paired end read should be used.
 #' @export 
 #' @return a matrix with \code{N} rows and \code{end-start+1} columns containing the number of reads that start at each base in the specified region in each sample. Rownames correspond to \code{samples$SampleID}
 #' @examples
 #'\dontrun{
-#' setwd(file.path(path.package("multiseq"),"extdata","sim"))
-#' samplesheet="samplesheet.sim.txt"
-#' region="chr1:154206209-154214400"
+#' setwd(file.path(path.package("multiseq"),"extdata"))
+#' samplesheet="samplesheetEncode.txt"
+#' region="chr1:11740409-11756792"
 #' x=get.counts(samplesheet, region)
 #' }
 get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
@@ -48,14 +48,11 @@ get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
     region       <- split_region(region)
     locus.length <- region$end-region$start+1
     #load counts
-    if (is.character(samplesheet)){
-        samples <- read.table(samplesheet, stringsAsFactors=F, header=T)
-    }else{
-        samples <- samplesheet
-    }
+    samples <- read.table(samplesheet, stringsAsFactors=F, header=T)
+    
     #load data
     M <- NULL
-    if ("bamReads" %in% colnames(samples) & ! noExecutable("samtools")){
+    if ("bamPath" %in% colnames(samples) & ! noExecutable("samtools")){
         #read bam files into matrix
         cmd <- paste0(region$chr,
                       ":",
@@ -71,7 +68,7 @@ get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
                       "{st=$4; if ($4>=s){if (start==st) count+=1; ",
                       "else {if (start>0) print start, count; start=st; count=1} }}' ")
         
-        for (bamfile in samples$bamReads){
+        for (bamfile in samples$bamPath){
             command <- paste0("samtools view ",
                               bamfile,
                               " ",
@@ -86,9 +83,9 @@ get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
             close(con)
             M <- rbind(M, v)
         }
-    }else if ("h5FullPath" %in%  colnames(samples)) {
+    }else if ("hdf5Path" %in%  colnames(samples)) {
                                         #read hdf5 files into R matrix
-        for (h5file in samples$h5FullPath){
+        for (h5file in samples$hdf5Path){
             print(paste0("Loading ", h5file))
             print(paste0("h5read(", h5file, ",", region$chr, ", index=list(", region$start, ":", region$end, ")"))
             M <- rbind(M, h5read(h5file, region$chr, index=list(region$start:region$end)))
@@ -115,6 +112,7 @@ get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
                "file and/or add required executables to user's PATH."))
     
     row.names(M) <- samples$SampleID
+    
     return(M)
 }
 
@@ -124,8 +122,8 @@ get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
 #' @param region: a string specifying a genomic region
 #' @export
 #' @examples
-#' GenePredIn <- file.path(path.package("multiseq"),"extdata","sim","hg19.ensGene.part.gp")
-#' region     <- "chr1:154206209-154214400"
+#' GenePredIn <- file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp")
+#' region     <- "chr12:113354417-113358512"
 #' get.transcripts(GenePredIn, region)
 get.transcripts <- function(GenePredIn, region){
     genePred    <- data.frame(lapply(read.table(GenePredIn,
@@ -150,32 +148,34 @@ get.exons.start.end <- function(transcript){
 #' @title Plot transcripts; if \code{region} is specified then plot only the specified region.
 #' @description The only required field for this function is Transcripts.
 #' @param Transcripts:  output of \code{\link{get.transcripts}}
-#' @param region: region to be plotted
-#' @param is.xaxis: bool, if TRUE plot \code{x} axis otherwise don't plot \code{x} axis
+#' @param region: region to be plotted; defaults to NULL.
+#' @param is.xaxis: bool, if TRUE plot \code{x} axis otherwise don't plot \code{x} axis; defaults to TRUE.
 #' @export
 #' @examples
-#' GenePredIn  <- file.path(path.package("multiseq"),"extdata","sim","hg19.ensGene.part.gp") 
-#' Transcripts <- get.transcripts(GenePredIn)
-#' plot.transcripts(Transcripts)
-plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, fra=2, what="effect", axes=F, xlim=NULL, type=NULL, cex=NULL, font.main=1, ...){
+#' region     <- "chr12:113354417-113358512" 
+#' GenePredIn  <- file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp") 
+#' Transcripts <- get.transcripts(GenePredIn, region)
+#' plot(Transcripts, region)
+plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, axes=F, xlim=NULL, type=NULL, cex=NULL, font.main=1, ...){
     if (!is.null(region)){
         region <- split_region(region)
         chr    <- region$chr
         if (is.null(xlim))
             xlim <- c(region$start, region$end)
+    }else{
+        chr="Unknown Chromosome"
     }
 
+    par(mgp=c(0,1,0))
     #draw x axis
     if (is.null(Transcripts$t)){
-        if (is.null(region$chr))
-            chr="chr ?"
         y=1
         type="n"
     }else{    
         nr   <- nrow(Transcripts$t)
         tchr <- Transcripts$t[1,2]
-        if (!is.null(region$chr)){
-            if (tchr!=chr)
+        if (!is.null(region)){
+            if (tchr!=region$chr)
                 stop("Chromosomes are not consistent.")
         }else{
             chr=tchr
@@ -238,201 +238,250 @@ plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, fra=2, wha
     }
 }
 
-#' @title Plot the output of \code{\link{multiseq}} (either the effect or the baseline) and \code{fra} * posterior standard deviation.
-#' @param x: multiseq output.
-#' @param region: a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL; if provided (or if not provided but x$region is defined) the x axis label and tickers will contain genomic information.
+#' @title Plot the output of \code{\link{multiseq}} (either the effect or the baseline)
+#'
+#' @description If `what=="effect"` this function will plot the effect and intervals where \code{\link{multiseq}} found strong effect, i.e., when zero is outside of +/- \code{z.threshold} * posterior standard deviation). If  `what=="baseline"` or `what=="log_baseline"` this function will plot either the baseline \code{exp(res$baseline.mean)} or the log of the baseline \code{res$baseline.mean}, respectively, and  intervals where \code{\link{multiseq}} found strong peaks at a specified threshold, i.e., when log(p.threshold) is below +/- \code{z.threshold} * posterior standard deviation of the log baseline. If x$region is defined then the \code{x} axis will use genomic coordinates.
+#' 
+#' @param x: multiseq output; if x$region is defined then the \code{x} axis will use genomic coordinates.
 #' @param is.xaxis: bool, if TRUE plot \code{x} axis otherwise don't plot \code{x} axis.
-#' @param fra: a multiplier of the standard deviation.
-#' @param what: a string, it can be either "baseline" or "effect"; if "baseline", this function plots multiseq baseline output; if "baseline" this function plots multiseq effect output; defaults to "effect".
+#' @param z.threshold: a multiplier of the standard deviation.
+#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; defaults to 1.
+#' @param what: a string, it can be either "baseline" or "log_baseline" or "effect".
+#' @param highlight: a bool, if TRUE highlight intervals with strong peaks or strong signal; defaults to TRUE.shell
 #' @export
 #' @examples
 #'\dontrun{
-#' #run multiseq on sample data
-#' samplesheet <- file.path(path.package("multiseq"), "extdata", "sim", "samplesheet.sim.txt")
-#' region      <- "chr1:154206209-154214400"
-#' x           <- get.counts(samplesheet, region)
-#' samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
-#' g           <- factor(samples$Tissue)
-#' g           <- match(g, levels(g))-1
-#'
-#' res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-#' plot.multiseq(res)
-#' plot.multiseq(res, what="baseline")
+#' data(dat, package="multiseq")
+#' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
+#' res$region <- dat$region
+#' plot(res)
+#' plot(res, what="baseline")
 #' }
-plot.multiseq <- function(x, region=NULL, is.xaxis=TRUE, fra=2, what="effect",axes=F, type="l", col="green", main=NULL, ylim=NULL, xlab=NULL, ylab=NULL, cex=NULL, ...){
+plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=1, what="effect", highlight=TRUE, axes=F, type="l", col="green", main=NULL, ylim=NULL, xlab=NULL, ylab=NULL, cex=NULL, ...){
     if ((is.null(x$baseline.mean) | is.null(x$baseline.var)) & what=="baseline")
         stop("Error: no baseline in multiseq output")
     if ((is.null(x$effect.mean) | is.null(x$effect.var)) & what=="effect")
         stop("Error: no effect in multiseq output x")
-    
-    main <- paste0(what, " (", fra, " s.d.) ", main)
+    if (!(what=="effect" | what=="log_baseline" | what=="baseline"))
+        stop("Error: wrong parameter 'what'")
+
     if (what=="effect"){
-        ybottom     <- x$effect.mean - fra*sqrt(x$effect.var)
-        ytop        <- x$effect.mean + fra*sqrt(x$effect.var)
+        ybottom     <- x$effect.mean - z.threshold*sqrt(x$effect.var)
+        ytop        <- x$effect.mean + z.threshold*sqrt(x$effect.var)
         N           <- length(x$effect.mean)
         y           <- x$effect.mean
-    }else if (what=="baseline"){
-        ybottom     <- x$baseline.mean - fra*sqrt(x$baseline.var)
-        ytop        <- x$baseline.mean + fra*sqrt(x$baseline.var)
+        wh.bottom   <- which(ybottom > 0)
+        wh.top      <- which(ytop < 0)
+        high.wh     <- sort(unique(union(wh.bottom, wh.top)))
+        k           <- 0
+    }else{
+        ybottom     <- x$baseline.mean - z.threshold*sqrt(x$baseline.var)
+        ytop        <- x$baseline.mean + z.threshold*sqrt(x$baseline.var)
         N           <- length(x$baseline.mean)
-        main        <- paste("log", main)
         y           <- x$baseline.mean
+        k           <- log(p.threshold)
+        high.wh     <- which(ybottom > k)
     }
-    ymax        <- max(ytop) + 0.0000000001
-    ymin        <- min(ybottom) - 0.0000000001
-    wh.bottom   <- which(ybottom > 0)
-    wh.top      <- which(ytop < 0)
-    high.wh     <- sort(unique(union(wh.bottom, wh.top)))
-    xval        <- 1:N
-    col.posi    <- xval[high.wh]
+
+    if (what=="baseline"){
+        y           <- exp(x$baseline.mean)
+        main        <- paste(what, main)
+        ymax        <- max(y)
+        ymin        <- min(y)
+        k           <- p.threshold
+    }else{
+        main        <- paste0(what, " +/- ", z.threshold, " s.d. ", main)
+        ymax        <- max(ytop)
+        ymin        <- min(ybottom)
+    }
     if (is.null(ylim))
         ylim=c(ymin,ymax)
     if (is.xaxis){
-        if (is.null(xlab))
-            xlab="Position"
-        if (!is.null(region) | !is.null(x$region)){
-            if (!is.null(region)){
-                region <- split_region(region)
-            }else if (!is.null(x$region)){
+        if (is.null(xlab)){
+            if (!is.null(x$region)){
                 region <- split_region(x$region)
+                xlab    <- paste("Position (Mb) on", region$chr)
+            }else{
+                xlab    <- "Position"
             }
-            xlab=paste("Position (Mb) on", region$chr)
         }
     }else{
-        xlab=""
+        xlab <- ""
     }
     if (is.null(ylab))
         ylab=""
-    plot(ybottom,
-                 type=type,
-                 ylim=ylim,
-                 main=main,
-                 col=col,
-                 xlab=xlab,
-                 ylab=ylab,
-                 axes=axes)
+    par(mgp=c(0,1,0))
+    plot(y,
+         type=type,
+         ylim=ylim,
+         main=main,
+         col=paste("dark",col),
+         xlab=xlab,
+         ylab=ylab,
+         axes=axes)
     #draw axes
     axis(2)
     if (is.xaxis){
-        if (!is.null(region) | !is.null(x$region)){
+        if (!is.null(x$region)){
             axis(1,
-                 at=seq(1,N,ceiling(N/10)),
-                 labels=format(seq(region$start,region$end,ceiling(N/10))/1000000),
+                 at=seq(1,N,ceiling(N/5)),
+                 labels=format(seq(region$start,region$end,ceiling(N/5))/1000000),
                  cex.lab=cex,
                  cex.axis=cex)
         }else
             axis(1)
     }
-    points(ytop, type=type, col=col)
-    points(y, type=type, col=paste("dark",col))
-    
-    abline(h=0, col="red")
+    if (what=="effect" | what=="log_baseline"){
+        points(ytop, type=type, col=col)
+        points(ybottom, type=type, col=col)
+    }
 
-    #draw intervals with effect
-    if (what=="effect"){
+    #draw line with p.threshold
+    abline(h=k, col="red")
+    
+    #draw intervals with effect or with peaks
+    if (highlight){
+        xval        <- 1:N
+        col.posi    <- xval[high.wh]
         N.polygons  <- length(col.posi)
         if (N.polygons > 0)
             for(j in 1:N.polygons)
                 rect(col.posi[j]-0.5, ymin-2, col.posi[j]+0.5, ymax+2,
-                          col=rgb(1, 0, 0,0.5), border=NA, lty=NULL)
+                     col=rgb(1, 0, 0,0.5), border=NA, lty=NULL)
     }
 }
 
-#' @title Print intervals where \code{\link{multiseq}} found strong effect (zero is outside of +/- \code{fra} * posterior standard deviation).
+
+#' @title helper function to get.intervals
 #'
 #' @description Output interval is in \code{bed} format (\code{start} is 0-based, \code{end} is 1-based).
-#' @param res: \code{\link{multiseq}} output.
-#' @param fra: a multiplier of the standard deviation; this function will output intervals where multiseq found strong effect (zero is outside of +/- \code{fra} * posterior standard deviation).
-#' @param region: a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL if provided, the function will output the interval in genomic coordinates.
-#' @export
-#' @return a list with elements \code{chr}, \code{start}, \code{end}, \code{sign} (of the effect), \code{fra}, \code{type} (type can be "local" or "sequence" and specifies whether start and end are relative to a genomic sequence).
-#' @examples
-#'\dontrun{
-#' #run multiseq on sample data
-#' samplesheet <- file.path(path.package("multiseq"), "extdata", "sim", "samplesheet.sim.txt")
-#' region      <- "chr1:154206209-154214400"
-#' x           <- get.counts(samplesheet, region)
-#' samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
-#' g           <- factor(samples$Tissue)
-#' g           <- match(g, levels(g))-1
-#' fra         <- 2
-#' res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-#'
-#' get.effect.intervals(res, fra, region))
-#' }
-get.effect.intervals <- function(res, fra, region=NULL){
-    if (is.null(res$effect.mean) | is.null(res$effect.var))
-        stop("ERROR: no effect or effect var in multiseq output")
-    
-    effect.start <- NULL
-    effect.end   <- NULL
-    effect.sign  <- NULL
-    toreturn     <- NULL
-    
-    x=(res$effect.mean + fra * sqrt(res$effect.var) < 0)
-    y=(res$effect.mean - fra * sqrt(res$effect.var) > 0)
-
-    xs=sum(x)
-    if (xs>0){ #if res$effect.mean + fra * sqrt(res$effect.var) < 0 at at least one position
-        rlex=rle(x)
-        boundaries=c(0,cumsum(rlex$lengths))
-        for (i in 1:(length(boundaries)-1)){
-            if (rlex$values[i]){ #is TRUE
-                effect.start=c(effect.start,boundaries[i]) #0-based
-                effect.end=c(effect.end,boundaries[i+1]) #1-based
-                effect.sign=c(effect.sign,"-")
+#' @param mean: an estimated vector of means.
+#' @param var: an estimated vector of variances.
+#' @param what: a string, it can be either "baseline" or "log_baseline" or "effect".
+#' @param z.threshold: a multiplier of the standard deviation.
+#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{mean-z.threshold*sqrt(var)>p.threshold} then a peak is called.
+#' @param region: a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL; if provided, the function will output the interval in genomic coordinates.
+get.intervals.utils <- function(mean, var, what, z.threshold, p.threshold, region){
+    if (is.null(mean) | is.null(var))
+        stop(paste("ERROR: no", what, "mean or", what, "var in multiseq output"))
+    start    <- NULL
+    end      <- NULL
+    toreturn <- NULL
+    sign     <- NULL
+    if (what=="log_baseline" | what=="baseline"){
+        toreturn$p.threshold <- p.threshold
+    }else if (what=="effect"){
+        x=(mean + z.threshold * sqrt(var) < p.threshold)
+        xs=sum(x)
+        if (xs>0){
+            rlex=rle(x)
+            boundaries=c(0,cumsum(rlex$lengths))
+            for (i in 1:(length(boundaries)-1)){
+                if (rlex$values[i]){ #is TRUE
+                    start=c(start,boundaries[i]) #0-based
+                    end=c(end,boundaries[i+1]) #1-based
+                    sign=c(sign,"-")
+                }
             }
         }
+    }else{
+        stop("Error: wrong parameter 'what'")
     }
 
+    y=(mean - z.threshold * sqrt(var) > p.threshold)
     ys=sum(y)
     if (ys>0){
         rley=rle(y)
         boundaries=c(0,cumsum(rley$lengths))
         for (i in 1:(length(boundaries)-1)){
             if (rley$values[i]){ #is TRUE
-                effect.start=c(effect.start,boundaries[i]) #0-based
-                effect.end=c(effect.end,boundaries[i+1]) #1-based
-                effect.sign=c(effect.sign,"-")
+                start=c(start,boundaries[i]) #0-based
+                end=c(end,boundaries[i+1]) #1-based
+                sign=c(sign,"+")
             }
         }
     }
     
     type="local"
-    if (!is.null(effect.start)){
-        if (!is.null(region)| !is.null(res$region)){
-            if (!is.null(region)){
-                region       <- split_region(region)
-            }else{
-                region       <- split_region(res$region)
-            }
+    if (!is.null(start)){
+        if (!is.null(region)){
+            region       <- split_region(region)
             if (!is.null(region$start)&!is.null(region$end)&!is.null(region$chr)){
-                effect.start       <- region$start+effect.start-1
-                effect.end         <- region$start+effect.end
+                start       <- region$start+start-1
+                end         <- region$start+end
                 type               <- "sequence"
                 toreturn$chr       <- region$chr
             }else
                 warning("WARNING: missing region start or region end; effect start and end are local and not relative to the sequence")
         }
     }
-    toreturn$start       <- effect.start
-    toreturn$end         <- effect.end
-    toreturn$sign        <- effect.sign
-    toreturn$fra         <- fra
+    toreturn$start       <- start
+    toreturn$end         <- end
+    toreturn$sign        <- sign
+    toreturn$z.threshold <- z.threshold
     toreturn$type        <- type
     
     return(toreturn)
 }
+   
+
+
+#' @title Print intervals where \code{\link{multiseq}} found strong effect or strong peaks. 
+#'
+#' @description If \code{what=="effect"} this function will print intervals where \code{\link{multiseq}} found strong effect, i.e., when zero is outside of +/- \code{z.threshold} * posterior standard deviation). If  \code{what=="baseline"} or \code{what=="log_baseline"}  this function will print intervals where \code{\link{multiseq}} found strong peaks at a specified threshold, i.e.,  when p.threshold is below +/- \code{z.threshold} * posterior standard deviation of the log baseline.
+#'
+#' @return This function returns a list with elements \cr
+#' \item{chr}{a string specifying the sequence}
+#' \item{start}{a vector specifying the start of each interval}
+#' \item{end}{a vector specifying the end of each interval}
+#' \item{sign}{can be "+" or "-" and indicates the sign of the effect or is always positive when \code{what="baseline"}} 
+#' \item{z.threshold}{multiplier of the standard deviation}
+#' \item{p.threshold}{threshold for peack detection} 
+#' \item{type}{where \code{type} is either "local" - if \code{res$region} or \code{region} are not specified - or "sequence" otherwise.}
+#' Output interval is in \code{bed} format (\code{start} is 0-based, \code{end} is 1-based).
+#' @param res: \code{\link{multiseq}} output.
+#' @param z.threshold: a multiplier of the standard deviation; default is 2
+#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; default is 3e-09.
+#' @param region: a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL; if provided, the function will output the interval in genomic coordinates.
+#' @param what: a string, it can be either "baseline" or "log_baseline" or "effect"; default is "effect"
+#' @export
+#' @examples
+#'\dontrun{
+#' data(dat, package="multiseq")
+#' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
+#' get.intervals(res, what="effect", region=dat$region)
+#' }
+get.intervals <- function(res, z.threshold=2, p.threshold=3e-09, region=NULL, what="effect"){
+    if (is.null(region))
+        if (!(is.null(res$region)))
+            region=res$region
+    
+    if (what=="baseline" | what=="log_baseline"){
+        if (is.null(res$baseline.mean) | is.null(res$baseline.var)){
+            stop("no baseline in multiseq output res") 
+        }else{
+            get.intervals.utils(res$baseline.mean, res$baseline.var, what, z.threshold, log(p.threshold), region)
+        }
+    }else if (what=="effect"){
+        if (is.null(res$effect.mean) | is.null(res$effect.var)){
+            stop("no effect in multiseq output res")
+        }else{
+            get.intervals.utils(res$effect.mean, res$effect.var, what, z.threshold, p.threshold=0, region)
+        }
+    }else{
+        stop("ERROR: invalid parameter 'what'")
+    }
+}
+
 
 #' @title Write effect intervals to a \code{bed} file.
-#' @param intervals: output of \code{\link{get.effect.intervals}}
+#' @param intervals: output of \code{\link{get.intervals}}
 #' @param bedfile: output \code{bed} file
 #' @examples
 #' \dontrun{
-#' fra=2
-#' region="chr1:154206209-154214400"
-#' res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-#' intervals <- get.effect.intervals(res, fra))
+#' data("dat",package="multiseq")
+#' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
+#' intervals <- get.intervals(res, region=dat$region, what="effect")
 #' write.bed(intervals, "out.bed")
 #' }
 #' @export
@@ -463,87 +512,38 @@ write.bed <- function(intervals, bedfile){
 }
        
     
-#' @title Return the total lenght of intervals where \code{\link{multiseq}} found strong effect (zero is outside of +/- \code{fra} * posterior standard deviation).
-#' @param res: \code{\link{multiseq}} output
-#' @param fra:  a multiplier of the standard deviation; this function will return the length of intervals where \code{\link{multiseq}} found strong effect (zero is outside of +/- \code{fra} * posterior standard deviation).
-#' @export   
-#' @examples
-#'\dontrun{
-#' #run multiseq on sample data
-#' samplesheet <- file.path(path.package("multiseq"), "extdata", "sim", "samplesheet.sim.txt")
-#' region      <- "chr1:154206209-154214400"
-#' x           <- get.counts(samplesheet, region)
-#' samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
-#' g           <- factor(samples$Tissue)
-#' g           <- match(g, levels(g))-1
-#' 
-#' res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-#'
-#' fra=2
-#' get.effect.length(res, fra))
-#' }
-get.effect.length <- function(res, fra){
-    if (is.null(res$intervals))
-        res$intervals <- get.effect.intervals(res, fra)
-    
-    return(sum(res$intervals$end-res$intervals$start))
-}
-
 #' @title Write \code{\link{multiseq}} results to a compressed file.
 #' @description The output file has two columns: first column the effect (or the baseline) mean and second column is the effect (or the baseline) posterior standard deviation ^2.
 #' @param res: \code{\link{multiseq}} output.
 #' @param file: path to the output file.
-#' @param what: if \code{what} is "baseline" then plot \code{\link{multiseq}} baseline output; if \code{what} is "effect" then plot \code{\link{multiseq}} effect output; defaults to "effect".
+#' @param what: if \code{what} is "log_baseline" then write \code{\link{multiseq}} \code{res$baseline.mean} and \code{res$baseline.var}; if \code{what} is "effect" then write \code{\link{multiseq}} \code{res$effect.mean} and \code{res$effect.var} output to a compressed file; defaults to "effect".
 #' @export
 #' @examples
 #'\dontrun{
 #' #run multiseq on sample data
-#' samplesheet <- file.path(path.package("multiseq"), "extdata", "sim", "samplesheet.sim.txt")
-#' region      <- "chr1:154206209-154214400"
-#' x           <- get.counts(samplesheet, region)
-#' samples     <- read.table(samplesheet, stringsAsFactors=F, header=T)
-#' g           <- factor(samples$Type)
-#' g           <- match(g, levels(g))-1
-#' 
-#' res <- multiseq(x=x, g=g, minobs=1, lm.approx=FALSE, read.depth=samples$ReadDepth)
-#'
+#' data(dat, package="multiseq")
+#' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 #' write.gz(res, "./results.mean.sd2.gz")
 #' }
 write.gz <- function(res, file="results.mean.sd2.gz", what="effect"){
     dir.create(dirname(file), showWarnings = FALSE, recursive=TRUE)
     gz1      <- gzfile(file, "w")
-    if (what=="baseline")
+    if (what=="log_baseline"){
         if (is.null(res$baseline.mean) | is.null(res$baseline.var) ){
             close(gz1)
             stop("no baseline in multiseq output res")
         }else{
             write.table(cbind(res$baseline.mean, res$baseline.var), col.names=FALSE, row.names=FALSE, file=gz1)
         }
-    if (what=="effect")
+    }else if (what=="effect"){
         if (is.null(res$effect.mean) | is.null(res$effect.var)){
            close(gz1)
            stop("no effect in multiseq output res")
        }else{
            write.table(cbind(res$effect.mean, res$effect.var), col.names=FALSE, row.names=FALSE, file=gz1)
        }
+    }else{
+        stop("Error: wrong parameter 'what'")
+    }
     close(gz1)
-}
-
-#' @title write.summary (to be removed)
-#' @description File summary has 6 columns: chr, region start, region end, number of bases where \code{multiseq}
-#' found strong effect (zero is outside of +/- 2 or 3 * posterior standard deviation), running time of \code{multiseq}.
-#' @param res: multiseq output
-#' @param dir.name: output directory
-#' @param timing: an integer indicating the running time
-#' @keywords internal
-#' @export
-write.summary <- function(res, dir.name, timing, region){
-    region   <- split_region(region)
-    Neffect2 <- get.effect.length(res, 2)
-    Neffect3 <- get.effect.length(res, 3)
-    write.table(t(c(region$chr, region$start, region$end, Neffect2, Neffect3, timing)),
-                quote = FALSE,
-                col.names=FALSE,
-                row.names=FALSE,
-                file=file.path(dir.name,"summary"))
 }
