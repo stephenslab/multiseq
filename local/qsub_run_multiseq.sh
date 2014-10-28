@@ -12,7 +12,7 @@
 #         EXAMPLE:       qsub_run_multiseq.sh samplesheet.txt ./results_run_multiseq/ < list_loci
 #**************************************************************************************************#  
 
-MEM=10g
+MEM=2g
 sample_sheet=$1
 OUT_DIR=$2"/"
 fitted_g=$OUT_DIR"/fitted.g.RData"
