@@ -321,11 +321,12 @@ setAshParam <- function(ashparam){
         ashparam$nullcheck=TRUE
     if (is.null(ashparam$onlylogLR))
         ashparam$onlylogLR=FALSE
-    if (!(is.null(ashparam$g)))
-        stop("Error: ash parameter g can only be NULL; if you want to specify ash parameter g use multiseq arguments fitted.g and/or fitted.g.intercept")
+    #if (!is.null(ashparam$g))
+    #    stop("Error: ash parameter g can only be NULL; if you want to specify ash parameter g use multiseq arguments fitted.g and/or fitted.g.intercept")
+
     if(!((is.null(ashparam$mixsd))|(is.numeric(ashparam$mixsd) & (length(ashparam$mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
     if(!((ashparam$prior == "nullbiased") | (ashparam$prior == "uniform") | is.numeric(ashparam$prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
-    
+    return(ashparam)
 }
     
 #' Estimate underlying signal from count data \code{x} and optionally the effect of a covariate \code{g}.
@@ -386,7 +387,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     if(!is.logical(forcebin)) stop("Error: invalid parameter 'forcebin', 'forcebin'  must be bool")
     if(!is.logical(lm.approx)) stop("Error: invalid parameter 'lm.approx', 'lm.approx'  must be bool")
     if(!is.element(disp,c("add","mult"))) stop("Error: invalid parameter 'disp', 'disp'  must be either 'add' or 'mult' ")
-    setAshParam(ashparam)
+    ashparam=setAshParam(ashparam)
     if (ashparam$onlylogLR){
         if(is.null(g)) stop("Error: g should be provided to compute logLR if ashparam$onlylogLR = TRUE")
         if(ashparam$pointmass != TRUE) stop("Error: logLR can be computed only when ashparam$pointmass = TRUE")
@@ -464,7 +465,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE, bound=0))
-                zdat.rate.ash = do.call(ash, c(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]], ashparam))
+                zdat.rate.ash = do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam))
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR
@@ -481,7 +482,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 y.rate = listy$y.rate
             if (smoothing | get.fitted.g){
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp, bound=0))
-                zdat.rate.ash = do.call(ash, c(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]], ashparam))
+                zdat.rate.ash = do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam))
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR 
@@ -529,7 +530,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
             if (!is.null(g)){
                 if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash = do.call(ash,c(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE, ashparam))
+                    zdat.ash = do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE), ashparam))
                     if (get.fitted.g)
                         fitted.g[[j]] = zdat.ash$fitted.g
                     if (ashparam$pointmass)
@@ -542,7 +543,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 }
             }
             if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
-                zdat.ash.intercept = do.call(ash, c(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE, ashparam))
+                zdat.ash.intercept = do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam))
                 if (get.fitted.g)
                     fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
                 if (reverse){
@@ -697,7 +698,6 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
  
     #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
     zdat=glm.approx(TItable,g,minobs=minobs,pseudocounts=pseudocounts,center=center,all=all,forcebin=forcebin,repara=repara,lm.approx=lm.approx,disp=disp)
-    
     # loop through resolutions,
     # calculate logLR using ash function.
     for(j in 1:J){
