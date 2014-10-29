@@ -238,7 +238,7 @@ plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, axes=F, xl
     }
 }
 
-#' @title Plot the output of \code{\link{multiseq}} (either the effect or the baseline)
+#' @title Plot the output of \code{\link{multiseq}} (either the effect or the baseline).
 #'
 #' @description If `what=="effect"` this function will plot the effect and intervals where \code{\link{multiseq}} found strong effect, i.e., when zero is outside of +/- \code{z.threshold} * posterior standard deviation). If  `what=="baseline"` or `what=="log_baseline"` this function will plot either the baseline \code{exp(res$baseline.mean)} or the log of the baseline \code{res$baseline.mean}, respectively, and  intervals where \code{\link{multiseq}} found strong peaks at a specified threshold, i.e., when log(p.threshold) is below +/- \code{z.threshold} * posterior standard deviation of the log baseline. If x$region is defined then the \code{x} axis will use genomic coordinates.
 #' 
@@ -361,6 +361,8 @@ plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=1, what="
 #' @param z.threshold: a multiplier of the standard deviation.
 #' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{mean-z.threshold*sqrt(var)>p.threshold} then a peak is called.
 #' @param region: a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL; if provided, the function will output the interval in genomic coordinates.
+#' @export
+#' @keywords internal 
 get.intervals.utils <- function(mean, var, what, z.threshold, p.threshold, region){
     if (is.null(mean) | is.null(var))
         stop(paste("ERROR: no", what, "mean or", what, "var in multiseq output"))

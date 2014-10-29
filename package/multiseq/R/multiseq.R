@@ -284,9 +284,53 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
     }
 }            
 
+
+#' Set default \code{ash} parameters.
+#' @export
+#' @keywords internal 
+#' @param ashparam: a list of parameters to be passed to ash.
+setAshParam <- function(ashparam){
+    #by default ashparam$df=NULL
+    #by default ashparam$mixsd=NULL
+    #by default ashparam$g=NULL
+    if (is.null(ashparam$pointmass))
+        ashparam$pointmass=TRUE
+    if (is.null(ashparam$prior))
+        ashparam$prior="nullbiased"
+    if (is.null(ashparam$gridmult))
+        ashparam$gridmult=2
+    if (is.null(ashparam$VB))
+        ashparam$VB=FALSE
+    if (is.null(ashparam$cxx))
+        ashparam$cxx=FALSE
+    if (is.null(ashparam$trace))
+        ashparam$trace=FALSE
+    if (is.null(ashparam$mixcompdist))
+        ashparam$mixcompdist="normal"
+    if (is.null(ashparam$lambda1))
+        ashparam$lambda1=1
+    if (is.null(ashparam$lambda2))
+        ashparam$lambda2=0
+    if (is.null(ashparam$randomstart))
+        ashparam$randomstart=FALSE
+    if (is.null(ashparam$minimaloutput))
+        ashparam$minimaloutput=FALSE
+    if (is.null(ashparam$maxiter))
+        ashparam$maxiter=5000
+    if (is.null(ashparam$nullcheck))
+        ashparam$nullcheck=TRUE
+    if (is.null(ashparam$onlylogLR))
+        ashparam$onlylogLR=FALSE
+    if (!(is.null(ashparam$g)))
+        stop("Error: ash parameter g can only be NULL; if you want to specify ash parameter g use multiseq arguments fitted.g and/or fitted.g.intercept")
+    if(!((is.null(ashparam$mixsd))|(is.numeric(ashparam$mixsd) & (length(ashparam$mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
+    if(!((ashparam$prior == "nullbiased") | (ashparam$prior == "uniform") | is.numeric(ashparam$prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
+    
+}
+    
 #' Estimate underlying signal from count data \code{x} and optionally the effect of a covariate \code{g}.
 #' 
-#' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
+#' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
 #'
 #' @param x: a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.
 #' @param read.depth: an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.
@@ -301,32 +345,18 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}.
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used.
 #' @param disp: a string, can be either "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx=TRUE}.
-#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas.
-#' @param prior: used in EM.
-#' @param gridmult: density of grid of sigma vector.
-#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood.
-#' @param mixsd: vector of \code{sigma} components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
-#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM (TRUE) or not (FALSE)
 #' @param shape.eff: bool, indicating whether to consider only shape effects (TRUE) or not (FALSE)
 #' @param cxx: bool, indicating whether to use c++ code (faster) (TRUE) or R code (FALSE)
-#' @param onlylogLR: bool, indicating whether to compute only \code{logLR} (TRUE) or not
 #' @param maxlogLR: a positive number, defaults to NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #' @param smoothing: bool, indicating whether to apply \pkg{ashr} to smooth the signal (TRUE) or not (FALSE); if \code{smoothing==FALSE} then reverse is set to FALSE; this option is only used when inferring shared pi-s. 
 #' @param cyclespin: bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If \code{cyclespin}==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.
 #' @param reverse: bool, indicating whether to reverse wavelet (TRUE) or not.
-#' @param trace: a logical variable passed to \code{ash} denoting whether some of the intermediate results of iterations should be displayed to the user; defaults to FALSE.
-#' @param mixcompdist: distribution of components in mixture ("uniform","halfuniform" or "normal") passed to \code{ash}, defaults to "uniform".
-#' @param lambda1: multiplicative "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 1.
-#' @param lambda2: additive "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 0.
-#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat, passed to \code{ash}; default is NULL (Gaussian)=NULL.
-#' @param randomstart: logical, passed to \code{ash} indicating whether to initialize EM randomly.
-#' @param minimaloutput: logical,  passed to \code{ash}; if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue); defaults to FALSE
-#' @param maxiter: maximum number of iterations of the EM algorithm in \code{ashr}; defaults to 5000.
 #' @param fitted.g: a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}.
 #' @param fitted.g.intercept: a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}.  
 #' @param get.fitted.g: bool, indicating whether to save \code{fitted.g}.
-#' @param listy: a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is provided as an argument different from NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi.
-#' @param verbose: bool, defaults to FALSE, if TRUE \code{multiseq} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}. 
+#' @param listy: a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is not NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi-s.
+#' @param verbose: bool, defaults to FALSE, if TRUE \code{multiseq} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.
+#' @param ashparam: a list of parameters to be passed to ash; default values are set by function \code{\link{setAshParam}}.
 #' @export
 #'
 #' @examples
@@ -341,7 +371,7 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
 #' \item{logLR}{a list with elements \code{value} specifying the log likelihood ratio, \code{scales} a \code{J+1} vector specifying the logLR at each scale, \code{isfinite} bool specifying if the log likelihood ratio is finite}
 #' \item{fitted.g}{a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}}
 #' \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
-multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), nullcheck=TRUE, pointmass=TRUE, prior="nullbiased", gridmult=2, mixsd=NULL, VB=FALSE, shape.eff=FALSE, cxx=TRUE, onlylogLR=FALSE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, trace=FALSE, mixcompdist="normal", lambda1=1, lambda2=0, df=NULL, randomstart=FALSE, minimaloutput=FALSE, maxiter=5000, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE){
+multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), shape.eff=FALSE, cxx=TRUE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE, ashparam=NULL){
     disp=match.arg(disp)
     
     if(!is.null(g)) if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor or NULL")
@@ -355,12 +385,11 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     if(!is.logical(repara)) stop("Error: invalid parameter 'repara', 'repara'  must be bool")
     if(!is.logical(forcebin)) stop("Error: invalid parameter 'forcebin', 'forcebin'  must be bool")
     if(!is.logical(lm.approx)) stop("Error: invalid parameter 'lm.approx', 'lm.approx'  must be bool")
-    if(!((is.null(mixsd))|(is.numeric(mixsd) & (length(mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
     if(!is.element(disp,c("add","mult"))) stop("Error: invalid parameter 'disp', 'disp'  must be either 'add' or 'mult' ")
-    if(!((prior == "nullbiased") | (prior == "uniform") | is.numeric(prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
-    if(onlylogLR){
-        if(is.null(g)) stop("Error: g should be provided to compute logLR (onlylogLR = TRUE)")
-        if(pointmass != TRUE) stop("Error: logLR can be computed only when pointmass = TRUE")
+    setAshParam(ashparam)
+    if (ashparam$onlylogLR){
+        if(is.null(g)) stop("Error: g should be provided to compute logLR if ashparam$onlylogLR = TRUE")
+        if(ashparam$pointmass != TRUE) stop("Error: logLR can be computed only when ashparam$pointmass = TRUE")
         reverse=FALSE
     }
     if (!smoothing) reverse = FALSE
@@ -435,10 +464,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE, bound=0))
-                zdat.rate.ash = ash(zdat.rate[3], zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[J+1]], trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter)
+                zdat.rate.ash = do.call(ash, c(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]], ashparam))
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
-                if (pointmass) #compute logLR
+                if (ashparam$pointmass) #compute logLR
                     logLR[J+1] = zdat.rate.ash$logLR
                 if(reverse)
                     res.rate = compute.res.rate(zdat.rate, repara, baseline, w, read.depth)
@@ -452,10 +481,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 y.rate = listy$y.rate
             if (smoothing | get.fitted.g){
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp, bound=0))
-                zdat.rate.ash = ash(zdat.rate[3], zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[J+1]], trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter)
+                zdat.rate.ash = do.call(ash, c(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]], ashparam))
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
-                if (pointmass) #compute logLR 
+                if (ashparam$pointmass) #compute logLR 
                     logLR[J+1] = zdat.rate.ash$logLR
                 if (reverse)
                     res.rate = compute.res.rate(zdat.rate, repara, baseline, w, read.depth, g)
@@ -500,20 +529,20 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
             if (!is.null(g)){
                 if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash = ash(zdat[3,ind], zdat[4,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=onlylogLR, g=set.fitted.g[[j]], trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter)
+                    zdat.ash = do.call(ash,c(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE, ashparam))
                     if (get.fitted.g)
                         fitted.g[[j]] = zdat.ash$fitted.g
-                    if (pointmass)
+                    if (ashparam$pointmass)
                         logLR[j] = zdat.ash$logLR/spins
                 }else{
                     #if (get.fitted.g)
                     #    fitted.g[[j]] = zdat.ash$fitted.g
-                    if (pointmass)
+                    if (ashparam$pointmass)
                         logLR[j] = 0
                 }
             }
-            if (!onlylogLR & (smoothing | get.fitted.g)){
-                zdat.ash.intercept = ash(zdat[1,ind], zdat[2,ind], prior=prior, multiseqoutput=TRUE, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, g=set.fitted.g.intercept[[j]], trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter)
+            if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
+                zdat.ash.intercept = do.call(ash, c(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE, ashparam))
                 if (get.fitted.g)
                     fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
                 if (reverse){
@@ -526,7 +555,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }            
         }
         
-        if (pointmass){
+        if (ashparam$pointmass){
             sumlogLR = sum(logLR) # combine logLR from different scales
             finite.logLR = is.finite(sumlogLR); if((!finite.logLR) & (!is.null(maxlogLR))) sumlogLR = maxlogLR  # check if logLR is infinite; if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite.
         }
@@ -580,9 +609,9 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
 
 
 
-#' Compute logLR 
+#' Compute logLR. 
 #' 
-#' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row and covariate \code{g} for each sample, and compute logLR to test for association between \code{x} and \code{g}. If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.  
+#' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row and covariate \code{g} for each sample, and compute logLR to test for association between \code{x} and \code{g}. If \code{TItable} is provided, this function skips computation of \code{TItable} from \code{x} and use the \code{TItable} provided as a parameter. This helps with fast permutation test. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
 #'
 #' @param x: a matrix of \code{nsig} by \code{n} counts where \code{n} should be a power of 2
 #' @param g: an \code{nsig}-vector containing group indicators/covariate value for each sample
@@ -596,21 +625,6 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
 #' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used
 #' @param disp: "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx}=TRUE
-#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
-#' @param prior: used in EM
-#' @param gridmult: density of grid of sigma vector
-#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
-#' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
-#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
-#' @param trace: a logical variable passed to \code{ash} denoting whether some of the intermediate results of iterations should be displayed to the user; defaults to FALSE.
-#' @param mixcompdist: distribution of components in mixture ("uniform","halfuniform" or "normal") passed to \code{ash}, defaults to "uniform".
-#' @param lambda1: multiplicative "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 1.
-#' @param lambda2: additive "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 0.
-#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat, passed to \code{ash}; default is NULL (Gaussian)=NULL.
-#' @param randomstart: logical, passed to \code{ash} indicating whether to initialize EM randomly.
-#' @param minimaloutput: logical,  passed to \code{ash}; if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue); defaults to FALSE
-#' @param maxiter: maximum number of iterations of the EM algorithm in \code{ashr}; defaults to 5000.
-
 #' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
 #' @param maxlogLR: a positive number, default=NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #'
@@ -732,21 +746,6 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
 #' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used
 #' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx}=TRUE
-#' @param pointmass: bool, indicating whether or not to use point mass in vector of sigmas
-#' @param prior: used in EM
-#' @param gridmult: density of grid of sigma vector
-#' @param nullcheck: bool, if TRUE check that any fitted model exceeds the "null" likelihood
-#' @param mixsd: vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used
-#' @param trace: a logical variable passed to \code{ash} denoting whether some of the intermediate results of iterations should be displayed to the user; defaults to FALSE.
-#' @param mixcompdist: distribution of components in mixture ("uniform","halfuniform" or "normal") passed to \code{ash}, defaults to "uniform".
-#' @param lambda1: multiplicative "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 1.
-#' @param lambda2: additive "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 0.
-#' @param df: appropriate degrees of freedom for (t) distribution of betahat/sebetahat, passed to \code{ash}; default is NULL (Gaussian)=NULL.
-#' @param randomstart: logical, passed to \code{ash} indicating whether to initialize EM randomly.
-#' @param minimaloutput: logical,  passed to \code{ash}; if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue); defaults to FALSE
-#' @param maxiter: maximum number of iterations of the EM algorithm in \code{ash}; defaults to 5000.
-
-#' @param VB: bool, indicates whether to use a variational Bayes alternative to EM
 #' @param cxx: bool, indicating whether to use Rcode or c++ code (faster)
 #' @param maxlogLR: a positive number, default=NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #'

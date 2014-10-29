@@ -12,7 +12,6 @@
 #         EXAMPLE:       qsub_run_multiseq.sh samplesheet.txt ./results_run_multiseq/ < list_loci
 #**************************************************************************************************#  
 
-MEM=2g
 sample_sheet=$1
 OUT_DIR=$2"/"
 fitted_g=$OUT_DIR"/fitted.g.RData"
@@ -39,6 +38,6 @@ while read region; do
     locus="`echo ${region} | awk '{print $1':'$2+1'-'$3}'`"
     PROCESS_NAME=`echo ${region} | awk '{print $1"."$2"."$3}'`
     echo "Rscript run.multiseq.R ${sample_sheet} ${locus} ${OUT_DIR} $fitted_g" | \
-	qsub -l h_vmem=${MEM} -v PATH -cwd -N ${PROCESS_NAME} \
+	qsub -l h_vmem=2g -v PATH -cwd -N ${PROCESS_NAME} \
         -o ${LOG_DIR}${PROCESS_NAME}"_log.out" -e ${LOG_DIR}${PROCESS_NAME}"_log.err"
 done 

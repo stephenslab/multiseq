@@ -48,3 +48,8 @@ Note: To generate a bed file `list_loci.bed` with 5000 adjacent intervals of siz
 
 
 
+Instructions to run parse_bw_bb.sh
+
+    #parse=~/src/NGS_utils/scripts/parse_bw_bb.sh                                                                                                                                                 #file_chrom_full_len=$course_repodir"/data/chromosome.lengths.hg19.txt"                                                                                                                        
+    #cd "/data/internal/solexa_mountpoint/epantaleo/simulations/"$DATA_NAME"/"                                                                                                                     
+    #sh $parse $file_chrom_full_len   

@@ -8,16 +8,11 @@
 library(Rcpp)
 Rcpp.package.skeleton("multiseq", path=".", code_files=c("multiseq.R", "PoissonBinomial.funcs.R", "deltamethod.R"), cpp_files="multiseq.cpp", example_code = FALSE, attributes = TRUE)
 
-#/data/tools/R-3.0.3/bin/R
-#devtools::install_github("klutometis/roxygen")
-require(roxygen2)
-require(devtools)
-roxygenize("~/Downloads/multiseq")
-document("~/Downloads/multiseq")
-
 ######################
 # Instruction to document the package using R
 ######################
+#/data/tools/R-3.0.3/bin/R
+#devtools::install_github("klutometis/roxygen")
 install.packages("~/src/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")
 require(roxygen2)
 require(devtools)
