@@ -11,16 +11,25 @@ Rcpp.package.skeleton("multiseq", path=".", code_files=c("multiseq.R", "PoissonB
 ######################
 # Instruction to document the package using R
 ######################
-#/data/tools/R-3.0.3/bin/R
+#from within the package/multiseq directory:
+#/data/tools/R-3.1.1/bin/R
 #devtools::install_github("klutometis/roxygen")
 install.packages("~/src/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")
 require(roxygen2)
 require(devtools)
 roxygenize()
 document()
+#log out of R
+#log into R from within the package/multiseq directory
+#/data/tools/R-3.1.1/bin/R 
+#make sure that path.package("multiseq") is
+#[1] "/mnt/lustre/home/epantaleo/R/x86_64-unknown-linux-gnu-library/3.1/multiseq"
+#before you build the vignette
+require(devtools)
+library(multiseq)
 build_vignettes()
 #in bash
-#generate and archive from folder multiseq
+#generate an archive from folder multiseq
 #tar -pczf multiseq_0.1.tar.gz multiseq
 install.packages("~/src/multiseq/package/multiseq_0.1.tar.gz",repos=NULL,type="source")
 help(package="multiseq")

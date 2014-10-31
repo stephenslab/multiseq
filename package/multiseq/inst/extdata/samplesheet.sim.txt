@@ -1,5 +1,0 @@
-SampleID Type bedPath ReadDepth bigWigPath
-A1 Control peak.bb 127413972 A1.bw
-A2 Control peak.bb 147059023 A2.bw
-B1 Test peak.bb 146349811 B1.bw
-B2 Test peak.bb 122383006 B2.bw

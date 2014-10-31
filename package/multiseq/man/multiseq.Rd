@@ -6,21 +6,17 @@
 multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
   baseline = "inter", minobs = 1, pseudocounts = 0.5, all = FALSE,
   center = FALSE, repara = TRUE, forcebin = FALSE, lm.approx = TRUE,
-  disp = c("add", "mult"), nullcheck = TRUE, pointmass = TRUE,
-  prior = "nullbiased", gridmult = 2, mixsd = NULL, VB = FALSE,
-  shape.eff = FALSE, cxx = TRUE, onlylogLR = FALSE, smoothing = TRUE,
-  cyclespin = TRUE, reverse = TRUE, trace = FALSE,
-  mixcompdist = "normal", lambda1 = 1, lambda2 = 0, df = NULL,
-  randomstart = FALSE, minimaloutput = FALSE, maxiter = 5000,
-  maxlogLR = NULL, set.fitted.g = NULL, set.fitted.g.intercept = NULL,
-  get.fitted.g = TRUE, listy = NULL, verbose = FALSE)
+  disp = c("add", "mult"), shape.eff = FALSE, cxx = TRUE,
+  smoothing = TRUE, cyclespin = TRUE, reverse = TRUE, maxlogLR = NULL,
+  set.fitted.g = NULL, set.fitted.g.intercept = NULL, get.fitted.g = TRUE,
+  listy = NULL, verbose = FALSE, ashparam = list())
 }
 \arguments{
 \item{x:}{a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.}
 
 \item{read.depth:}{an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.}
 
-\item{reflect:}{bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflect}} for details.}
+\item{reflect:}{bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflectSignal}} for details.}
 
 \item{baseline:}{a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".}
 
@@ -42,23 +38,9 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 
 \item{disp:}{a string, can be either "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx=TRUE}.}
 
-\item{pointmass:}{bool, indicating whether or not to use point mass in vector of sigmas.}
-
-\item{prior:}{used in EM.}
-
-\item{gridmult:}{density of grid of sigma vector.}
-
-\item{nullcheck:}{bool, if TRUE check that any fitted model exceeds the "null" likelihood.}
-
-\item{mixsd:}{vector of \code{sigma} components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used}
-
-\item{VB:}{bool, indicates whether to use a variational Bayes alternative to EM (TRUE) or not (FALSE)}
-
 \item{shape.eff:}{bool, indicating whether to consider only shape effects (TRUE) or not (FALSE)}
 
 \item{cxx:}{bool, indicating whether to use c++ code (faster) (TRUE) or R code (FALSE)}
-
-\item{onlylogLR:}{bool, indicating whether to compute only \code{logLR} (TRUE) or not}
 
 \item{maxlogLR:}{a positive number, defaults to NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.}
 
@@ -68,31 +50,17 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 
 \item{reverse:}{bool, indicating whether to reverse wavelet (TRUE) or not.}
 
-\item{trace:}{a logical variable passed to \code{ash} denoting whether some of the intermediate results of iterations should be displayed to the user; defaults to FALSE.}
-
-\item{mixcompdist:}{distribution of components in mixture ("uniform","halfuniform" or "normal") passed to \code{ash}, defaults to "uniform".}
-
-\item{lambda1:}{multiplicative "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 1.}
-
-\item{lambda2:}{additive "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 0.}
-
-\item{df:}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, passed to \code{ash}; default is NULL (Gaussian)=NULL.}
-
-\item{randomstart:}{logical, passed to \code{ash} indicating whether to initialize EM randomly.}
-
-\item{minimaloutput:}{logical,  passed to \code{ash}; if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue); defaults to FALSE}
-
-\item{maxiter:}{maximum number of iterations of the EM algorithm in \code{ashr}; defaults to 5000.}
-
 \item{fitted.g:}{a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}.}
 
 \item{fitted.g.intercept:}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}.}
 
 \item{get.fitted.g:}{bool, indicating whether to save \code{fitted.g}.}
 
-\item{listy:}{a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is provided as an argument different from NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi.}
+\item{listy:}{a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is not NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi-s.}
 
 \item{verbose:}{bool, defaults to FALSE, if TRUE \code{multiseq} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.}
+
+\item{ashparam:}{a list of parameters to be passed to ash; default values are set by function \code{\link{setAshParam}}.}
 }
 \value{
 \code{multiseq} returns an object of \code{\link[base]{class}} "multiseq", a list with the following elements (or a simplified list if \code{verbose=FALSE} or \code{smoothing=FALSE}) \cr
@@ -105,7 +73,7 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
 }
 \description{
-This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. Parameters \code{pointmass}, \code{prior}, \code{gridmult}, \code{nullcheck}, \code{mixsd}, \code{VB} are passed to \pkg{ashr}.
+This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
 }
 \examples{
 #load data contained in example1

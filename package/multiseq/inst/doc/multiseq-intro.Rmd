@@ -1,10 +1,3 @@
----
-title: "An Introduction to the multiseq package"
-  output:
-  html_document:
-    toc: yes
----
-
 <!--
 %\VignetteEngine{knitr}
 %\VignetteIndexEntry{An Introduction to the multiseq package}
@@ -66,27 +59,40 @@ If multiple samples are available, function `multiseq` can use them jointly to g
    
 
     z.threshold <- 2
-    ylim        <- c(0, max(c(mu, x, exp(res$baseline.mean+z.threshold*sqrt(res$baseline.var)), exp(res6$baseline.mean+z.threshold*sqrt(res6$baseline.var)))))
+    ylim        <- c(0, max(c(mu, 
+    		   	      x, 
+                              exp(res$baseline.mean+z.threshold*sqrt(res$baseline.var)), 
+                              exp(res6$baseline.mean+z.threshold*sqrt(res6$baseline.var)))))
     
-
     #plot
-    par(mfrow=c(3,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
+    par(mfrow=c(4,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
     
     #plot underlying signal    		      
     plot(mu, type="l", col="red", ylim=ylim, xaxt="n", xlab="", ylab="")
-    legend("topright", legend =c("underlying signal", "simulated data", "estimated signal 1 sample", "estimated signal 6 samples"), lty=c(1, 0, 1, 1), pch=c(".","o",".","."), col=c("red", "black", "dark green", "blue"))  
-    title("1", line=-1)    
+    legend("topright", 
+           legend =c("underlying signal", 
+	             "simulated data", 
+                     "estimated signal 1 sample", 
+                     "estimated signal 6 samples"), 
+           lty=c(1, 0, 1, 1), 
+           pch=c(".","o",".","."), 
+           col=c("red", "black", "dark green", "blue"))  
+    title("underlying signal", line=-1)    
 
-    #plot simulated data and estimated baseline
+    #plot underlying signal and simulated data 
     plot(x, ylim=ylim, xaxt="n", xlab="", ylab="")
-    lines(exp(res$baseline.mean), col="dark green")
-    title("2",line=-1)
+    lines(mu, col="red")
+    title("simulated data",line=-1)
 
-    #plot underlyng signal, estimated baseline from 1 samples, and estimated baseline from 6 samples
+    #plot estimated baseline using 1 sample
     plot(mu, type="l", col="red", ylim=ylim, xaxt="n", xlab="", ylab="")
-    lines(exp(res$baseline.mean), col="dark green")
+    lines(exp(res$baseline.mean), col="dark green")  
+    title("estimated signal (1 sample)",line=-1) 
+
+    #plot estimated baseline using 6 samples
+    plot(mu, type="l", col="red", ylim=ylim, xlab="Position", ylab="")
     lines(exp(res6$baseline.mean), col="blue")
-    title("3",line=-1)
+    title("estimated signal (6 samples)",line=-1)
 ```
 
 As shown above, `multiseq` can be used to smooth multiple samples generated from the same underlying signal to get a better estimate.
@@ -96,20 +102,28 @@ Here we will show how `multiseq` can be applied to RNA-Sequencing data. We chose
 
 ```{r OAS1}
     data(OAS1, package="multiseq")
-
+    
     res0         <- multiseq(x=OAS1$x[OAS1$g==0,], minobs=1, read.depth=OAS1$read.depth[OAS1$g==0])
     res1         <- multiseq(x=OAS1$x[OAS1$g==1,], minobs=1, read.depth=OAS1$read.depth[OAS1$g==1])
     res2         <- multiseq(x=OAS1$x[OAS1$g==2,], minobs=1, read.depth=OAS1$read.depth[OAS1$g==2])
-    #res          <- multiseq(x=OAS1$x, g=OAS1$g, minobs=1, read.depth=OAS1$read.depth)
+    res          <- multiseq(x=OAS1$x, g=OAS1$g, minobs=1, read.depth=OAS1$read.depth)
     
     par(mfrow=c(5,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
-#    res$region   <- OAS1$region
-    ylim         <- c(0, max(res0$baseline.mean+z.threshold*sqrt(res0$baseline.var), res1$baseline.mean+z.threshold*sqrt(res1$baseline.var), res2$baseline.mean+z.threshold*sqrt(res2$baseline.var)))
-    plot(res0, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="genotype AA", ylim=ylim)
-    plot(res1, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="genotype AG", ylim=ylim)
-    plot(res2, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="genotype GG", ylim=ylim)
-    #plot(res, z.threshold=2, is.xaxis=FALSE)
-    transcripts <- get.transcripts(file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp"), OAS1$region)
+    res$region   <- OAS1$region
+    M <- max(res0$baseline.mean+z.threshold*sqrt(res0$baseline.var),
+		res1$baseline.mean+z.threshold*sqrt(res1$baseline.var), 
+		res2$baseline.mean+z.threshold*sqrt(res2$baseline.var))
+    m <- min(res0$baseline.mean-z.threshold*sqrt(res0$baseline.var),
+		res1$baseline.mean-z.threshold*sqrt(res1$baseline.var),
+		res2$baseline.mean-z.threshold*sqrt(res2$baseline.var)) 
+
+    ylim         <- exp(c(m,M))
+    plot(res0, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AA)", ylim=ylim)
+    plot(res1, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AG)", ylim=ylim)
+    plot(res2, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype GG)", ylim=ylim)
+    plot(res, z.threshold=2, is.xaxis=FALSE)
+    transcripts <- get.transcripts(file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp"), 
+                                   OAS1$region)
     plot(transcripts, OAS1$region)
 ```
 
@@ -117,7 +131,7 @@ Notice the use of argument `minobs` in function`multiseq` (type `?multiseq` to s
 Function `get.intervals` that can be used to compute intervals where `multiseq` found strong peaks or strong effects at a specified threshold. Type `?get.intervals` for more details.
 
 ```{r plot}
-    res$intervals <- get.intervals(res, z.threshold=2, p.threshold=1, what="baseline")
+    res$intervals <- get.intervals(res, what="effect")
     res$intervals 
 ```
 
@@ -168,15 +182,27 @@ Let's apply `multiseq` to smooth the data in each of the two genotipe classes (`
       res0        <- multiseq(x=x[which(g==0),], minobs=1, read.depth=samples$ReadDepth[which(g==0)])
       res1  	  <- multiseq(x=x[which(g==1),], minobs=1, read.depth=samples$ReadDepth[which(g==1)]) 
       #find an effect given a covariate
-      #res         <- multiseq(x=x, g=g, minobs=1, read.depth=samples$ReadDepth)
+      res         <- multiseq(x=x, g=g, minobs=1, read.depth=samples$ReadDepth)
+
+      res0$region <- region
+      res1$region <- region
+      res$region <- region
+
+      get.intervals(res0, what="baseline")
+      get.intervals(res1, what="baseline")   
+      get.intervals(res) 
 
       #plot
-      par(mfrow=c(3,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))
-      #res$region <- region
-      ylim         <- c(0, max(res0$baseline.mean+z.threshold*sqrt(res0$baseline.var), res1$baseline.mean+z.threshold*sqrt(res1$baseline.var)))
-      plot(res0, z.threshold=2, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
-      plot(res1, z.threshold=2, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
-      #plot(res, z.threshold=2)
+      par(mfrow=c(3,1), oma = c(0,0,0,0) + 0.1, mar = c(2,2,1,2), mgp=c(0,1,0))      
+      z.threshold=2
+      M          <- max(res0$baseline.mean+z.threshold*sqrt(res0$baseline.var), 
+                        res1$baseline.mean+z.threshold*sqrt(res1$baseline.var))
+      m          <- min(res0$baseline.mean-z.threshold*sqrt(res0$baseline.var), 
+                        res1$baseline.mean-z.threshold*sqrt(res1$baseline.var))
+      ylim       <- exp(c(m, M))
+      plot(res0, z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
+      plot(res1, z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
+      plot(res, z.threshold)
 ```
 
 
@@ -188,13 +214,12 @@ With function `samplesheetToTrackHub` you can create a [Track Hub](http://www.ge
 ```{r track_hub, results='hide'}
     setwd(file.path(path.package("multiseq"),"extdata"))
     hub_name <- "testMultiseq/dat"
-    #samplesheetToTrackHub(samplesheet, hub_name, chr="chr1")
+    samplesheetToTrackHub(samplesheet, hub_name, region=region)
 ```
 
 Function `samplesheetToTrackHub` will create a Track Hub in folder */some/path/testMultiseq/dat/* and will print the following message:
 
-    go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hubUrl=https:some/address/testMultiseq/dat/hub.txt
-    center the genome browser on the region of interest
+    go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr1%3A11740409-11756792&hubUrl=https:some/address/testMultiseq/dat/hub.txt
     and make track visible
 
 If the read tracks or the bed files are large, make sure enough memory is available to run `samplesheetToTrackHub`.
@@ -209,15 +234,13 @@ After running `multiseq`, you can use function `multiseqToTrackHub` to create a 
 - the intervals where multiseq found strong effect (zero is outside of +/- a multiple of the posterior standard deviation ' e.g. 2 or 3).
 
 ```{r multiseqToTrackHub, results='hide'}
-    #res$region    <- region
-    #res$intervals <- get.intervals(res, z.threshold=2, region=region, what="effect")
-    #multiseqToTrackHub(res, z.threshold=2, hub_name="testMultiseq/multiseq_dat")
+    res$region    <- region
+    multiseqToTrackHub(res, z.threshold=2, hub_name="testMultiseq/multiseq_dat")
 ```
 
 Function `multiseqToTrackHub` will create a Track Hub named *multiseq_dat* in the *https:some/address/testMultiseq/* folder and will print the following message:
   
-    go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hubUrl=https:some/address/testMultiseq/multiseq_dat/hub.txt
-    center your genome browser around chr1:11740409-11756792 
+    go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr1%3A11740409-11756792&hubUrl=https:some/address/testMultiseq/multiseq_dat/hub.txt
     and make track visible
     
 By default `multiseqToTrackHub` uses the human genome hg19 but default settings can be changed by specifying additional arguments (see help).

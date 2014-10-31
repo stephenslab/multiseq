@@ -3,29 +3,26 @@
 \alias{hdf5ToBigWig}
 \title{Convert \code{hdf5} file to \code{bigWig} only extracting counts from a specified chromosome.}
 \usage{
-hdf5ToBigWig(h5_track, chrom_file, chr = NULL, bigWig_track,
-  assembly = "hg19")
+hdf5ToBigWig(h5_track, chrom_file, region = NULL, bigWig_track)
 }
 \arguments{
 \item{h5_track:}{path to the \code{hdf5} track.}
 
 \item{chrom_file:}{path to the file containing chromosome names and lengths.}
 
-\item{chr:}{extract counts from this chromosome.}
+\item{region:}{a string specifying a genomic region; extract counts from this region; can be a chromosome (e.g. "chr1") or "chr1:3456-3456789".}
 
 \item{bigWig_track:}{name of new \code{bigWig} track.}
-
-\item{assembly:}{genome assembly that reads were mapped to; default="hg19".}
 }
 \value{
 no return; it prints to a file.
 }
 \description{
-This function requires the executable \code{wigToBigWig} to be in the user's PATH. It converts \code{h5_track} into \code{bigWig_track.bw} using data in chromosome \code{chr} and \code{chromosome_file} containing chromosome names and lengths.
+This function requires the executable \code{wigToBigWig} to be in the user's PATH. It converts \code{h5_track} into \code{bigWig_track.bw} using data in region \code{region} and \code{chromosome_file} containing chromosome names and lengths.
 }
 \examples{
 \dontrun{
-hdf5ToBigWig("in.h5", "chromosome_file", "chr1", "out")
+hdf5ToBigWig("in.h5", "chromosome_file", "chr1:1234-1234567", "out")
 }
 }
 \keyword{internal}

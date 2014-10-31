@@ -44,34 +44,6 @@ permutation.logLR(pheno.dat, geno.dat, library.read.depth = NULL,
 
 \item{disp:}{"all" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx}=TRUE}
 
-\item{pointmass:}{bool, indicating whether or not to use point mass in vector of sigmas}
-
-\item{prior:}{used in EM}
-
-\item{gridmult:}{density of grid of sigma vector}
-
-\item{nullcheck:}{bool, if TRUE check that any fitted model exceeds the "null" likelihood}
-
-\item{mixsd:}{vector of sigma components to be specified for mixture model; defaults to NULL, in which case an automatic procedure is used}
-
-\item{trace:}{a logical variable passed to \code{ash} denoting whether some of the intermediate results of iterations should be displayed to the user; defaults to FALSE.}
-
-\item{mixcompdist:}{distribution of components in mixture ("uniform","halfuniform" or "normal") passed to \code{ash}, defaults to "uniform".}
-
-\item{lambda1:}{multiplicative "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 1.}
-
-\item{lambda2:}{additive "inflation factor" for standard errors (like Genomic Control), passed to \code{ash}; defaults to 0.}
-
-\item{df:}{appropriate degrees of freedom for (t) distribution of betahat/sebetahat, passed to \code{ash}; default is NULL (Gaussian)=NULL.}
-
-\item{randomstart:}{logical, passed to \code{ash} indicating whether to initialize EM randomly.}
-
-\item{minimaloutput:}{logical,  passed to \code{ash}; if TRUE, just outputs the fitted g and the lfsr (useful for very big data sets where memory is an issue); defaults to FALSE}
-
-\item{maxiter:}{maximum number of iterations of the EM algorithm in \code{ash}; defaults to 5000.}
-
-\item{VB:}{bool, indicates whether to use a variational Bayes alternative to EM}
-
 \item{cxx:}{bool, indicating whether to use Rcode or c++ code (faster)}
 
 \item{maxlogLR:}{a positive number, default=NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.}

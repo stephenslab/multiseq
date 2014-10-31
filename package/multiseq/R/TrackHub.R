@@ -81,12 +81,13 @@ appendBigWigTrack <- function(sampleid, bigwig_track, hub_name_string,assembly_d
 #' @keywords internal
 printGoToMessage <- function(hub_name, assembly, hub_dir, http_address, region=NULL){
     #print the link to the UCSC Genome Browser page with the track already loaded
-    toprint=paste0("go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=", assembly, "&hubUrl=", http_address, "/", hub_name, "/hub.txt\n")
-    if (!is.null(region)){
-        toprint=paste0(toprint,"center the genome browser around ", region, "\n")
+    if (is.null(region)){
+        position <- ""
     }else{
-        toprint=paste0(toprint,"center the genome browser on the region of interest\n")
+        split <- unlist(strsplit(region, "\\:|\\-"))
+        position <- paste0("position=", split[1], "%3A", split[2], "-", split[3], "&")
     }
+    toprint=paste0("go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=", assembly, "&", position, "hubUrl=", http_address, "/", hub_name, "/hub.txt\n")
     toprint=paste0(toprint, "and make track visible\n")
     toprint=paste0(toprint,"(track has been saved in folder ", hub_dir, ")\n")
     
@@ -95,95 +96,121 @@ printGoToMessage <- function(hub_name, assembly, hub_dir, http_address, region=N
 
 #' @title Convert \code{hdf5} file to \code{bigWig} only extracting counts from a specified chromosome.   
 #'
-#' @description This function requires the executable \code{wigToBigWig} to be in the user's PATH. It converts \code{h5_track} into \code{bigWig_track.bw} using data in chromosome \code{chr} and \code{chromosome_file} containing chromosome names and lengths.  
+#' @description This function requires the executable \code{wigToBigWig} to be in the user's PATH. It converts \code{h5_track} into \code{bigWig_track.bw} using data in region \code{region} and \code{chromosome_file} containing chromosome names and lengths.  
 #' 
 #' @param h5_track: path to the \code{hdf5} track.
 #' @param chrom_file: path to the file containing chromosome names and lengths.
-#' @param chr: extract counts from this chromosome.
+#' @param region: a string specifying a genomic region; extract counts from this region; can be a chromosome (e.g. "chr1") or "chr1:3456-3456789".
 #' @param bigWig_track: name of new \code{bigWig} track.
-#' @param assembly: genome assembly that reads were mapped to; default="hg19".
 #' @return no return; it prints to a file.
 #' @keywords internal
 #' @examples
 #' \dontrun{ 
-#' hdf5ToBigWig("in.h5", "chromosome_file", "chr1", "out")
+#' hdf5ToBigWig("in.h5", "chromosome_file", "chr1:1234-1234567", "out")
 #' }
-hdf5ToBigWig <- function(h5_track, chrom_file, chr=NULL, bigWig_track, assembly="hg19"){
+hdf5ToBigWig <- function(h5_track, chrom_file, region=NULL, bigWig_track){
     if (noExecutable("wigToBigWig"))
         return(1)
-    chromosomes = read.table(chrom_file, stringsAsFactors=FALSE)
-    if (is.null(h5_track) | is.null(chr) | is.null(chrom_file) | is.null(bigWig_track))
-        stop("specify required arguments: h5_track, chrom_file, chromosome name, bigWig_track")
+    if (is.null(h5_track) | is.null(region) | is.null(chrom_file) | is.null(bigWig_track))
+        stop("specify required arguments: h5_track, chrom_file, region, bigWig_track")
+    chromosomes = read.table(chrom <- file, stringsAsFactors=FALSE) 
     counter=0
+    split <- unlist(strsplit(region, "\\:|\\-"))
+           
     for (i in 1:nrow(chromosomes)){
-        if (chromosomes[i,1]==chr){
+        if (chromosomes[i,1]==split[1]){
             counter=1
-            print(paste("processing chromosome ", chromosomes[i,1]))
+            if (length(split)==1){
+                start=1
+                end=chromosomes[i,2]
+            }else if (length(split)==3){
+                start=split[2]
+                end=split[3]
+            }else
+                stop("Error: invalid parameter 'region'")
+                
             zz <- pipe(paste("wigToBigWig stdin", bigWig_track), "w")
-            cat("fixedStep chrom=%s start=1 step=1", h5read(h5_track, chromosomes[i,1], index=list(1:chromosomes[i,2])), sep="\n", file=zz)
+            
+            cat("fixedStep chrom=%s start=1 step=1", h5read(h5_track, chromosomes[i,1], index=list(start:end)), sep="\n", file=zz)
             close(zz)
             break
         }
     }
     if (counter==0){
-        stop(paste("chr", chr, "not found in file", chrom_file))
+        stop(paste("chr", split[1], "not found in file", chrom_file))
     }
     return(0)
 }
 
-#' @title Convert \code{bam} file to \code{bigWig} only extracting counts from a specified chromosome. By default both ends of a paired end read are counted as independent reads.
+#' @title Convert \code{bam} file to \code{bigWig} only extracting counts from a specified genomic region or a chromosome. By default both ends of a paired end read are counted as independent reads.
 #'
 #' @description This function requires the executables \code{wigToBigWig} and \code{samtools} to be in the user's PATH. It converts \code{bam_track} into \code{bigWig_track.bw} using data from \code{chr} and \code{chromosome_file}, a tabulated file containing chromosome names and lengths. 
 #' 
 #' @param bam_track: path to the \code{bam} track.
 #' @param chrom_file: path to the tabulated file containing chromosome names and lengths
-#' @param chr: extract counts from the specified chromosome
+#' @param region: a string specifying a genomic region; extract counts from this region; can be a chromosome (e.g. "chr1") or "chr1:3456-3456789".
 #' @param bigWig_track: name of new \code{bigWig} track
 #' @param onlyoneend: a bool, defaults to FALSE; use TRUE if input is in bam format and only first end of the paired end read should be used. 
 #' @return no return; it prints to a file
 #' @keywords internal
 #' @examples
 #' \dontrun{ 
-#' bamToBigWig("in.bam", "chromosome_file", "chr1", "out", onlyoneend=TRUE)
+#' bamToBigWig("in.bam", "chromosome_file", "chr1:3456-3456789", "out", onlyoneend=TRUE)
 #' }
-bamToBigWig <- function(bam_track, chrom_file, chr, track_name, onlyoneend){
+bamToBigWig <- function(bam_track, chrom_file, region, bigWig_track, onlyoneend){
     if (noExecutable("samtools"))
         return(1)
     if (noExecutable("wigToBigWig"))
         return(1)
     if (noExecutable("awk"))
         return(1)
-    chromosomes = read.table(chrom_file, stringsAsFactors=FALSE)
+    if (is.null(bam_track) | is.null(region) | is.null(chrom_file) | is.null(bigWig_track))
+        stop("specify required arguments: bam_track, chrom_file, region, bigWig_track") 
+    chromosomes <- read.table(chrom_file, stringsAsFactors=FALSE)
+    split       <- unlist(strsplit(region, "\\:|\\-"))
+    
     counter=0
     for (i in 1:nrow(chromosomes)){
-        if (chromosomes[i,1]==chr){
+        if (chromosomes[i,1]==split[1]){
             counter=1
-            break
-        }
-    }
-    if (counter==0)
-        stop(paste("chr", chr, "not found in file", chrom_file))
-    
-    for (i in 1:nrow(chromosomes)){
-        if (chromosomes[i,1]==chr){
+            if (length(split)==1){
+                start=1
+                end=chromosomes[i,2]
+            }else if (length(split)==3){
+                start=split[2]
+                end=split[3]
+            }else
+                stop("Error: invalid parameter 'region'")
             if (onlyoneend==TRUE){
-                cmd <- paste("samtools view -f 64", track_name)
+                cmd <- paste("samtools view -f 64", bam_track, region)
             }else{
-                cmd <- paste("samtools view", track_name)
+                cmd <- paste("samtools view", bam_track, region)
             }
             cmd <- paste0(cmd,
-                          "| awk -v C=\"chr\" 'BEGIN{start=1; count=0; print \"fixedStep chrom=\"C\" start=1 step=1\n\"}",
-                          "{st=$4; if (st>start) {toprint=count; if (st-start>1) for (i=1; i<st-start; i++) print 0; start=st; count+=1;}", 
-                          "else if (st==start) count+=1;}'| ",
-                          "wigToBigWig stdin",
+                          " | awk '{if ($4 > ",
+                          start
+                          ,"){if ($4 <= ",
+                          end,
+                          ") print }}' | awk 'BEGIN{OFS=\"\"; start=",
+                          start,
+                          "; count=0; print \"fixedStep chrom=",
+                          split[1],
+                          " start=",
+                          start,
+                          " step=1\"}{st=$4; if (st>start) {print count; count=0; if (st-start>1) for (i=1; i<st-start; i++) print 0; start=st; count+=1;} else if (st==start) count+=1;}END{for (i=1;i<=",
+                          end,
+                          "-st+1; i++) print 0;}'| wigToBigWig stdin ",
                           chrom_file,
-                          track_name)
+                          " ",
+                          bigWig_track)
             print(cmd)
-            dir.create(dirname(track_name), showWarnings=FALSE, recursive=TRUE)
             system(cmd)
             break
         }
     }
+    if (counter==0)
+        stop(paste("chr", split[1], "not found in file", chrom_file))
+    
     return(0)
 }
 
@@ -203,7 +230,7 @@ bamToBigWig <- function(bam_track, chrom_file, chr, track_name, onlyoneend){
 #' (specifying the path to a \code{bed} or \code{bigBed} file). Depending on the size of the files this code might require a lot of memory.
 #' @param hub_name: name of the Track Hub; this string can be set to any value; it could contain a path, in which case the path will be relative to the mountpoint (see below); defaults to \code{paste0(basename(samplesheet),".TrackHub")}.
 #' @param chrom_file: path to the file containing chromosome names and lengths; defaults \code{system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq")}.
-#' @param chr: a string, restrict ouput to the selected chromosome \code{chr}.
+#' @param region: a string, restrict ouput to the selected genomic region; can be a chromosome or a region (e.g., "chr1:1245-23456789").
 #' @param assembly: genome assembly that reads were mapped to; defaults to "hg19". 
 #' @param mountpoint: path to the directory where the track hub folder will be saved in; this directory should be associated with an \code{http address} or an \code{ftp address}; defaults to \code{Sys.getenv("MOUNTPOINT_PATH")}.
 #' @param http_address: http or ftp address associated with the mountpoint; defaults to \code{Sys.getenv("MOUNTPOINT_PATH")}.
@@ -213,26 +240,28 @@ bamToBigWig <- function(bam_track, chrom_file, chr, track_name, onlyoneend){
 #'\dontrun{
 #' setwd(file.path(path.package("multiseq"),"extdata"))
 #' samplesheet="samplesheetEncode.txt"
-#' samplesheetToTrackHub(samplesheet, chr="chr1")
+#' samplesheetToTrackHub(samplesheet, region="chr1:100-3000")
 #' }  
-samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesheet),".TrackHub"), chrom_file=system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq"), chr=NULL, assembly="hg19", mountpoint=Sys.getenv("MOUNTPOINT_PATH"), http_address=Sys.getenv("MOUNTPOINT_HTTP_ADDRESS"), onlyoneend=FALSE){
+samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesheet),".TrackHub"), chrom_file=system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq"), region=NULL, assembly="hg19", mountpoint=Sys.getenv("MOUNTPOINT_PATH"), http_address=Sys.getenv("MOUNTPOINT_HTTP_ADDRESS"), onlyoneend=FALSE){
+    if (is.null(samplesheet))
+        stop("specify 'samplesheet'")
     error=0
+    print("check executables")
     if (noExecutable("bigWigInfo"))
         return()
     if (noExecutable("grep"))
         return()
     if (noExecutable("tr"))
         return()
-    if (is.null(samplesheet) | is.null(chr))
-        stop("specify chromosome and/or samplesheet")
+    if (is.null(samplesheet) | is.null(region))
+        stop("specify region and/or samplesheet")
     if (mountpoint=="" | http_address==""){
-        warnings("the mountpoint and/or the mountpoint email address are not defined; in order to use this function follow package installation instructions")
+        warnings("the mountpoint and/or the mountpoint http address are not defined; in order to use this function follow package installation instructions")
         return()
     }
     
     if (is.null(hub_name))
         hub_name=paste0(basename(samplesheet),".TrackHub")
-
     samples         <- read.table(samplesheet, stringsAsFactors=F, header=T)
     hub_dir         <- file.path(mountpoint, hub_name)
     hub_name_string <- gsub("/", ".", hub_name)
@@ -240,25 +269,13 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
     assembly_dir    <- file.path(hub_dir, assembly)
     dir.create(assembly_dir, showWarnings = FALSE, recursive=TRUE) 
     sampleids       <-  samples$SampleID
-    
     bigwig_tracks <- NULL
     if ("bigWigPath" %in% colnames(samples)){
         for (bigwig_track in samples$bigWigPath){
             if (bigwig_track != "-"){
                 track_name    <- basename(bigwig_track)
-                dir.create(file.path(assembly_dir, dirname(track_name)), showWarnings = FALSE, recursive=TRUE)
                 file.copy(from=bigwig_track, to=assembly_dir, overwrite=TRUE) 
                 print(paste0("file.copy(from=", bigwig_track, "to=", file.path(assembly_dir, track_name)))
-            }else{
-                track_name <- "-"
-            }
-            bigwig_tracks <- c(bigwig_tracks, track_name)
-        }
-    }else if ("hdf5Path" %in% colnames(samples)){
-        for (h5_track in samples$hdf5Path){
-            if (h5_track != "-"){
-                track_name    <- basename(h5_track)
-                error         <- hdf5ToBigWig(h5_track, chrom_file, chr, track_name, assembly)
             }else{
                 track_name <- "-"
             }
@@ -267,13 +284,23 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
     }else if ("bamPath" %in% colnames(samples)){
         for (bam_track in samples$bamPath){
             if (bam_track  != "-"){
-                track_name    <- basename(bam_track)
-                error         <- bamToBigWig(bam_track, chrom_file, chr, track_name, onlyoneend=onlyoneend)
+                track_name    <- paste0(basename(bam_track), ".bw")
+                error         <- bamToBigWig(bam_track, chrom_file, region, file.path(assembly_dir, track_name), onlyoneend=onlyoneend)
+            }else{
+                track_name <- "-"
+            }            
+            bigwig_tracks <- c(bigwig_tracks, track_name)
+        }
+    }else if ("hdf5Path" %in% colnames(samples)){
+        for (h5_track in samples$hdf5Path){
+            if (h5_track != "-"){
+                track_name    <- paste0(basename(h5_track), ".bw")
+                error         <- hdf5ToBigWig(h5_track, chrom_file, region, file.path(assembly_dir, track_name))
             }else{
                 track_name <- "-"
             }
+            bigwig_tracks <- c(bigwig_tracks, track_name)
         }
-        bigwig_tracks <- c(bigwig_tracks, track_name)
     }else{
         stop("no input file provided: provide paths to input files (in hdf5, bigWig or bam format) in the samplesheet file.")
     }
@@ -298,12 +325,12 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
             break
         }
     }
-    if (bigWigLength<2^20){
+    if (as.integer(bigWigLength)<2^20){
         #find ymax over all bigwig files
         bigWigM <- 0
-        for (bigwig_track in bigwig_tracks){
+        for (track_name in bigwig_tracks){
             if (track_name != "-"){
-                command   <- paste("bigWigInfo -minMax", file.path(assembly_dir, bigwig_track))
+                command   <- paste("bigWigInfo -minMax", file.path(assembly_dir, track_name))
                 bigWigMax <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2] 
                 bigWigM   <- max(bigWigM, bigWigMax)
             }
@@ -312,7 +339,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
     }else{
         message <- "autoScale on"
     }
-    cat(paste0(message,"\ndragAndDrop subtracks\n\n"), file=file.path(assembly_dir, "trackDbFile.txt"),append=TRUE)
+    cat(paste0(message, "a\ndragAndDrop subtracks\n\n"), file=file.path(assembly_dir, "trackDbFile.txt"), append=TRUE)
 
     #write bigWig tracks
     counter <- 1
@@ -348,7 +375,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
                             cmd          <- paste("bedToBigBed -type=bed6+4",
                                                   peaks_track,
                                                   chrom_file,
-                                                  file.path(hub_dir, bigbed_track))
+                                                  file.path(assembly_dir, bigbed_track))
                             print(cmd)
                             system(cmd)
                             bigbed_tracks <- c(bigbed_tracks, bigbed_track)
@@ -364,7 +391,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
             }
         }
     }
-    printGoToMessage(hub_name, assembly, hub_dir, http_address)
+    printGoToMessage(hub_name, assembly, hub_dir, http_address, region)
 }
 
     
@@ -417,9 +444,9 @@ intervalsToBigBed <- function(intervals, chrom_file, bigBedFile="out.bb"){
 }
 
 writeTrackdbFile <- function(z.threshold, assembly_dir){
-        cat("track SuperTrack\n",
+        cat(paste0("track SuperTrack\n",
             "shortLabel multiseq\n",
-            paste("longLabel Plot of multiseq effect", z.threshold, "sd\n"),
+            paste("longLabel Plot of multiseq effect ", z.threshold, " sd\n"),
             "superTrack on none\n",
             "priority 1\n\n",
             "track CompositeTrack\n",
@@ -435,7 +462,7 @@ writeTrackdbFile <- function(z.threshold, assembly_dir){
             "superTrack SuperTrack full\n",
             "showSubtrackColorOnUi on\n",
             "smoothingWindow off\n",
-            "dragAndDrop subtracks\n\n",
+            "dragAndDrop subtracks\n\n"),
             file=file.path(assembly_dir, 'trackDbFile.txt'))
     }
 #' @title Create a UCSC genome browser "Track Hub" from \code{\link{multiseq}} output.

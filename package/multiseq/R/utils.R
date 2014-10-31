@@ -12,7 +12,7 @@
 split_region <- function(region){
     split <- unlist(strsplit(region, "\\:|\\-"))
     if (length(split) != 3)
-        stop("invalid region: example of a valid region is chr1:2345-234567 ")
+        stop("invalid region: example of a valid region is chr1:2345-234567")
     chr = split[1]
     start=as.numeric(split[2])
     end=as.numeric(split[3])
@@ -92,18 +92,21 @@ get.counts <- function(samplesheet=NULL, region=NULL, onlyoneend=FALSE){
         }
     }else if ("bigWigPath" %in%  colnames(samples) & !noExecutable("wigToBigWig")){  
         #read bigWig files into R matrix
+        Mcol <- region$end-region$start+1
         for (bigWigfile in samples$bigWigPath){
             print(paste0("Loading ", bigWigfile))
             wigfile <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".wig")
             command=paste0("bigWigToWig ", bigWigfile,
                 " -chrom=", region$chr,
-                " -start=", region$start,
+                " -start=", region$start-1,
                 " -end=", region$end,
                 " stdout | grep -v fixed > " ,
                 wigfile)
             print(command)
             system(command)
             M <- rbind(M, as.numeric(as.matrix(read.table(wigfile, stringsAsFactors=F, header=FALSE))))
+            if(ncol(M)!=Mcol)
+                stop(paste0("Error: input bigWig file does not (completely) cover region ", region$chr, ":", region$start, "-", region$end))
             file.remove(wigfile)
         }
     }else
@@ -257,7 +260,7 @@ plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, axes=F, xl
 #' plot(res)
 #' plot(res, what="baseline")
 #' }
-plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=1, what="effect", highlight=TRUE, axes=F, type="l", col="green", main=NULL, ylim=NULL, xlab=NULL, ylab=NULL, cex=NULL, ...){
+plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=3e-09, what="effect", highlight=TRUE, axes=F, type="l", col="green", main=NULL, ylim=NULL, xlab=NULL, ylab=NULL, cex=NULL, ...){
     if ((is.null(x$baseline.mean) | is.null(x$baseline.var)) & what=="baseline")
         stop("Error: no baseline in multiseq output")
     if ((is.null(x$effect.mean) | is.null(x$effect.var)) & what=="effect")
@@ -335,12 +338,10 @@ plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=1, what="
         points(ytop, type=type, col=col)
         points(ybottom, type=type, col=col)
     }
-
-    #draw line with p.threshold
-    abline(h=k, col="red")
     
     #draw intervals with effect or with peaks
     if (highlight){
+        abline(h=k, col="red")  
         xval        <- 1:N
         col.posi    <- xval[high.wh]
         N.polygons  <- length(col.posi)

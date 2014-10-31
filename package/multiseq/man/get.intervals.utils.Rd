@@ -21,4 +21,5 @@ get.intervals.utils(mean, var, what, z.threshold, p.threshold, region)
 \description{
 Output interval is in \code{bed} format (\code{start} is 0-based, \code{end} is 1-based).
 }
+\keyword{internal}
 

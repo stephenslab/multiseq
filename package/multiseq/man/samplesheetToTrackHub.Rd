@@ -5,7 +5,7 @@
 \usage{
 samplesheetToTrackHub(samplesheet, hub_name = paste0(basename(samplesheet),
   ".TrackHub"), chrom_file = system.file("extdata",
-  "chromosome.lengths.hg19.txt", package = "multiseq"), chr = NULL,
+  "chromosome.lengths.hg19.txt", package = "multiseq"), region = NULL,
   assembly = "hg19", mountpoint = Sys.getenv("MOUNTPOINT_PATH"),
   http_address = Sys.getenv("MOUNTPOINT_HTTP_ADDRESS"), onlyoneend = FALSE)
 }
@@ -23,7 +23,7 @@ should be specified. If the samplesheet has a column with header \code{bedPath}
 
 \item{chrom_file:}{path to the file containing chromosome names and lengths; defaults \code{system.file("extdata", "chromosome.lengths.hg19.txt", package="multiseq")}.}
 
-\item{chr:}{a string, restrict ouput to the selected chromosome \code{chr}.}
+\item{region:}{a string, restrict ouput to the selected genomic region; can be a chromosome or a region (e.g., "chr1:1245-23456789").}
 
 \item{assembly:}{genome assembly that reads were mapped to; defaults to "hg19".}
 
@@ -41,7 +41,7 @@ Read tracks can be in \code{bam}, \code{hdf5}, \code{bigWig}, \code{bed} or \cod
 \dontrun{
 setwd(file.path(path.package("multiseq"),"extdata"))
 samplesheet="samplesheetEncode.txt"
-samplesheetToTrackHub(samplesheet, chr="chr1")
+samplesheetToTrackHub(samplesheet, region="chr1:100-3000")
 }
 }
 

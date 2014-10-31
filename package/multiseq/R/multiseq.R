@@ -1,3 +1,11 @@
+#' Suppress an ash warning that we want to ignore; used any time ash is called in the package
+#' @param w
+#' @keywords internal
+suppressW <- function(w){
+    if( any(grepl("It's likely that the input data is not coming from a distribution with zero mean", w)))
+        invokeRestart("muffleWarning")
+}
+
 #' Get data at all scales.
 #'
 #' This function takes a matrix x of Poisson counts, nind by 2^k, and returns a nind by (2*2^k)-2 matrix that sums up columns of x at different scales. The last two columns of the aggregate are the sums of the first half of x and the sums of the second half. This function is needed to estimate the pi-s by aggregating data from multiple regions.
@@ -148,10 +156,10 @@ reverse.pwave=function(est,lp,lq=NULL){
 #' has a length which is a power of 2, this function adds a reflection of the original signal to itself. Otherwise this function extends
 #' the original signal to have length of a power of 2 by reflecting an appropriate number of observation points, and then reflecting the entire modified signal.
 #'  
-#' @param x: an m by n matrix of signals
-#' @return an n-vector containing the indices of the smoothed output corresponding to the original signal x. Also substitutes the original signal with the reflected one to be used as input.
+#' @param x: an \code{m} by \code{n} matrix of signals
+#' @return an \code{n}-vector containing the indices of the smoothed output corresponding to the original signal \code{x}. Also substitutes the original signal with the reflected one to be used as input.
 #' @keywords internal
-reflect <- function(x){
+reflectSignal <- function(x){
     n = dim(x)[2]
     J = log2(n)
     if((J%%1)==0){#if J is an integer, i.e. n is a power of 2
@@ -293,39 +301,46 @@ setAshParam <- function(ashparam){
     #by default ashparam$df=NULL
     #by default ashparam$mixsd=NULL
     #by default ashparam$g=NULL
-    if (is.null(ashparam$pointmass))
-        ashparam$pointmass=TRUE
-    if (is.null(ashparam$prior))
-        ashparam$prior="nullbiased"
-    if (is.null(ashparam$gridmult))
-        ashparam$gridmult=2
-    if (is.null(ashparam$VB))
-        ashparam$VB=FALSE
-    if (is.null(ashparam$cxx))
-        ashparam$cxx=FALSE
-    if (is.null(ashparam$trace))
-        ashparam$trace=FALSE
-    if (is.null(ashparam$mixcompdist))
-        ashparam$mixcompdist="normal"
-    if (is.null(ashparam$lambda1))
-        ashparam$lambda1=1
-    if (is.null(ashparam$lambda2))
-        ashparam$lambda2=0
-    if (is.null(ashparam$randomstart))
-        ashparam$randomstart=FALSE
-    if (is.null(ashparam$minimaloutput))
-        ashparam$minimaloutput=FALSE
-    if (is.null(ashparam$maxiter))
-        ashparam$maxiter=5000
-    if (is.null(ashparam$nullcheck))
-        ashparam$nullcheck=TRUE
-    if (is.null(ashparam$onlylogLR))
-        ashparam$onlylogLR=FALSE
-    #if (!is.null(ashparam$g))
-    #    stop("Error: ash parameter g can only be NULL; if you want to specify ash parameter g use multiseq arguments fitted.g and/or fitted.g.intercept")
-
-    if(!((is.null(ashparam$mixsd))|(is.numeric(ashparam$mixsd) & (length(ashparam$mixsd)<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
-    if(!((ashparam$prior == "nullbiased") | (ashparam$prior == "uniform") | is.numeric(ashparam$prior))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
+    if (!is.list(ashparam))
+        stop("Error: invalis parameter 'ashparam'")
+    if (is.null(names(ashparam))){
+        ashparam[["g"]]=NULL
+        ashparam[["mixsd"]]=NULL
+        ashparam[["df"]]=NULL 
+    }
+    if (is.null(ashparam[["pointmass"]]))
+        ashparam[["pointmass"]]=TRUE
+    if (is.null(ashparam[["prior"]]))
+        ashparam[["prior"]]="nullbiased"
+    if (is.null(ashparam[["gridmult"]]))
+        ashparam[["gridmult"]]=2
+    if (is.null(ashparam[["VB"]]))
+        ashparam[["VB"]]=FALSE
+    if (is.null(ashparam[["cxx"]]))
+        ashparam[["cxx"]]=FALSE
+    if (is.null(ashparam[["trace"]]))
+        ashparam[["trace"]]=FALSE
+    if (is.null(ashparam[["mixcompdist"]]))
+        ashparam[["mixcompdist"]]="normal"
+    if (is.null(ashparam[["lambda1"]]))
+        ashparam[["lambda1"]]=1
+    if (is.null(ashparam[["lambda2"]]))
+        ashparam[["lambda2"]]=0
+    if (is.null(ashparam[["randomstart"]]))
+        ashparam[["randomstart"]]=FALSE
+    if (is.null(ashparam[["minimaloutput"]]))
+        ashparam[["minimaloutput"]]=FALSE
+    if (is.null(ashparam[["maxiter"]]))
+        ashparam[["maxiter"]]=5000
+    if (is.null(ashparam[["nullcheck"]]))
+        ashparam[["nullcheck"]]=TRUE
+    if (is.null(ashparam[["onlylogLR"]]))
+        ashparam[["onlylogLR"]]=FALSE
+    if (!is.null(ashparam[["g"]]))
+        stop("Error: ash parameter 'g' can only be NULL; if you want to specify ash parameter 'g' use multiseq arguments 'fitted.g' and/or 'fitted.g.intercept'")
+    
+    if(!((is.null(ashparam[["mixsd"]]))|(is.numeric(ashparam[["mixsd"]]) & (length(ashparam[["mixsd"]])<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
+    if(!((ashparam[["prior"]] == "nullbiased") | (ashparam[["prior"]] == "uniform") | is.numeric(ashparam[["prior"]]))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
     return(ashparam)
 }
     
@@ -335,7 +350,7 @@ setAshParam <- function(ashparam){
 #'
 #' @param x: a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.
 #' @param read.depth: an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.
-#' @param reflect: bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflect}} for details.
+#' @param reflect: bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflectSignal}} for details.
 #' @param baseline: a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".
 #' @param g: an \code{nsig}-dimensional vector containing group indicators/covariates for each sample.
 #' @param minobs: minimum number of obs required to be in each logistic model.
@@ -372,7 +387,7 @@ setAshParam <- function(ashparam){
 #' \item{logLR}{a list with elements \code{value} specifying the log likelihood ratio, \code{scales} a \code{J+1} vector specifying the logLR at each scale, \code{isfinite} bool specifying if the log likelihood ratio is finite}
 #' \item{fitted.g}{a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}}
 #' \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
-multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), shape.eff=FALSE, cxx=TRUE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE, ashparam=NULL){
+multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), shape.eff=FALSE, cxx=TRUE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE, ashparam=list()){
     disp=match.arg(disp)
     
     if(!is.null(g)) if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor or NULL")
@@ -407,7 +422,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
         if(!is.null(g)) if(length(g) != nsig) stop("Error: covariate g for all samples are not provided")
         if(nsig == 1) forcebin = TRUE #if only one observation, don't allow overdispersion
         J = log2(ncol(x)); if((J%%1) != 0) reflect=TRUE #if ncol(x) is not a power of 2, reflect x
-        if(reflect == TRUE) reflect.indices = reflect(x) #reflect signal; this function is pseudo calling x by reference
+        if(reflect == TRUE) reflect.indices = reflectSignal(x) #reflect signal; this function is pseudo calling x by reference
         n = ncol(x)
         J = log2(n)
     }else{
@@ -465,7 +480,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE, bound=0))
-                zdat.rate.ash = do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam))
+                zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR
@@ -482,7 +497,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 y.rate = listy$y.rate
             if (smoothing | get.fitted.g){
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp, bound=0))
-                zdat.rate.ash = do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam))
+                zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR 
@@ -530,7 +545,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
             if (!is.null(g)){
                 if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash = do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE), ashparam))
+                    zdat.ash = withCallingHandlers(do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE), ashparam)), warning=suppressW)
                     if (get.fitted.g)
                         fitted.g[[j]] = zdat.ash$fitted.g
                     if (ashparam$pointmass)
@@ -543,7 +558,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 }
             }
             if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
-                zdat.ash.intercept = do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam))
+                zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
                 if (reverse){
@@ -693,7 +708,7 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
         #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
         y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
         zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-        logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
+        logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randostart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
     }
  
     #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
