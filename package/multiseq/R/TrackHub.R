@@ -331,7 +331,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
         for (track_name in bigwig_tracks){
             if (track_name != "-"){
                 command   <- paste("bigWigInfo -minMax", file.path(assembly_dir, track_name))
-                bigWigMax <- unlist(strsplit(system(command, intern=TRUE)[1], " "))[2] 
+                bigWigMax <- as.numeric(unlist(strsplit(system(command, intern=TRUE)[1], " "))[2]) 
                 bigWigM   <- max(bigWigM, bigWigMax)
             }
         }
@@ -339,7 +339,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
     }else{
         message <- "autoScale on"
     }
-    cat(paste0(message, "a\ndragAndDrop subtracks\n\n"), file=file.path(assembly_dir, "trackDbFile.txt"), append=TRUE)
+    cat(paste0(message, "\ndragAndDrop subtracks\n\n"), file=file.path(assembly_dir, "trackDbFile.txt"), append=TRUE)
 
     #write bigWig tracks
     counter <- 1
