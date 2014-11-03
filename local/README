@@ -1,0 +1,7 @@
+ChipSeqVignette: exploratory data anaalysis for generating the chip seq section of the vignette
+OAS1vignette: exploratory analysis for generating the rna seq section	of the vignette
+qsub_run_multiseq.sh: code to submitting in a que multiple multiseq runs on a list of loci
+load.data.R: R code to load data contained in a list of loci file
+run.multiseq.R: run multiseq on a locus (loading data from an R object created by load.data.R
+write_list_loci.sh: write a list of loci than can be input to load.data.R or qsub_run_multiseq.sh
+pipeline.R: pipeline to run multiseq with fitted g
