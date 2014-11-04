@@ -3,7 +3,7 @@
 \alias{get.intervals}
 \title{Print intervals where \code{\link{multiseq}} found strong effect or strong peaks.}
 \usage{
-get.intervals(res, z.threshold = 2, p.threshold = 3e-09, region = NULL,
+get.intervals(res, z.threshold = 2, p.threshold = 1e-09, region = NULL,
   what = "effect")
 }
 \arguments{
@@ -11,7 +11,7 @@ get.intervals(res, z.threshold = 2, p.threshold = 3e-09, region = NULL,
 
 \item{z.threshold:}{a multiplier of the standard deviation; default is 2}
 
-\item{p.threshold:}{this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; default is 3e-09.}
+\item{p.threshold:}{this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; default is 1e-09.}
 
 \item{region:}{a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL; if provided, the function will output the interval in genomic coordinates.}
 
@@ -24,7 +24,7 @@ This function returns a list with elements \cr
 \item{end}{a vector specifying the end of each interval}
 \item{sign}{can be "+" or "-" and indicates the sign of the effect or is always positive when \code{what="baseline"}}
 \item{z.threshold}{multiplier of the standard deviation}
-\item{p.threshold}{threshold for peack detection}
+\item{p.threshold}{threshold for peak detection}
 \item{type}{where \code{type} is either "local" - if \code{res$region} or \code{region} are not specified - or "sequence" otherwise.}
 Output interval is in \code{bed} format (\code{start} is 0-based, \code{end} is 1-based).
 }

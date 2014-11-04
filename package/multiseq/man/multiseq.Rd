@@ -58,9 +58,9 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 
 \item{listy:}{a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is not NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi-s.}
 
-\item{verbose:}{bool, defaults to FALSE, if TRUE \code{multiseq} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.}
+\item{verbose:}{bool, defaults to FALSE, if TRUE \code{\link{multiseq}} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.}
 
-\item{ashparam:}{a list of parameters to be passed to ash; default values are set by function \code{\link{setAshParam}}.}
+\item{ashparam:}{a list of parameters to be passed to \code{ash}; default values are set by function \code{\link{setAshParam}}.}
 }
 \value{
 \code{multiseq} returns an object of \code{\link[base]{class}} "multiseq", a list with the following elements (or a simplified list if \code{verbose=FALSE} or \code{smoothing=FALSE}) \cr

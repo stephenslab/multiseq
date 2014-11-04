@@ -206,7 +206,7 @@ plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, axes=F, xl
    
     if (is.xaxis){
         tck=axTicks(1)
-        tcklab=format(tck/1000000)
+        tcklab=format(tck/1000000, nsmall=3)
         axis(1,
              at=tck,
              labels=tcklab,
@@ -248,7 +248,7 @@ plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, axes=F, xl
 #' @param x: multiseq output; if x$region is defined then the \code{x} axis will use genomic coordinates.
 #' @param is.xaxis: bool, if TRUE plot \code{x} axis otherwise don't plot \code{x} axis.
 #' @param z.threshold: a multiplier of the standard deviation.
-#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; defaults to 1.
+#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; defaults to 1e-09.
 #' @param what: a string, it can be either "baseline" or "log_baseline" or "effect".
 #' @param highlight: a bool, if TRUE highlight intervals with strong peaks or strong signal; defaults to TRUE.shell
 #' @export
@@ -260,7 +260,7 @@ plot.transcripts <- function(Transcripts, region=NULL, is.xaxis=TRUE, axes=F, xl
 #' plot(res)
 #' plot(res, what="baseline")
 #' }
-plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=3e-09, what="effect", highlight=TRUE, axes=F, type="l", col="green", main=NULL, ylim=NULL, xlab=NULL, ylab=NULL, cex=NULL, ...){
+plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=1e-09, what="effect", highlight=TRUE, axes=F, type="l", col="green", main=NULL, ylim=NULL, xlab=NULL, ylab=NULL, cex=NULL, ...){
     if ((is.null(x$baseline.mean) | is.null(x$baseline.var)) & what=="baseline")
         stop("Error: no baseline in multiseq output")
     if ((is.null(x$effect.mean) | is.null(x$effect.var)) & what=="effect")
@@ -281,22 +281,24 @@ plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=3e-09, wh
         ybottom     <- x$baseline.mean - z.threshold*sqrt(x$baseline.var)
         ytop        <- x$baseline.mean + z.threshold*sqrt(x$baseline.var)
         N           <- length(x$baseline.mean)
-        y           <- x$baseline.mean
         k           <- log(p.threshold)
         high.wh     <- which(ybottom > k)
+        if (what=="baseline"){
+                y           <- exp(x$baseline.mean)
+                main        <- paste(what, main)
+                ymax        <- max(y)
+                ymin        <- min(y)
+                k           <- p.threshold
+        }else{
+            y           <- x$baseline.mean
+        }
     }
-
-    if (what=="baseline"){
-        y           <- exp(x$baseline.mean)
-        main        <- paste(what, main)
-        ymax        <- max(y)
-        ymin        <- min(y)
-        k           <- p.threshold
-    }else{
+    if (what!="baseline"){
         main        <- paste0(what, " +/- ", z.threshold, " s.d. ", main)
         ymax        <- max(ytop)
         ymin        <- min(ybottom)
     }
+    
     if (is.null(ylim))
         ylim=c(ymin,ymax)
     if (is.xaxis){
@@ -328,7 +330,7 @@ plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=3e-09, wh
         if (!is.null(x$region)){
             axis(1,
                  at=seq(1,N,ceiling(N/5)),
-                 labels=format(seq(region$start,region$end,ceiling(N/5))/1000000),
+                 labels=format(seq(region$start,region$end,ceiling(N/5))/1000000, nsmall=3),
                  cex.lab=cex,
                  cex.axis=cex)
         }else
@@ -342,12 +344,10 @@ plot.multiseq <- function(x, is.xaxis=TRUE, z.threshold=2, p.threshold=3e-09, wh
     #draw intervals with effect or with peaks
     if (highlight){
         abline(h=k, col="red")  
-        xval        <- 1:N
-        col.posi    <- xval[high.wh]
-        N.polygons  <- length(col.posi)
+        N.polygons  <- length(high.wh)
         if (N.polygons > 0)
             for(j in 1:N.polygons)
-                rect(col.posi[j]-0.5, ymin-2, col.posi[j]+0.5, ymax+2,
+                rect(high.wh[j]-0.5, ymin-abs(ymin/5), high.wh[j]+0.5, ymax+abs(ymax/5),
                      col=rgb(1, 0, 0,0.5), border=NA, lty=NULL)
     }
 }
@@ -439,12 +439,12 @@ get.intervals.utils <- function(mean, var, what, z.threshold, p.threshold, regio
 #' \item{end}{a vector specifying the end of each interval}
 #' \item{sign}{can be "+" or "-" and indicates the sign of the effect or is always positive when \code{what="baseline"}} 
 #' \item{z.threshold}{multiplier of the standard deviation}
-#' \item{p.threshold}{threshold for peack detection} 
+#' \item{p.threshold}{threshold for peak detection} 
 #' \item{type}{where \code{type} is either "local" - if \code{res$region} or \code{region} are not specified - or "sequence" otherwise.}
 #' Output interval is in \code{bed} format (\code{start} is 0-based, \code{end} is 1-based).
 #' @param res: \code{\link{multiseq}} output.
 #' @param z.threshold: a multiplier of the standard deviation; default is 2
-#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; default is 3e-09.
+#' @param p.threshold: this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; default is 1e-09.
 #' @param region: a string specifying a genomic region: reference sequence name, start position, end position; defaults to NULL; if provided, the function will output the interval in genomic coordinates.
 #' @param what: a string, it can be either "baseline" or "log_baseline" or "effect"; default is "effect"
 #' @export
@@ -454,7 +454,7 @@ get.intervals.utils <- function(mean, var, what, z.threshold, p.threshold, regio
 #' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 #' get.intervals(res, what="effect", region=dat$region)
 #' }
-get.intervals <- function(res, z.threshold=2, p.threshold=3e-09, region=NULL, what="effect"){
+get.intervals <- function(res, z.threshold=2, p.threshold=1e-09, region=NULL, what="effect"){
     if (is.null(region))
         if (!(is.null(res$region)))
             region=res$region

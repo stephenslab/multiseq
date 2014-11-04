@@ -4,7 +4,7 @@
 \title{Plot the output of \code{\link{multiseq}} (either the effect or the baseline).}
 \usage{
 \method{plot}{multiseq}(x, is.xaxis = TRUE, z.threshold = 2,
-  p.threshold = 3e-09, what = "effect", highlight = TRUE, axes = F,
+  p.threshold = 1e-09, what = "effect", highlight = TRUE, axes = F,
   type = "l", col = "green", main = NULL, ylim = NULL, xlab = NULL,
   ylab = NULL, cex = NULL, ...)
 }
@@ -15,7 +15,7 @@
 
 \item{z.threshold:}{a multiplier of the standard deviation.}
 
-\item{p.threshold:}{this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; defaults to 1.}
+\item{p.threshold:}{this argument is only used when \code{what=="baseline"} or \code{what=="log_baseline"} to specify a threshold for the detection of peaks: if \code{res$baseline.mean-z.threshold*sqrt(baseline.var)>log(p.threshold)} then a peak is called; defaults to 1e-09.}
 
 \item{what:}{a string, it can be either "baseline" or "log_baseline" or "effect".}
 

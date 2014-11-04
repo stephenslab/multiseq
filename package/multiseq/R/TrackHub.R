@@ -50,7 +50,7 @@ appendBedSuperTrack <- function(track, shortLabel, longLabel, tracks, shortLabel
                    'parent ', track, "\n",
                    "visibility full\n",
                    'bigDataUrl ', tracks[i], "\n",
-                   'color ', color, "\n"), file=out_file, append=TRUE)
+                   'color ', color, "\n\n"), file=out_file, append=TRUE)
 }
 
 #' @title Write a track with.
@@ -246,7 +246,6 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
     if (is.null(samplesheet))
         stop("specify 'samplesheet'")
     error=0
-    print("check executables")
     if (noExecutable("bigWigInfo"))
         return()
     if (noExecutable("grep"))
@@ -275,7 +274,7 @@ samplesheetToTrackHub <- function(samplesheet, hub_name=paste0(basename(samplesh
             if (bigwig_track != "-"){
                 track_name    <- basename(bigwig_track)
                 file.copy(from=bigwig_track, to=assembly_dir, overwrite=TRUE) 
-                print(paste0("file.copy(from=", bigwig_track, "to=", file.path(assembly_dir, track_name)))
+                print(paste0("copying file ", bigwig_track, " to ", file.path(assembly_dir, track_name)))
             }else{
                 track_name <- "-"
             }

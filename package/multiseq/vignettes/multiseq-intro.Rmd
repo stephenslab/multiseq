@@ -13,10 +13,9 @@ library(knitr)
 opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center")
 ```
 
-The **multiseq** package is an **R** package for multiscale sequence analysis and is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu) at the University of Chicago. Its main function s `multiseq` takes as input an `nsig` by `n` matrix where `nsig` is the number of samples and `n` is the length of the signal. The main function has two modes of operation: smoothing and effect estimation.... Function `multiseq` can be easily applied to smooth and estimate effect in sequencing data thanks to the helper function `get.counts` which extracts data from files in a variety of formats commonly used for storing sequencing data (i.e., *bam*, *rhdf5*, *bigWig* format).
+The **multiseq** package is an **R** package for multiscale sequence analysis and is ongoing work in the [Stephens lab](http://stephenslab.uchicago.edu) at the University of Chicago. Its main function `multiseq` has two modes of operation: smoothing and effect estimation.... 
 
-
-In this vignette you will learn how to install the package, run `multiseq` in its two different modes of operation, get data with function `get.counts`, and visualize its output (and input data) either in **R** or in the [UCSC Genome Browser](https://genome.ucsc.edu/) as a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html). If input data is sequencing data, you can plot `multiseq` results (tracks) as well as input data in the Genome Browser and you will be able to compare them with any of the available tracks and to fine-tune the display (e.g. zoom and scroll the tracks display, highlight a region, change the order of the displayed tracks, etc).
+In this vignette you will learn how to install the package, run `multiseq` in its two different modes of operation - smoothing and effect estimation - get data with function `get.counts` from files in a variety of formats commonly used for sequencing data (i.e., *bam*, *rhdf5*, *bigWig* format), and visualize its output (and input data) either in **R** or in the [UCSC Genome Browser](https://genome.ucsc.edu/) as a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html). If input data is sequencing data, you can plot `multiseq` results (tracks) as well as input data in the Genome Browser and you will be able to compare them with any of the available tracks and to fine-tune the display (e.g. zoom and scroll the tracks display, highlight a region, change the order of the displayed tracks, etc).
 
 ```{r downloading_and_installing, child = '../README.Rmd'}
 
@@ -27,10 +26,7 @@ Smoothing and estimating an effect with `multiseq`
 
 In this section you will learn how to use `multiseq` to smooth a signal or a set of signals, and how to use it to estimate an effect given a covariate.
 
-
-Function `multiseq` takes as input `x`, an `nsig` by `n`  matrix (or a one-dimensional vector of size `n`) where `nsig` is the number of samples and `n` is the length of the signal and can perform smoothing on the input signal. You can start by applying `multiseq` to smooth the standard "Spikes" test function used in the wavelet literature for univariate denoising (eg. Antoniadis et al. and Besbeas et al. (2004)). In the Figure below we have plotted the underlying signal in red, the simulated data in black circles, and the baseline estimated by `multiseq` in dark green with    
-
-If multiple samples are available, function `multiseq` can use them jointly to get a better estimate of the underlying signal. You can use 6 samples to estimate the same underlying signal as in the last panel of the Figure below (blue line). 
+Function `multiseq` takes as input `x`, an `nsig` by `n`  matrix (or a one-dimensional vector of size `n`) where `nsig` is the number of samples and `n` is the length of the signal and can perform smoothing on the input signal. We will start by applying `multiseq` to the standard "Spikes" test function used in the wavelet literature for univariate denoising (eg. Antoniadis et al. and Besbeas et al. (2004)). 
 
 ```{r smoothing}
     #First load the package
@@ -94,11 +90,11 @@ If multiple samples are available, function `multiseq` can use them jointly to g
     lines(exp(res6$baseline.mean), col="blue")
     title("estimated signal (6 samples)",line=-1)
 ```
+In the Figure above we plotted the underlying signal in red, the simulated data in black circles, and the estimated baseline mean in dark green with the light green curves reporting the baseline mean +/- 2 times the posterior standard errors.
 
-As shown above, `multiseq` can be used to smooth multiple samples generated from the same underlying signal to get a better estimate.
+Also we used function `multiseq` to estimate the mean baseline using multiple (6) which we plotted in blue, which gave us a more accurate estimate of the underlying signal, as expected.
 
-
-Here we will show how `multiseq` can be applied to RNA-Sequencing data. We chose data from an RNA-Seq experiment on 69 lymphoblastoid cell lines derived from unrelated Nigerian individuals (Pickrell et al., Nature 464, 768-772, 2010). In particular we picked a region where SNP rs10774671 was identified to be associated with a differential expression pattern of gene OAS1. For convenience we selected a random subset of 21 samples with 7 samples in each genotype classes and extracted counts around region "chr12:113354417-113358512" (reads mapped with bwa to hg19 genome). Type `?OAS1` to get more information about the dataset. We smoothed counts in each genotype class using `multiseq` (first three panels in the Figure below). A differential expression pattern across genotype classes is evident from the smoothed curves. We applied `multiseq` to the 21 samples given the covariate `g`, the genotype at SNP rs10774671. The 4th panel shows the pattern of differential expression identifyied by `multiseq`. 
+Below we will apply function `multiseq` to real data, namely RNA-Sequencing data from an experiment on `nsig`=69 lymphoblastoid cell lines derived from unrelated Nigerian individuals (Pickrell et al., Nature 464, 768-772, 2010). We selected a genomic region of size `n`=4096 where a SNP (rs10774671) was identified to be associated with a differential expression pattern. Our input matrix is a 66 x 4096 matrix of counts where each element of the matrix is the number of sequenced reads per individual whose start was mapped to each of the 4096 genomic base in each of the individuals. We will apply `multiseq` to estimate the baseline in each genotype group (first three panles in the Figure below) and to estimate an effect give the covariate `g` specifying thw allele at the SNP location in each individual (last panel in Figure below).
 
 ```{r OAS1}
     data(OAS1, package="multiseq")
@@ -118,32 +114,29 @@ Here we will show how `multiseq` can be applied to RNA-Sequencing data. We chose
 		res2$baseline.mean-z.threshold*sqrt(res2$baseline.var)) 
 
     ylim         <- exp(c(m,M))
-    plot(res0, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AA)", ylim=ylim)
-    plot(res1, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AG)", ylim=ylim)
-    plot(res2, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype GG)", ylim=ylim)
-    plot(res, z.threshold=2, is.xaxis=FALSE)
+    plot(res0, z.threshold=z.threshold, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AA)", ylim=ylim)
+    plot(res1, z.threshold=z.threshold, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AG)", ylim=ylim)
+    plot(res2, z.threshold=z.threshold, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype GG)", ylim=ylim)
+    plot(res, z.threshold=z.threshold, is.xaxis=FALSE)
     transcripts <- get.transcripts(file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp"), 
                                    OAS1$region)
     plot(transcripts, OAS1$region)
 ```
 
-Notice the use of argument `minobs` in function`multiseq` (type `?multiseq` to see a complete list of possible arguments); `minobs` specifies the minimum number of observations ...required to be .. in each logistic model.
-Function `get.intervals` that can be used to compute intervals where `multiseq` found strong peaks or strong effects at a specified threshold. Type `?get.intervals` for more details.
+Notice the use of argument `minobs` in function `multiseq` (type `?multiseq` to see a complete list of possible arguments) which can be used to specifies the minimum number of observations ...required to be .. in each logistic model.
+You can use function `get.intervals` to print the intervals where `multiseq` found peaks or effects at a specified threshold. Type `?get.intervals` for more details. 
 
 ```{r plot}
     res$intervals <- get.intervals(res, what="effect")
     res$intervals 
 ```
 
-Function `get.intervals` with argument `what="effect"` outputs intervals where `multiseq` found strong effect (zero is outside of +/- a specified multiple (z.threshold) of the posterior standard deviations). Output interval is in bed format: start is 0-based, end is 1-based.
-
-
 Extract sequencing data with function `get.counts`
 --------------------------------------------------
 
-Special tools are required to handle next generation sequencing data because of their high throughput nature. To show how you can load sequencing data using package **multiseq** we attached to the package an example dataset in bigWig format. Data consists of a ChipSeq experiment from Encode with 4 samples in two groups with factor.... . you can look at the data in folder `file.path(path.package("multiseq"), "extdata")`.
+In the second part of the previous section we applied `multiseq` to sequencing data that had already been loaded into a matrix. Special tools are required to handle next generation sequencing data because of their high throughput nature, and in this section we will show how function `get.counts` can be used to load data in a variety of formats used for sequencing data.
 
-Function `get.counts` extracts data in *bam*, *bigWig*, or *hdf5* format using `samtools`, the *UCSC tools*, or the **R** package **rhdf5**, respectively, and puts them into a matrix format that can be feeded as input to `multiseq`. The path to the input *bam*, *bigWig*, or *hdf5* files has to be specified into a samplesheet with the following format:
+Function `get.counts` extracts data in *bam*, *bigWig*, or *hdf5* format using `samtools`, the *UCSC tools*, or the **R** package **rhdf5**, respectively, and puts them into a matrix that can be feeded as input to `multiseq`. Function `get.counts` requires as input a samplesheet in the following format:
 
     SampleID Type bedPath ReadDepth bigWigPath
     A1 Control peakA1.bb 16335812 A1.bw
@@ -151,12 +144,15 @@ Function `get.counts` extracts data in *bam*, *bigWig*, or *hdf5* format using `
     B1 Test peakB1.bb 24225586 B1.bw
     B2 Test peakB2.bb 12378544 B2.bw
 
-The following fields are required: "SampleID" containing sample IDs, "Type" specifying the covariate, "ReadDepth" specifying sequencing depth for each sample, "bigWigPath" and/or "hdf5Path" and/or "bamPath" specifying the absolute path to the input files in *bigWig*, *hdf5*, or *bigWig*, respectively. Field "bedPath" is not required but can be used to specify the path to a *bed* or *bigBed* file (e.g., the path to a *bigBed* file with ChipSeq peaks) and is used by function `samplesheetToTrackHub`. Character "-" is interpreted as missing data:
+In the samplesheet, the following fields are required: "SampleID" containing sample IDs, "Type" specifying the covariate, "ReadDepth" specifying sequencing depth for each sample, "bigWigPath" and/or "hdf5Path" and/or "bamPath" specifying the absolute path to the input files in *bigWig*, *hdf5*, or *bigWig*, respectively. Field "bedPath" is not required but can be used to specify the path to a *bed* or *bigBed* file (e.g., the path to a *bigBed* file with ChipSeq peaks) and is used by function `samplesheetToTrackHub`. Character "-" is interpreted as missing data, so if the input samplesheet was:
 
     SampleID Type bedPath ReadDepth bigWigPath
     A1 Control peakA1.bb 16335812 A1.bw
     A2 Control - 18197248 A2.bw
-  
+no bed file is provided for sample A2.
+
+We will use data in *bigWig* format from a ChipSeq experiment on Gm12878 and H1hesc cell lines with factor Yy1 part of the ENCODE project extracted from http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeHaibTfbs/. You can find the data in folder `file.path(path.package("multiseq"), "extdata")` and get more information about it by typing `?dat`. 
+
 Let's use function `get.counts` to load our bigWig files:
 ```{r load_seq_data}
     setwd(file.path(path.package("multiseq"), "extdata"));
@@ -173,9 +169,9 @@ Let's use function `get.counts` to load our bigWig files:
        x           <- get.counts(samplesheet, region) 
     }
 ```
-If you didn't follow the "optional installation steps" described in a previous section (`noExecutable("wigToBigWig")==TRUE`), you won't be able to load the bigWig files with function `get.counts`. You can anyways upload the dat using `data(dat, package="multiseq")`.
+If you didn't follow the "optional installation steps" described in a previous section (`noExecutable("wigToBigWig")==TRUE`), you won't be able to load the bigWig files with function `get.counts` but you will be able to upload the data using `data(dat, package="multiseq")`.
 
-Let's apply `multiseq` to smooth the data in each of the two genotipe classes (`g=0` and `g=1`) and then let's apply `multiseq` to find an effect given the covariate `g`:
+Let's use `multiseq` to smooth the data in each class (`g=0` and `g=1`) and then to find an effect given the covariate `g`:
 
 ```{r testing_on_chipseq}
       #smooth data in each genotype class
@@ -200,16 +196,16 @@ Let's apply `multiseq` to smooth the data in each of the two genotipe classes (`
       m          <- min(res0$baseline.mean-z.threshold*sqrt(res0$baseline.var), 
                         res1$baseline.mean-z.threshold*sqrt(res1$baseline.var))
       ylim       <- exp(c(m, M))
-      plot(res0, z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
-      plot(res1, z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
-      plot(res, z.threshold)
+      plot(res0, z.threshold=z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
+      plot(res1, z.threshold=z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
+      plot(res, z.threshold=z.threshold)
 ```
 
 
 ### Visualizing input data using `samplesheetToTrackHub`
 
 
-With function `samplesheetToTrackHub` you can create a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html) and visualize your input data in the [UCSC Genome Browser](https://genome.ucsc.edu/). Before you use this function, follow installation instructions in the "Optional steps" paragraph above.
+With function `samplesheetToTrackHub` you can create a [Track Hub](http://www.genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html) and visualize your input data in the [UCSC Genome Browser](https://genome.ucsc.edu/). Before using this function, make sure you followed the installation instructions in the "Optional steps" section above.
 
 ```{r track_hub, results='hide'}
     setwd(file.path(path.package("multiseq"),"extdata"))
@@ -222,16 +218,16 @@ Function `samplesheetToTrackHub` will create a Track Hub in folder */some/path/t
     go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr1%3A11740409-11756792&hubUrl=https:some/address/testMultiseq/dat/hub.txt
     and make track visible
 
-If the read tracks or the bed files are large, make sure enough memory is available to run `samplesheetToTrackHub`.
+If the read tracks or the bed files are large, you might need a large memory to run `samplesheetToTrackHub`.
 
 
 Visualizing output data using `multiseqToTrackHub`
 --------------------------------------------------------------------------------------
 
 
-After running `multiseq`, you can use function `multiseqToTrackHub` to create a Track Hub that can be visualized in the UCSC Genome Browser to display
-- the effect +/- a specified multiple (z.threshold) of the posterior standard deviation
-- the intervals where multiseq found strong effect (zero is outside of +/- a multiple of the posterior standard deviation ' e.g. 2 or 3).
+With function `multiseqToTrackHub` you can create a Track Hub to visualize `multiseq` output in the UCSC Genome Browser, which will display
+- the effect +/- a multiple (z.threshold) of the posterior standard deviation
+- the intervals where `multiseq` found strong effect (zero is outside of +/- a multiple of the posterior standard deviation.
 
 ```{r multiseqToTrackHub, results='hide'}
     res$region    <- region
@@ -243,11 +239,11 @@ Function `multiseqToTrackHub` will create a Track Hub named *multiseq_dat* in th
     go to http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr1%3A11740409-11756792&hubUrl=https:some/address/testMultiseq/multiseq_dat/hub.txt
     and make track visible
     
-By default `multiseqToTrackHub` uses the human genome hg19 but default settings can be changed by specifying additional arguments (see help).
+By default `multiseqToTrackHub` uses the human genome hg19 but default settings can be changed by specifying additional arguments (type `?multiseqToTrackHub`).
 
-This is a screenshot of both the `samplesheet` and `multiseq` Track Hub in the UCSC Genome Browser:
-#############![Image](../inst/extdata/dat/dat.png)
+This is a screenshot of both the `samplesheet` and `multiseq` Track Hubs in the UCSC Genome Browser:
+![Image](../inst/extdata/dat/dat.png)
 
 Note
 ----
-If the Genome Browser doesn't show the Track Hub try going to http://genome.ucsc.edu/cgi-bin/hgHubConnect/MyHubs and checking the Track Hub.
+If the Genome Browser cannot load the Track Hub try going to http://genome.ucsc.edu/cgi-bin/hgHubConnect/MyHubs and clicking on "Retry Hub".

@@ -82,10 +82,10 @@ opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="cente
 		res2$baseline.mean-z.threshold*sqrt(res2$baseline.var)) 
 
     ylim         <- exp(c(m,M))
-    plot(res0, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AA)", ylim=ylim)
-    plot(res1, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AG)", ylim=ylim)
-    plot(res2, z.threshold=2, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype GG)", ylim=ylim)
-    plot(res, z.threshold=2, is.xaxis=FALSE)
+    plot(res0, z.threshold=z.threshold, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AA)", ylim=ylim)
+    plot(res1, z.threshold=z.threshold, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype AG)", ylim=ylim)
+    plot(res2, z.threshold=z.threshold, highlight=FALSE, is.xaxis=FALSE, what="baseline", main="(genotype GG)", ylim=ylim)
+    plot(res, z.threshold=z.threshold, is.xaxis=FALSE)
     transcripts <- get.transcripts(file.path(path.package("multiseq"),"extdata","hg19.OAS1.refGene.part.gp"), 
                                    OAS1$region)
     plot(transcripts, OAS1$region)
@@ -132,9 +132,9 @@ opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="cente
       m          <- min(res0$baseline.mean-z.threshold*sqrt(res0$baseline.var), 
                         res1$baseline.mean-z.threshold*sqrt(res1$baseline.var))
       ylim       <- exp(c(m, M))
-      plot(res0, z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
-      plot(res1, z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
-      plot(res, z.threshold)
+      plot(res0, z.threshold=z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==0][1], ylim=ylim)
+      plot(res1, z.threshold=z.threshold, is.xaxis=FALSE, what="baseline", main=samples$Type[g==1][1], ylim=ylim)
+      plot(res, z.threshold=z.threshold)
 
 ## ----track_hub, results='hide'-------------------------------------------
     setwd(file.path(path.package("multiseq"),"extdata"))
