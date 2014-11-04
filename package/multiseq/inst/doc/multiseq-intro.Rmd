@@ -242,7 +242,7 @@ Function `multiseqToTrackHub` will create a Track Hub named *multiseq_dat* in th
 By default `multiseqToTrackHub` uses the human genome hg19 but default settings can be changed by specifying additional arguments (type `?multiseqToTrackHub`).
 
 This is a screenshot of both the `samplesheet` and `multiseq` Track Hubs in the UCSC Genome Browser:
-![Image](../inst/extdata/dat/dat.png)
+![Image](../inst/extdata/dat.png)
 
 Note
 ----
