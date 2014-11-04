@@ -20,8 +20,11 @@ require(devtools)
 roxygenize()
 document()
 #log out of R
+#generate an archive from folder multiseq
+#tar -pczf multiseq_0.1.tar.gz multiseq
 #log into R from within the package/multiseq directory
-#/data/tools/R-3.1.1/bin/R 
+#/data/tools/R-3.1.1/bin/R
+install.packages("~/src/multiseq/package/multiseq_0.1.tar.gz",repos=NULL,type="source")
 #make sure that path.package("multiseq") is
 #[1] "/mnt/lustre/home/epantaleo/R/x86_64-unknown-linux-gnu-library/3.1/multiseq"
 #before you build the vignette

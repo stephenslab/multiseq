@@ -70,5 +70,5 @@ res$region <- region
 intervals  <- get.intervals(res, z.threshold=2)
 write.bed(intervals, file.path(dir.name, "multiseq.bed"))
 write.gz(res, file.path(dir.name, "multiseq.gz"))
-write(res$logLR$value, file=file.path(dir.name,"logLR.txt"))
-
+write(res$logLR$value, file=file.path(dir.name, "logLR.txt"))
+write(max(abs(res$effect.mean/sqrt(res$effect.var))), file=file.path(dir.name, "zmax.txt"))
