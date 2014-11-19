@@ -376,8 +376,8 @@ setAshParam <- function(ashparam){
 #' @export
 #'
 #' @examples
-#' #load data contained in example1
-#' data(example1, package="multiseq")
+#' #load data contained in dat
+#' data(dat, package="multiseq")
 #' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 #' @return \code{multiseq} returns an object of \code{\link[base]{class}} "multiseq", a list with the following elements (or a simplified list if \code{verbose=FALSE} or \code{smoothing=FALSE}) \cr
 #' \item{baseline.mean}{an \code{nsig}-vector with the posterior baseline mean}
@@ -708,7 +708,7 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
         #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
         y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
         zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-        logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randostart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
+        logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
     }
  
     #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
@@ -718,7 +718,7 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
     for(j in 1:J){
         ind = ((j-1)*n+1):(j*n)
         if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
-            logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lamba1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
+            logLR[j] = ash(zdat[3, ind],zdat[4,ind], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
             logLR[j] = logLR[j]/2^j
         }else{
             logLR[j] = 0

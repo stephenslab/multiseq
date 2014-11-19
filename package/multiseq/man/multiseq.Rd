@@ -76,8 +76,8 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
 }
 \examples{
-#load data contained in example1
-data(example1, package="multiseq")
+#load data contained in dat
+data(dat, package="multiseq")
 res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 }
 

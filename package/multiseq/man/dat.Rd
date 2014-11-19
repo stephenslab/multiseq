@@ -18,7 +18,6 @@ the ENCODE project. Mapped reads were downloaded from http://hgdownload.cse.ucsc
 peaks were downloaded from http://ebi.edu.au/ftp/software/software/ensembl/encode/integration_data_jan2011/byFreeze/june2012/peaks/spp/optimal/.
 Read counts in region chr1:11740409-11756792 were extracted from the bam files
 with function \code{\link{get.counts}}.
-#'
 }
 \keyword{datasets}
 
