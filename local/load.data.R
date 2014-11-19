@@ -1,5 +1,6 @@
-library(multiseq)
 library(rhdf5)
+library(multiseq)
+
 
 #********************************************************************
 #

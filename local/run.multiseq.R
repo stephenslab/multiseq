@@ -14,8 +14,8 @@ fitted.g.file   <- file.path(args[4])
 
 
 #set fitted g
-set.fitted.g           -> NULL
-set.fitted.g.intercept -> NULL
+set.fitted.g           <- NULL
+set.fitted.g.intercept <- NULL
 if (fitted.g.file!="NA"){
     load(fitted.g.file)
     set.fitted.g=ret$fitted.g
@@ -51,7 +51,7 @@ file.remove(file=file.path(dir.name, "data.RData"))
 
 
 #run multiseq
-ashparam=list(prior=prior)
+ashparam   <- list(prior=prior)
 res        <- multiseq(x,
                        g=g,
                        minobs=1,

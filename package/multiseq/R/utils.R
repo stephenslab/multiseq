@@ -492,9 +492,11 @@ write.bed <- function(intervals, bedfile){
     if (is.null(intervals)){
         stop("Invalid input intervals")
     }else if (intervals$type!="sequence"){
-        stop("Invalid input intervals")
+        warning("No input intervals")
+        return()
     }else if (is.null(intervals$start) | is.null(intervals$end) | is.null(intervals$chr)){
-        stop("Invalid input intervals")
+        warning("No input intervals")
+        return()
     }
     dir.create(dirname(bedfile), showWarnings=FALSE, recursive=TRUE)
     cat(paste0(intervals$chr,

@@ -35,12 +35,14 @@ if [ ! -d "${LOG_DIR}" ]; then
 fi
 
 #load data into R objects using 5 parallel jobs
+echo "splitting ${list_loci}"  
 nlines=`cat $list_loci | wc -l`
 let nn=${nlines}/5 
 split -l ${nn} --suffix-length=5 ${list_loci} list_loci_part_
 for ll in `ls list_loci_part_*`; do
+    echo processing file ${ll}  
     #load data
-    PROCESS_NAME=`read_${ll}`
+    PROCESS_NAME=read_${ll}
     echo "Rscript load.data.R ${sample_sheet} ${ll} ${OUT_DIR}" | \
 	qsub -l h_vmem=2g -v PATH -cwd -N ${PROCESS_NAME} \
 	-o ${LOG_DIR}${PROCESS_NAME}"_log.out" -e ${LOG_DIR}${PROCESS_NAME}"_log.err" 
