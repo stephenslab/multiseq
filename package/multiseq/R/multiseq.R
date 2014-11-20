@@ -256,11 +256,14 @@ compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
 #' if covariate is present, i.e. \code{g} is not NULL]  
 #' @keywords internal
 compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NULL, zdat=NULL, zdat.ash=NULL){
-    alpha=list(mean=zdat.ash.intercept$PosteriorMean, var=zdat.ash.intercept$PosteriorSD^2) #find mean and variance of alpha    
+    alpha=list(mean=zdat.ash.intercept$PosteriorMean, var=zdat.ash.intercept$PosteriorSD^2) #find mean and variance of alpha
+    alpha.prior=list(mean=rep(0,length(zdat.ash.intercept$PosteriorMean)), var=sum(zdat.ash.intercept$fitted.g$pi*zdat.ash.intercept$fitted.g$sd^2))
     if(is.null(g)){#if covariate is absent
         lp = ff.moments(alpha$mean, alpha$var)
         lq = ff.moments(-alpha$mean, alpha$var)  #find mean and variance of log(q)
-        return(list(lp.mean=lp$mean, lp.var=lp$var, lq.mean=lq$mean, lq.var=lq$var))
+        lp.prior = ff.moments(alpha.prior$mean, alpha.prior$var)
+        lq.prior = ff.moments(-alpha.prior$mean, alpha.prior$var)
+        return(list(lp.mean=lp$mean, lp.var=lp$var, lq.mean=lq$mean, lq.var=lq$var, lp.prior.mean=lp.prior$mean, lp.prior.var=lp.prior$var, lq.prior.mean=lq.prior$mean, lq.prior.var=lq.prior$var))
     }else{#if covariate is present
         if(repara==TRUE){  #if reparametrization is used then we want gamma returned as well
             mbvar.ind=is.na(zdat[5,])
@@ -278,17 +281,22 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
                                         #apply ash to vector of slope estimates and SEs
         zdat.ash_post=posterior_dist(zdat.ash$fitted.g,zdat[3,],zdat[4,])
                                         #compute the posterior third and fourth moments of beta
-        gamma=list(mean=alpha$mean+(w1+mbvar)*zdat.ash$PosteriorMean, var=alpha$var+((w1+mbvar)*zdat.ash$PosteriorSD)^2)        
+        gamma=list(mean=alpha$mean+(w1+mbvar)*zdat.ash$PosteriorMean, var=alpha$var+((w1+mbvar)*zdat.ash$PosteriorSD)^2)   
+        gamma.prior=list(mean=alpha.prior$mean, var=alpha.prior$var+(w1+mbvar)^2*sum(zdat.ash$fitted.g$pi*zdat.ash$fitted.g$sd^2))
         lp = ff.moments(gamma$mean, gamma$var)    #find mean and variance of p in baseline estimate
         lq = ff.moments(-gamma$mean, gamma$var)  #find mean and variance of q in baseline estimate
+        lp.prior = ff.moments(gamma.prior$mean, gamma.prior$var)
+        lq.prior = ff.moments(-gamma.prior$mean, gamma.prior$var)
 
         beta.tm=tfmoment(zdat.ash_post$mu, zdat.ash_post$sigma,3,zdat.ash_post$pi)
         beta.fm=tfmoment(zdat.ash_post$mu, zdat.ash_post$sigma,4,zdat.ash_post$pi)
         wSq=(w[2]+mbvar)^2-(w[1]+mbvar)^2
         PosteriorSq=zdat.ash$PosteriorSD^2+zdat.ash$PosteriorMean^2
-                lpratio=ffwrapper(alpha$mean, alpha$var, zdat.ash$PosteriorMean, PosteriorSq, wSq, beta.tm, beta.fm, g)
+        lpratio=ffwrapper(alpha$mean, alpha$var, zdat.ash$PosteriorMean, PosteriorSq, wSq, beta.tm, beta.fm, g)
         lqratio=ffwrapper(-alpha$mean, alpha$var, -zdat.ash$PosteriorMean, PosteriorSq, wSq, -beta.tm, beta.fm, g)
-        return(list(lp.mean=lp$mean, lp.var=lp$var, lq.mean=lq$mean, lq.var=lq$var, lpratio.mean=lpratio$mean, lpratio.var=lpratio$var, lqratio.mean=lqratio$mean, lqratio.var=lqratio$var))
+        lpratio.prior=ffwrapper(alpha.prior$mean, alpha.prior$var, zdat.ash$PosteriorMean, PosteriorSq, wSq, beta.tm, beta.fm, g)
+        lqratio.prior=ffwrapper(-alpha.prior$mean, alpha.prior$var, -zdat.ash$PosteriorMean, PosteriorSq, wSq, -beta.tm, beta.fm, g)
+        return(list(lp.mean=lp$mean, lp.var=lp$var, lq.mean=lq$mean, lq.var=lq$var, lpratio.mean=lpratio$mean, lpratio.var=lpratio$var, lqratio.mean=lqratio$mean, lqratio.var=lqratio$var, lp.prior.mean=lp.prior$mean, lp.prior.var=lp.prior$var, lq.prior.mean=lq.prior$mean, lq.prior.var=lq.prior$var, lpratio.prior.mean=lpratio.prior$mean, lpratio.prior.var=lpratio.prior$var, lqratio.prior.mean=lqratio.prior$mean, lqratio.prior.var=lqratio.prior$var))
     }
 }            
 
@@ -570,7 +578,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                         res=rbindlist(list(res.j,res))
                     }
                 }else{
-                    res.j = list(lp.mean=rep(0,n), lp.var=res.j$lp.var, lq.mean=rep(0,n), lq.var=res.j$lq.var, lpratio.mean=rep(0,n), lpratio.var=res.j$lpratio.var, lqratio.mean=rep(0,n), lqratio.var=res.j$lqratio.var)                  
+                    if(is.null(g))
+                        res.j = list(lp.mean=res.j$lp.prior.mean, lp.var=res.j$lp.prior.var, lq.mean=res.j$lq.prior.mean, lq.var=res.j$lq.prior.var, lp.prior.mean=res.j$lp.prior.mean, lp.prior.var=res.j$lp.prior.var, lq.prior.mean=res.j$lq.prior.mean, lq.prior.var=res.j$lq.prior.var)
+                    else
+                        res.j = list(lp.mean=res.j$lp.prior.mean, lp.var=res.j$lp.prior.var, lq.mean=res.j$lq.prior.mean, lq.var=res.j$lq.prior.var, lpratio.mean=res.j$lpratio.prior.mean, lpratio.var=res.j$lpratio.prior.var, lqratio.mean=res.j$lqratio.prior.mean, lqratio.var=res.j$lqratio.prior.var, lp.prior.mean=res.j$lp.prior.mean, lp.prior.var=res.j$lp.prior.var, lq.prior.mean=res.j$lq.prior.mean, lq.prior.var=res.j$lq.prior.var, lpratio.prior.mean=res.j$lpratio.prior.mean, lpratio.prior.var=res.j$lpratio.prior.var, lqratio.prior.mean=res.j$lqratio.prior.mean, lqratio.prior.var=res.j$lqratio.prior.var)                  
                     res=rbindlist(list(res.j,res))
                 }
             }            
