@@ -535,7 +535,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
         # compute.res returns posterior means and variances of log(p), log(q), log(p0/p1) and log(q0/q1) as lp, lq,lpratio and lqratio, respectively, where p
         # is the probability of going left, q=1-p.
         res=list()
-        for(j in 1:J){
+        for(j in J:1){
             if (cyclespin){
                 spins = 2^j
                 ind = ((j-1)*n+1):(j*n)
@@ -558,15 +558,20 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 }
             }
             if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
-                zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam)), warning=suppressW)
-                if (get.fitted.g)
-                    fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
-                if (reverse){
-                    if (is.null(g))
-                        res.j = compute.res(zdat.ash.intercept, repara)
-                    else
-                        res.j = compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
-                    res=rbindlist(list(res,res.j))
+                if(min(sum(!is.na(zdat[1,ind])), sum(!is.na(zdat[2,ind]))) > 0){ # run ash when there is at least one WC.
+                    zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam)), warning=suppressW)
+                    if (get.fitted.g)
+                        fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
+                    if (reverse){
+                        if (is.null(g))
+                            res.j = compute.res(zdat.ash.intercept, repara)
+                        else
+                            res.j = compute.res(zdat.ash.intercept, repara, baseline, w, g, zdat[,ind], zdat.ash)
+                        res=rbindlist(list(res.j,res))
+                    }
+                }else{
+                    res.j = list(lp.mean=rep(0,n), lp.var=res.j$lp.var, lq.mean=rep(0,n), lq.var=res.j$lq.var, lpratio.mean=rep(0,n), lpratio.var=res.j$lpratio.var, lqratio.mean=rep(0,n), lqratio.var=res.j$lqratio.var)                  
+                    res=rbindlist(list(res.j,res))
                 }
             }            
         }
