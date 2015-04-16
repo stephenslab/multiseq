@@ -310,7 +310,7 @@ setAshParam <- function(ashparam){
     #by default ashparam$mixsd=NULL
     #by default ashparam$g=NULL
     if (!is.list(ashparam))
-        stop("Error: invalis parameter 'ashparam'")
+        stop("Error: invalid parameter 'ashparam'")
     if (is.null(names(ashparam))){
         ashparam[["g"]]=NULL
         ashparam[["mixsd"]]=NULL
@@ -326,8 +326,8 @@ setAshParam <- function(ashparam){
         ashparam[["VB"]]=FALSE
     if (is.null(ashparam[["cxx"]]))
         ashparam[["cxx"]]=FALSE
-    if (is.null(ashparam[["trace"]]))
-        ashparam[["trace"]]=FALSE
+    if (is.null(ashparam[["control"]]))
+        ashparam[["control"]]=list(maxiter=5000,trace=FALSE)
     if (is.null(ashparam[["mixcompdist"]]))
         ashparam[["mixcompdist"]]="normal"
     if (is.null(ashparam[["lambda1"]]))
@@ -338,8 +338,6 @@ setAshParam <- function(ashparam){
         ashparam[["randomstart"]]=FALSE
     if (is.null(ashparam[["minimaloutput"]]))
         ashparam[["minimaloutput"]]=FALSE
-    if (is.null(ashparam[["maxiter"]]))
-        ashparam[["maxiter"]]=5000
     if (is.null(ashparam[["nullcheck"]]))
         ashparam[["nullcheck"]]=TRUE
     if (is.null(ashparam[["onlylogLR"]]))
@@ -375,8 +373,8 @@ setAshParam <- function(ashparam){
 #' @param smoothing: bool, indicating whether to apply \pkg{ashr} to smooth the signal (TRUE) or not (FALSE); if \code{smoothing==FALSE} then reverse is set to FALSE; this option is only used when inferring shared pi-s. 
 #' @param cyclespin: bool, indicating whether to use cyclespin (i.e., TI table) (TRUE) or not (i.e., haar aggregate) (FALSE). If \code{cyclespin}==FALSE then reverse is set to FALSE because reversing wavelet is not implemented here.
 #' @param reverse: bool, indicating whether to reverse wavelet (TRUE) or not.
-#' @param fitted.g: a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}.
-#' @param fitted.g.intercept: a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}.  
+#' @param set.fitted.g: a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}.
+#' @param set.fitted.g.intercept: a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}.  
 #' @param get.fitted.g: bool, indicating whether to save \code{fitted.g}.
 #' @param listy: a list of elements \code{y},\code{y.rate},\code{intervals}; if \code{listy} is not NULL, then \code{y} and \code{y.rate} are forced to \code{listy$y} and \code{listy$y.rate} respectively; this option is used when inferring shared pi-s.
 #' @param verbose: bool, defaults to FALSE, if TRUE \code{\link{multiseq}} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.
@@ -416,6 +414,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
         if(ashparam$pointmass != TRUE) stop("Error: logLR can be computed only when ashparam$pointmass = TRUE")
         reverse=FALSE
     }
+    ashparam.fitted.g = ashparam
+    ashparam.fitted.g.intercept = ashparam
+    if (!is.null(set.fitted.g)) ashparam.fitted.g$control$maxiter = 0
+    if (!is.null(set.fitted.g.intercept)) ashparam.fitted.g.intercept$control$maxiter = 0
     if (!smoothing) reverse = FALSE
     if (!cyclespin) {reverse = FALSE; warning("Reversing wavelet not implemented here when cyclespin=FALSE, setting reverse=FALSE")}
     #to do: check other input parameters
@@ -488,7 +490,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE, bound=0))
-                zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam)), warning=suppressW)
+                zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR
@@ -505,7 +507,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 y.rate = listy$y.rate
             if (smoothing | get.fitted.g){
                 zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=lm.approx, disp=disp, bound=0))
-                zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam)), warning=suppressW)
+                zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR 
@@ -553,7 +555,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
             if (!is.null(g)){
                 if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash = withCallingHandlers(do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE), ashparam)), warning=suppressW)
+                    zdat.ash = withCallingHandlers(do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE), ashparam.fitted.g)), warning=suppressW)
                     if (get.fitted.g)
                         fitted.g[[j]] = zdat.ash$fitted.g
                     if (ashparam$pointmass)
@@ -567,7 +569,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
             if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
                 if(min(sum(!is.na(zdat[1,ind])), sum(!is.na(zdat[2,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam)), warning=suppressW)
+                    zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam.fitted.g.intercept)), warning=suppressW)
                     if (get.fitted.g)
                         fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
                     if (reverse){
