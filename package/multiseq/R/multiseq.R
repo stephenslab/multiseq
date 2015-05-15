@@ -482,21 +482,20 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             xRowSums = rowSums(x)
         }
         if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
-            #define the "failures" this way so that the intercept will be the estimate of total intensity, and the slope will be the estimate of ratio of total intensities
-            if (is.null(listy))
-                y.rate = matrix(c(xRowSums, rep(1,nsig)), ncol=2)
+           if (is.null(listy))
+                y.rate = xRowSums
             else
                 y.rate = listy$y.rate
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
-                zdat.rate = as.vector(glm.approx(y.rate, g=g, center=center, repara=repara, lm.approx=FALSE, bound=0))
+                zdat.rate = as.vector(t(summary(glm(y.rate ~ g, family="poisson"))$coef[1:2,1:2]))
                 zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
                 if (ashparam$pointmass) #compute logLR
                     logLR[J+1] = zdat.rate.ash$logLR
                 if(reverse)
-                    res.rate = compute.res.rate(zdat.rate, repara, baseline, w, read.depth)
+                    res.rate = list(lp.mean=zdat.rate[1], lp.var=0, lpratio.mean=zdat.rate[3], lpratio.var=0)
             }
         }else{
             ##run glm.approx to get zdat.rate
