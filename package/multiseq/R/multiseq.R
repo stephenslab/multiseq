@@ -717,15 +717,15 @@ compute.logLR <- function(x, g, TItable = NULL, read.depth = NULL, minobs=1, pse
     }
 
     xRowSums = rowSums(x)
-    if (is.null(read.depth)){#if sequencing depth is not present then obtain total intensities and ratio of total intensities by taking sums of total intensities in each group
-        y.o=matrix(c(xRowSums,rep(1,nsig)),ncol=2)
-        zdat.rate.o = as.vector(glm.approx(y.o,g=g,center=center,repara=repara,lm.approx=FALSE))
-        logLR[J+1] = ash(zdat.rate.o[3],zdat.rate.o[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
+    if (is.null(read.depth)){#if sequencing depth is not present, obtain MLE and se of MLE using poisson logistic regression
+      y.rate = xRowSums
+      zdat.rate = as.vector(t(summary(glm(y.rate ~ g, family="poisson"))$coef[1:2,1:2]))      
+      logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
     }else{
-        #consider the raw data as binomial counts from a given total number of trials (sequencing depth)
-        y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
-        zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
-        logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
+      ##consider the raw data as binomial counts from a given total number of trials (sequencing depth)
+      y=matrix(c(xRowSums,read.depth-xRowSums),ncol=2)
+      zdat.rate = as.vector(glm.approx(y,g=g,center=center,repara=repara,lm.approx=lm.approx,disp=disp))
+      logLR[J+1] = ash(zdat.rate[3],zdat.rate[4], prior=prior, pointmass=pointmass, nullcheck=nullcheck, gridmult=gridmult, mixsd=mixsd, VB=VB, onlylogLR=TRUE, trace=trace, mixcompdist=mixcompdist, lambda1=lambda1, lambda2=lambda2, df=df, randomstart=randomstart, minimaloutput=minimaloutput, maxiter=maxiter, g=NULL)$logLR
     }
  
     #output the estimates for intercept and slope (if applicable) as well as their standard errors (and gamma as in documentation if reparametrization is used)
