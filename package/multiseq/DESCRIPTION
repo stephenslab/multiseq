@@ -3,7 +3,7 @@ Maintainer: Matthew Stephens <mstephens@uchicago.edu>
 Author: Ester Pantaleo, Heejung Shim, Matthew Stephens, Zhengrong Xing
 Type: Package
 Title: Multiscale Sequence Analysis
-Version: 0.1
+Version: 0.2
 Date: 2013-11-05
 Description: Multiseq implements a Bayesian multiscale method for
     inhomogeneous Poisson processes. An inhomogeneous Poisson process is ...
