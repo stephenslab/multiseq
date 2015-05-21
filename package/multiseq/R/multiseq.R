@@ -560,10 +560,16 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                     if (ashparam$pointmass)
                         logLR[j] = zdat.ash$logLR/spins
                 }else{
+                    if(j == J){
                     #if (get.fitted.g)
                     #    fitted.g[[j]] = zdat.ash$fitted.g
-                    if (ashparam$pointmass)
-                        logLR[j] = 0
+                        if (ashparam$pointmass)
+                            logLR[j] = NA
+                    }else{
+                        if (ashparam$pointmass)
+                            logLR[j] = 0
+                      
+                    }
                 }
             }
             if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
@@ -579,11 +585,19 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                         res=rbindlist(list(res.j,res))
                     }
                 }else{
-                    if(is.null(g))
-                        res.j = list(lp.mean=res.j$lp.prior.mean, lp.var=res.j$lp.prior.var, lq.mean=res.j$lq.prior.mean, lq.var=res.j$lq.prior.var, lp.prior.mean=res.j$lp.prior.mean, lp.prior.var=res.j$lp.prior.var, lq.prior.mean=res.j$lq.prior.mean, lq.prior.var=res.j$lq.prior.var)
-                    else
-                        res.j = list(lp.mean=res.j$lp.prior.mean, lp.var=res.j$lp.prior.var, lq.mean=res.j$lq.prior.mean, lq.var=res.j$lq.prior.var, lpratio.mean=res.j$lpratio.prior.mean, lpratio.var=res.j$lpratio.prior.var, lqratio.mean=res.j$lqratio.prior.mean, lqratio.var=res.j$lqratio.prior.var, lp.prior.mean=res.j$lp.prior.mean, lp.prior.var=res.j$lp.prior.var, lq.prior.mean=res.j$lq.prior.mean, lq.prior.var=res.j$lq.prior.var, lpratio.prior.mean=res.j$lpratio.prior.mean, lpratio.prior.var=res.j$lpratio.prior.var, lqratio.prior.mean=res.j$lqratio.prior.mean, lqratio.prior.var=res.j$lqratio.prior.var)                  
-                    res=rbindlist(list(res.j,res))
+                    if(j == J){
+                        if(is.null(g))
+                            res.j = list(lp.mean=rep(NA,n), lp.var=rep(NA,n), lq.mean=rep(NA,n), lq.var=rep(NA,n), lp.prior.mean=rep(NA,n), lp.prior.var=rep(NA,n), lq.prior.mean=rep(NA,n), lq.prior.var=rep(NA,n))
+                        else
+                            res.j = list(lp.mean=rep(NA,n), lp.var=rep(NA,n), lq.mean=rep(NA,n), lq.var=rep(NA,n), lpratio.mean=rep(NA,n), lpratio.var=rep(NA,n), lqratio.mean=rep(NA,n), lqratio.var=rep(NA,n), lp.prior.mean=rep(NA,n), lp.prior.var=rep(NA,n), lq.prior.mean=rep(NA,n), lq.prior.var=rep(NA,n), lpratio.prior.mean=rep(NA,n), lpratio.prior.var=rep(NA,n), lqratio.prior.mean=rep(NA,n), lqratio.prior.var=rep(NA,n))                  
+                        res=rbindlist(list(res.j,res))
+                    }else{
+                        if(is.null(g))
+                            res.j = list(lp.mean=res.j$lp.prior.mean, lp.var=res.j$lp.prior.var, lq.mean=res.j$lq.prior.mean, lq.var=res.j$lq.prior.var, lp.prior.mean=res.j$lp.prior.mean, lp.prior.var=res.j$lp.prior.var, lq.prior.mean=res.j$lq.prior.mean, lq.prior.var=res.j$lq.prior.var)
+                        else
+                            res.j = list(lp.mean=res.j$lp.prior.mean, lp.var=res.j$lp.prior.var, lq.mean=res.j$lq.prior.mean, lq.var=res.j$lq.prior.var, lpratio.mean=res.j$lpratio.prior.mean, lpratio.var=res.j$lpratio.prior.var, lqratio.mean=res.j$lqratio.prior.mean, lqratio.var=res.j$lqratio.prior.var, lp.prior.mean=res.j$lp.prior.mean, lp.prior.var=res.j$lp.prior.var, lq.prior.mean=res.j$lq.prior.mean, lq.prior.var=res.j$lq.prior.var, lpratio.prior.mean=res.j$lpratio.prior.mean, lpratio.prior.var=res.j$lpratio.prior.var, lqratio.prior.mean=res.j$lqratio.prior.mean, lqratio.prior.var=res.j$lqratio.prior.var)                  
+                        res=rbindlist(list(res.j,res))
+                    }
                 }
             }            
         }
