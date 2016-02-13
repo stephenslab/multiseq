@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>"A simple testing procedure for multiseq"</title>
+<!-- 2016-02-13 Sat 13:23 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Heejung Shim" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">"A simple testing procedure for multiseq"</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Overview</a></li>
+<li><a href="#sec-2">2. Simulation of data set</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Collect information to simulate data</a></li>
+<li><a href="#sec-2-2">2.2. Simulate data</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Overview</h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li>After making changes in a software package multiseq, we run a set of tests to check if the changes in multiseq affect output as we planned (e.g., changes shouldn't affect other outputs). 
+</li>
+<li>We simulate four sets of data - typical data and data with no reads with/without library read depth.
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Simulation of data set</h2>
+<div class="outline-text-2" id="text-2">
+</div><div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Collect information to simulate data</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+I'll copy phenotype data (from which we will sample data) and signals for group 1 and group 2. See compareWaveQTLandmultiseq_dsQTL_final.org for detailed description of how to obtain this information. 
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">cd ~/multiseq/
+mkdir data
+cd data/
+mkdir simulation
+cd simulation/
+mkdir dsQTL
+cp ~/multiscale_analysis/analysis/simulation/sample_size/simulation_QTLfinal_v2/data/pheno.dat dsQTL
+cp ~/multiscale_analysis/analysis/simulation/sample_size/simulation_QTLfinal_v2/data/alt.sig0 dsQTL
+cp ~/multiscale_analysis/analysis/simulation/sample_size/simulation_QTLfinal_v2/data/alt.sig1 dsQTL
+</pre>
+</div>
+
+<p>
+I'll copy library read depth for this DNase-seq data (you can download from <a href="https://github.com/heejungshim/WaveQTL/blob/master/data/dsQTL/library.read.depth.dat">WaveQTL repo</a>) to this directory.  
+</p>
+<div class="org-src-container">
+
+<pre class="src src-bash">cp ~/WaveQTL/data/dsQTL/library.read.depth.dat ~/multiseq/data/simulation/dsQTL/
+</pre>
+</div>
+
+<p>
+Information have been save in: 
+#+besin_src bash
+cd ~/multiseq/data/simulation/dsQTL
+alt.sig0  alt.sig1  library.read.depth.dat  pheno.dat
+#+end_src
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Simulate data</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+The function `simulate.data' is a modification <a href="https://github.com/heejungshim/multiscale_analysis/blob/master/src/R/simulateDataForAll.run.multiscale.R">of the script in multiscale_analysis repo</a>. This script uses functions in `my.utils.R' in <a href="https://github.com/heejungshim/multiscale_analysis/">multiscale_analysis repo</a>.
+</p>
+<div class="org-src-container">
+
+<pre class="src src-R">setwd("~/multiseq/data/simulation/dsQTL/")
+source("~/multiscale_analysis/src/R/my.utils.R")
+##' `simulate.data' simulate data sets by resampling reads from real data (real.read.counts) for given signals (sig0, sig1).
+##' 
+##' @param seed seed number to set up
+##' @param numGroup0 number of samples for Group0
+##' @param numGroup1 number of samples for Group1
+##' @param real.read.counts a vector of size T (e.g., 1024); t-th element contains number of reads at t-th position; from which we will resample reads for simulation;
+##' @param sig0 a vector of size T (e.g., 1024); t-th element contains probability of sampling read at t-th position in real.read.counts for Group0
+##' @param sig1 a vector of size T (e.g., 1024); t-th element contains probability of sampling read at t-th position in real.read.counts for Group1
+##' @param real.library.read.depth a vector of size M (&gt;1); from whch we will sample library read depth
+##' @param over.dispersion parameter used in sample.from.Binomial.with.Overdispersion; see `my.utils.R' for details. 
+##' @return a list of data, group, library.read.depth; data contains simulated data; matrix of (numGroup0+numGroup1) by T; group contains group indicator for simulated data; a vector of size (numGroup0+numGroup1); library.read.depth contains simulated library read depth; a vector of size (numGroup0+numGroup1)
+simulate.data &lt;- function(seed = 1, numGroup0, numGroup1, sig0, sig1, real.read.counts, real.library.read.depth = NULL, over.dispersion=NULL){
+
+  genoD = c(rep(0, numGroup0), rep(1, numGroup1))
+  numSam = length(genoD)
+  numBPs = length(sig0)
+
+  ## phenotype data
+  phenoD = matrix(data=NA, nr= length(genoD), nc = numBPs)
+
+  ## let's sample!!!
+  set.seed(seed)
+
+  ## upper and lower bound!
+  trunc.fun = function(x){
+    x = max(0, x)
+    return(min(1,x))
+  }
+  p.sig0 = sapply(sig0, trunc.fun)
+  p.sig1 = sapply(sig1, trunc.fun)
+
+  ## geno = 0
+  wh0 = which(genoD == 0)
+  if(length(wh0) &gt; 0){
+    phenoD[wh0,] = sample.from.Binomial.with.Overdispersion(num.sam = length(wh0), total.count = real.read.counts, mu.sig = p.sig0, over.dispersion = over.dispersion)
+  }  
+  ## geno = 1
+  wh1 = which(genoD == 1)
+  if(length(wh1) &gt; 0){
+    phenoD[wh1,] = sample.from.Binomial.with.Overdispersion(num.sam = length(wh1), total.count = real.read.counts, mu.sig = p.sig1, over.dispersion = over.dispersion)
+  }
+  if(is.null(real.library.read.depth)){
+    library.read.depth=NULL
+  }else{
+    library.read.depth = sample(real.library.read.depth, numSam, replace = TRUE)
+  }
+  return(list(data = phenoD, group = genoD, library.read.depth = library.read.depth))
+}
+
+seed = 1
+numGroup0 = 10
+numGroup1 = 10
+sig0 = scan("~/multiseq/data/simulation/dsQTL/alt.sig0", what=double())
+sig1 = scan("~/multiseq/data/simulation/dsQTL/alt.sig1", what=double())
+real.DNase.dat = read.table("~/multiseq/data/simulation/dsQTL/pheno.dat", as.is = TRUE)
+real.read.counts = ceiling(as.numeric(apply(real.DNase.dat, 2, sum)))
+real.library.read.depth = scan("~/multiseq/data/simulation/dsQTL/library.read.depth.dat", what=double())
+
+## data with sample size 20 with library read depth 
+res = simulate.data(seed = seed, numGroup0 = numGroup0, numGroup1 = numGroup1, sig0 = sig0, sig1= sig1, real.read.counts = real.read.counts, real.library.read.depth = real.library.read.depth, over.dispersion=NULL)
+str(res)
+## List of 3
+## $ data              : int [1:20, 1:1024] 0 0 0 0 0 0 0 0 0 0 ...
+## $ group             : num [1:20] 0 0 0 0 0 0 0 0 0 0 ...
+## $ library.read.depth: num [1:20] 44257311 37331440 30843655 36823292 50966695 ...
+apply(res$data,1,sum)
+## [1] 65 60 63 62 81 75 57 65 57 66 39 40 49 46 44 48 53 43 37 51
+
+## data with sample size 20 with library read depth, but all samples in group 2 have zero read count.
+res = simulate.data(seed = seed, numGroup0 = numGroup0, numGroup1 = numGroup1, sig0 = sig0, sig1= rep(0, length(sig1)), real.read.counts = real.read.counts, real.library.read.depth = real.library.read.depth, over.dispersion=NULL)
+apply(res$data,1, sum)
+## [1] 65 60 63 62 81 75 57 65 57 66  0  0  0  0  0  0  0  0  0  0
+
+## data with sample size 20 without library read depth
+res = simulate.data(seed = seed, numGroup0 = numGroup0, numGroup1 = numGroup1, sig0 = sig0, sig1= sig1, real.read.counts = real.read.counts, over.dispersion=NULL)
+apply(res$data,1,sum)
+## [1] 65 60 63 62 81 75 57 65 57 66 39 40 49 46 44 48 53 43 37 51
+res$library.read.depth
+## NULL
+
+## data with sample size 20 without library read depth, but all samples in group 2 have zero read count.
+res = simulate.data(seed = seed, numGroup0 = numGroup0, numGroup1 = numGroup1, sig0 = sig0, sig1= rep(0, length(sig1)), real.read.counts = real.read.counts, over.dispersion=NULL)
+apply(res$data,1,sum)
+## [1] 65 60 63 62 81 75 57 65 57 66  0  0  0  0  0  0  0  0  0  0
+res$library.read.depth
+##NULL
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Heejung Shim</p>
+<p class="date">Created: 2016-02-13 Sat 13:23</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
