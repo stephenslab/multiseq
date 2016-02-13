@@ -1,23 +1,60 @@
-#+title: "A simple testing procedure for multiseq"
-#+author: Heejung Shim
+% Created 2016-02-13 Sat 13:55
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{listings}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{underscore}
+\usepackage{parskip}
+\usepackage{lmodern}
+\usepackage{parskip}
+\usepackage{graphicx}
+\setlength{\parindent}{0pt}
+\usepackage{underscore}
+\textwidth 16cm
+\oddsidemargin 0.5cm
+\evensidemargin 0.5cm
+\author{Heejung Shim}
+\date{\today}
+\title{"A simple testing procedure for multiseq"}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 24.3.1 (Org mode 8.2.10)}}
+\begin{document}
 
-#+latex_header: \usepackage{parskip}
-#+latex_header: \usepackage{graphicx}
-#+latex_header: \setlength{\parindent}{0pt}
-#+latex_header: \usepackage{underscore}
-#+latex_header: \textwidth 16cm
-#+latex_header: \oddsidemargin 0.5cm
-#+latex_header: \evensidemargin 0.5cm
-#+OPTIONS: ^:nil
+\maketitle
+\tableofcontents
 
-* Overview 
-+ After making changes in a software package multiseq, we run a set of tests to check if the changes in multiseq affect output as we planned (e.g., changes shouldn't affect other outputs). 
-+ We simulate four sets of data - typical data and data with no reads with/without library read depth.
 
-* Simulation of data set
-** Collect information to simulate data
-I'll copy phenotype data (from which we will sample data) and signals for group 1 and group 2. See compareWaveQTLandmultiseq_dsQTL_final.org for detailed description of how to obtain this information. 
-#+begin_src bash
+\section{Overview}
+\label{sec-1}
+\begin{itemize}
+\item After making changes in a software package multiseq, we run a set of tests to check if the changes in multiseq affect output as we planned (e.g., changes shouldn't affect other outputs).
+\item We simulate four sets of data - typical data and data with no reads with/without library read depth.
+\end{itemize}
+
+\section{Simulation of data set}
+\label{sec-2}
+\subsection{Collect information to simulate data}
+\label{sec-2-1}
+I'll copy phenotype data (from which we will sample data) and signals for group 1 and group 2. See compareWaveQTLandmultiseq\_dsQTL\_final.org for detailed description of how to obtain this information. 
+\lstset{breaklines=true,showspaces=false,showtabs=false,tabsize=2,basicstyle=\ttfamily,frame=single,keywordstyle=\color{Blue},stringstyle=\color{BrickRed},commentstyle=\color{ForestGreen},columns=fullflexible,language=bash,label= ,caption= ,numbers=none}
+\begin{lstlisting}
 cd ~/multiseq/
 mkdir data
 cd data/
@@ -27,22 +64,26 @@ mkdir dsQTL
 cp ~/multiscale_analysis/analysis/simulation/sample_size/simulation_QTLfinal_v2/data/pheno.dat dsQTL
 cp ~/multiscale_analysis/analysis/simulation/sample_size/simulation_QTLfinal_v2/data/alt.sig0 dsQTL
 cp ~/multiscale_analysis/analysis/simulation/sample_size/simulation_QTLfinal_v2/data/alt.sig1 dsQTL
-#+end_src
+\end{lstlisting}
 
-I'll copy library read depth for this DNase-seq data (you can download from [[https://github.com/heejungshim/WaveQTL/blob/master/data/dsQTL/library.read.depth.dat][WaveQTL repo]]) to this directory.  
-#+begin_src bash 
+I'll copy library read depth for this DNase-seq data (you can download from \href{https://github.com/heejungshim/WaveQTL/blob/master/data/dsQTL/library.read.depth.dat}{WaveQTL repo}) to this directory.  
+\lstset{breaklines=true,showspaces=false,showtabs=false,tabsize=2,basicstyle=\ttfamily,frame=single,keywordstyle=\color{Blue},stringstyle=\color{BrickRed},commentstyle=\color{ForestGreen},columns=fullflexible,language=bash,label= ,caption= ,numbers=none}
+\begin{lstlisting}
 cp ~/WaveQTL/data/dsQTL/library.read.depth.dat ~/multiseq/data/simulation/dsQTL/
-#+end_src
+\end{lstlisting}
 
 Information have been save in: 
-#+begin_src bash
+\lstset{breaklines=true,showspaces=false,showtabs=false,tabsize=2,basicstyle=\ttfamily,frame=single,keywordstyle=\color{Blue},stringstyle=\color{BrickRed},commentstyle=\color{ForestGreen},columns=fullflexible,language=bash,label= ,caption= ,numbers=none}
+\begin{lstlisting}
 cd ~/multiseq/data/simulation/dsQTL
 alt.sig0  alt.sig1  library.read.depth.dat  pheno.dat
-#+end_src
+\end{lstlisting}
 
-** Simulate data 
-The function `simulate.data' is a modification [[https://github.com/heejungshim/multiscale_analysis/blob/master/src/R/simulateDataForAll.run.multiscale.R][of the script in multiscale_analysis repo]]. This script uses functions in `my.utils.R' in [[https://github.com/heejungshim/multiscale_analysis/][multiscale_analysis repo]].
-#+begin_src R
+\subsection{Simulate data}
+\label{sec-2-2}
+The function `simulate.data' is a modification \href{https://github.com/heejungshim/multiscale_analysis/blob/master/src/R/simulateDataForAll.run.multiscale.R}{of the script in multiscale\_analysis repo}. This script uses functions in `my.utils.R' in \href{https://github.com/heejungshim/multiscale_analysis/}{multiscale\_analysis repo}.
+\lstset{breaklines=true,showspaces=false,showtabs=false,tabsize=2,basicstyle=\ttfamily,frame=single,keywordstyle=\color{Blue},stringstyle=\color{BrickRed},commentstyle=\color{ForestGreen},columns=fullflexible,language=R,label= ,caption= ,numbers=none}
+\begin{lstlisting}
 setwd("~/multiseq/data/simulation/dsQTL/")
 source("~/multiscale_analysis/src/R/my.utils.R")
 ##' `simulate.data' simulate data sets by resampling reads from real data (real.read.counts) for given signals (sig0, sig1).
@@ -131,4 +172,6 @@ apply(res$data,1,sum)
 ## [1] 65 60 63 62 81 75 57 65 57 66  0  0  0  0  0  0  0  0  0  0
 res$library.read.depth
 ##NULL
-#+end_src
+\end{lstlisting}
+% Emacs 24.3.1 (Org mode 8.2.10)
+\end{document}
