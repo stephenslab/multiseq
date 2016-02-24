@@ -393,7 +393,7 @@ setAshParam <- function(ashparam){
 #' \item{logLR}{a list with elements \code{value} specifying the log likelihood ratio, \code{scales} a \code{J+1} vector specifying the logLR at each scale, \code{isfinite} bool specifying if the log likelihood ratio is finite}
 #' \item{fitted.g}{a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}}
 #' \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
-multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), shape.eff=FALSE, cxx=TRUE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE, ashparam=list()){
+multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", minobs=1, pseudocounts=0.5, all=FALSE, center=FALSE, repara=TRUE, forcebin=FALSE, lm.approx=TRUE, disp=c("add","mult"), overall.effect=TRUE, overall.loglr=FALSE, cxx=TRUE, smoothing=TRUE, cyclespin=TRUE, reverse=TRUE, maxlogLR=NULL, set.fitted.g=NULL, set.fitted.g.intercept=NULL, get.fitted.g=TRUE, listy=NULL, verbose=FALSE, ashparam=list()){
     disp=match.arg(disp)
     
     if(!is.null(g)) if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor or NULL")
@@ -488,6 +488,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 y.rate = listy$y.rate
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
+		y.rate[y.rate==0] = 0.5
                 zdat.rate = as.vector(t(summary(glm(y.rate ~ g, family="poisson"))$coef[1:2,1:2]))
                 zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
                 if (get.fitted.g)
@@ -601,7 +602,11 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 }
             }            
         }
-        
+
+	if (overall.loglr==FALSE){
+	    logLR[J+1] = 0
+	}        
+
         if (ashparam$pointmass){
             sumlogLR = sum(logLR) # combine logLR from different scales
             finite.logLR = is.finite(sumlogLR); if((!finite.logLR) & (!is.null(maxlogLR))) sumlogLR = maxlogLR  # check if logLR is infinite; if logLR is infite and maxlogLR is provided, we will return maxlogLR istead of infinite.
@@ -625,7 +630,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                 effect.mean = NULL
                 effect.var = NULL
             }else{
-                if(shape.eff==TRUE)#if only shape effect is desired, then differences in overall intensities is not considered  
+                if(overall.effect==FALSE)#if only shape effect is desired, then differences in overall intensities is not considered  
                     res$lpratio.mean = 0 #lpratio.v=0  
                 if(cxx==FALSE){
                     effect.mean = reverse.pwave(res.rate$lpratio.mean, matrix(res$lpratio.mean, J, n, byrow=TRUE), matrix(res$lqratio.mean, J, n, byrow=TRUE))
