@@ -1,10 +1,11 @@
 setwd("~/multiseq/data/simulation/dsQTL/")
 source("simulate_data.R")
+library(multiseq)
 
 seed = 1
 numGroup0 = 10
 numGroup1 = 10
-tolerance = 1e-10
+tolerance = 1e-4
 sig0 = scan("alt.sig0", what=double())
 sig1 = scan("alt.sig1", what=double())
 real.DNase.dat = read.table("pheno.dat", as.is = TRUE)
