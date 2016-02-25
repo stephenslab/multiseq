@@ -28,7 +28,7 @@ res[[4]] = simulate.data(seed = seed, numGroup0 = numGroup0, numGroup1 = numGrou
 # set.seed(seed)
 # multiseq_out_base = list()
 # for(i in 1:length(res)){
-#   multiseq_out_base[[i]] = multiseq(res[[i]]$data, g = res[[i]]$group, read.depth = res[[i]]$library.read.depth)
+#   multiseq_out_base[[i]] = multiseq(res[[i]]$data, g = res[[i]]$group, read.depth = res[[i]]$library.read.depth, verbose = TRUE)
 # }
 # 
 # save(multiseq_out_base, file = 'multiseq_out_base.Robj')
@@ -36,7 +36,7 @@ res[[4]] = simulate.data(seed = seed, numGroup0 = numGroup0, numGroup1 = numGrou
 set.seed(seed)
 multiseq_out = list()
 for(i in 1:length(res)){
-  multiseq_out[[i]] = multiseq(res[[i]]$data, g = res[[i]]$group, read.depth = res[[i]]$library.read.depth)
+  multiseq_out[[i]] = multiseq(res[[i]]$data, g = res[[i]]$group, read.depth = res[[i]]$library.read.depth, verbose = TRUE)
 }
 
 load("multiseq_out_base.Robj")
