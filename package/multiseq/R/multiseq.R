@@ -316,32 +316,44 @@ setAshParam <- function(ashparam){
         ashparam[["mixsd"]]=NULL
         ashparam[["df"]]=NULL 
     }
+    if (is.null(ashparam[["optmethod"]]))
+        ashparam[["optmethod"]]="mixEM"
     if (is.null(ashparam[["pointmass"]]))
         ashparam[["pointmass"]]=TRUE
     if (is.null(ashparam[["prior"]]))
         ashparam[["prior"]]="nullbiased"
     if (is.null(ashparam[["gridmult"]]))
         ashparam[["gridmult"]]=2
-    if (is.null(ashparam[["VB"]]))
-        ashparam[["VB"]]=FALSE
-    if (is.null(ashparam[["cxx"]]))
-        ashparam[["cxx"]]=FALSE
+#    if (is.null(ashparam[["cxx"]]))
+#        ashparam[["cxx"]]=FALSE
     if (is.null(ashparam[["control"]]))
         ashparam[["control"]]=list(maxiter=5000,trace=FALSE)
     if (is.null(ashparam[["mixcompdist"]]))
         ashparam[["mixcompdist"]]="normal"
-    if (is.null(ashparam[["lambda1"]]))
-        ashparam[["lambda1"]]=1
-    if (is.null(ashparam[["lambda2"]]))
-        ashparam[["lambda2"]]=0
+    if (is.null(ashparam[["nullweight"]]))
+        ashparam[["nullweight"]]=10
+    if (is.null(ashparam[["nonzeromode"]]))
+        ashparam[["nonzeromode"]]=FALSE
+    if (is.null(ashparam[["outputlevel"]]))
+        ashparam[["outputlevel"]]=1
+#    if (is.null(ashparam[["lambda1"]]))
+#        ashparam[["lambda1"]]=1
+#    if (is.null(ashparam[["lambda2"]]))
+#        ashparam[["lambda2"]]=0
     if (is.null(ashparam[["randomstart"]]))
         ashparam[["randomstart"]]=FALSE
-    if (is.null(ashparam[["minimaloutput"]]))
-        ashparam[["minimaloutput"]]=FALSE
-    if (is.null(ashparam[["nullcheck"]]))
-        ashparam[["nullcheck"]]=TRUE
-    if (is.null(ashparam[["onlylogLR"]]))
-        ashparam[["onlylogLR"]]=FALSE
+#    if (is.null(ashparam[["minimaloutput"]]))
+#        ashparam[["minimaloutput"]]=FALSE
+#    if (is.null(ashparam[["nullcheck"]]))
+#        ashparam[["nullcheck"]]=TRUE
+#    if (is.null(ashparam[["onlylogLR"]]))
+#        ashparam[["onlylogLR"]]=FALSE
+    if (is.null(ashparam[["fixg"]]))
+        ashparam[["fixg"]]=FALSE
+#    if (is.null(ashparam[["VB"]]))
+#        ashparam[["VB"]]=FALSE
+    if (is.null(ashparam[["model"]]))
+        ashparam[["model"]]="EE"
     if (!is.null(ashparam[["g"]]))
         stop("Error: ash parameter 'g' can only be NULL; if you want to specify ash parameter 'g' use multiseq arguments 'fitted.g' and/or 'fitted.g.intercept'")
     
@@ -409,11 +421,6 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     if(!is.logical(lm.approx)) stop("Error: invalid parameter 'lm.approx', 'lm.approx'  must be bool")
     if(!is.element(disp,c("add","mult"))) stop("Error: invalid parameter 'disp', 'disp'  must be either 'add' or 'mult' ")
     ashparam=setAshParam(ashparam)
-    if (ashparam$onlylogLR){
-        if(is.null(g)) stop("Error: g should be provided to compute logLR if ashparam$onlylogLR = TRUE")
-        if(ashparam$pointmass != TRUE) stop("Error: logLR can be computed only when ashparam$pointmass = TRUE")
-        reverse=FALSE
-    }
     ashparam.fitted.g = ashparam
     ashparam.fitted.g.intercept = ashparam
     if (!is.null(set.fitted.g)) ashparam.fitted.g$control$maxiter = 0
@@ -489,7 +496,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             if(smoothing | get.fitted.g){
                 #below lm.approx=FALSE in which case disp doesn't matter
 		y.rate[y.rate==0] = 0.5
-                zdat.rate = as.vector(t(summary(glm(y.rate ~ g, family="poisson"))$coef[1:2,1:2]))
+                zdat.rate = as.vector(t(summary(suppressWarnings(glm(y.rate ~ g, family="poisson")))$coef[1:2,1:2]))
                 zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
                 if (get.fitted.g)
                     fitted.g[[J+1]] = zdat.rate.ash$fitted.g
@@ -555,7 +562,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             }
             if (!is.null(g)){
                 if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash = withCallingHandlers(do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]], multiseqoutput=TRUE), ashparam.fitted.g)), warning=suppressW)
+                    zdat.ash = withCallingHandlers(do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=set.fitted.g[[j]]), ashparam.fitted.g)), warning=suppressW)
                     if (get.fitted.g)
                         fitted.g[[j]] = zdat.ash$fitted.g
                     if (ashparam$pointmass)
@@ -573,9 +580,9 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
                     }
                 }
             }
-            if (!ashparam$onlylogLR & (smoothing | get.fitted.g)){
+            if (smoothing | get.fitted.g){
                 if(min(sum(!is.na(zdat[1,ind])), sum(!is.na(zdat[2,ind]))) > 0){ # run ash when there is at least one WC.
-                    zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]], multiseqoutput=TRUE), ashparam.fitted.g.intercept)), warning=suppressW)
+                    zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=set.fitted.g.intercept[[j]]), ashparam.fitted.g.intercept)), warning=suppressW)
                     if (get.fitted.g)
                         fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
                     if (reverse){
