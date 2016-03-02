@@ -4,7 +4,7 @@ Downloading and installing the package
 To download the **multiseq** package from its [github repository](https://github.com/stephenslab/multiseq) click [here](https://github.com/stephenslab/multiseq/blob/master/package/multiseq.tar.gz?raw=true). 
 
 
-**Multiseq** depends on **ashr**, a package in development that you can download and install following instructions [here](https://github.com/stephens999/ash/blob/master/README). It also depends on [**Rcpp**](http://cran.r-project.org/web/packages/Rcpp/index.html), and therefore it requires an **R** version higher or equal to **3.0.0**. To install the package, install **ashr** and then type the following commands in R:
+**Multiseq** depends on **ashr**, a package in development that you can download and install following instructions [here](https://github.com/stephens999/ashr). It also depends on [**Rcpp**](http://cran.r-project.org/web/packages/Rcpp/index.html), and therefore it requires an **R** version higher or equal to **3.0.0**. To install the package, install **ashr** and then type the following commands in R:
 
 ```
     #in orded to install rhdf5 you have to use the Bioconductor repository (tune parameter repos in install.packages)
