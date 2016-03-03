@@ -1,4 +1,3 @@
-setwd("~/multiseq/data/simulation/dsQTL/")
 source("simulate_data.R")
 library(multiseq)
 

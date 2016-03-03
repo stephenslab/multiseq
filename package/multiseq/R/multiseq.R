@@ -311,49 +311,10 @@ setAshParam <- function(ashparam){
     #by default ashparam$g=NULL
     if (!is.list(ashparam))
         stop("Error: invalid parameter 'ashparam'")
-    if (is.null(names(ashparam))){
-        ashparam[["g"]]=NULL
-        ashparam[["mixsd"]]=NULL
-        ashparam[["df"]]=NULL 
-    }
-    if (is.null(ashparam[["optmethod"]]))
-        ashparam[["optmethod"]]="mixEM"
-    if (is.null(ashparam[["pointmass"]]))
-        ashparam[["pointmass"]]=TRUE
-    if (is.null(ashparam[["prior"]]))
-        ashparam[["prior"]]="nullbiased"
-    if (is.null(ashparam[["gridmult"]]))
-        ashparam[["gridmult"]]=2
-#    if (is.null(ashparam[["cxx"]]))
-#        ashparam[["cxx"]]=FALSE
-    if (is.null(ashparam[["control"]]))
-        ashparam[["control"]]=list(maxiter=5000,trace=FALSE)
-    if (is.null(ashparam[["mixcompdist"]]))
-        ashparam[["mixcompdist"]]="normal"
-    if (is.null(ashparam[["nullweight"]]))
-        ashparam[["nullweight"]]=10
-    if (is.null(ashparam[["nonzeromode"]]))
-        ashparam[["nonzeromode"]]=FALSE
-    if (is.null(ashparam[["outputlevel"]]))
-        ashparam[["outputlevel"]]=1
-#    if (is.null(ashparam[["lambda1"]]))
-#        ashparam[["lambda1"]]=1
-#    if (is.null(ashparam[["lambda2"]]))
-#        ashparam[["lambda2"]]=0
-    if (is.null(ashparam[["randomstart"]]))
-        ashparam[["randomstart"]]=FALSE
-#    if (is.null(ashparam[["minimaloutput"]]))
-#        ashparam[["minimaloutput"]]=FALSE
-#    if (is.null(ashparam[["nullcheck"]]))
-#        ashparam[["nullcheck"]]=TRUE
-#    if (is.null(ashparam[["onlylogLR"]]))
-#        ashparam[["onlylogLR"]]=FALSE
-    if (is.null(ashparam[["fixg"]]))
-        ashparam[["fixg"]]=FALSE
-#    if (is.null(ashparam[["VB"]]))
-#        ashparam[["VB"]]=FALSE
-    if (is.null(ashparam[["model"]]))
-        ashparam[["model"]]="EE"
+    ashparam.default = list(optmethod="mixEM", pointmass=TRUE,
+                   prior="nullbiased", gridmult=2, control = list(maxiter=5000,trace=FALSE), 
+                   mixcompdist="normal", nullweight=10, nonzeromode=FALSE, outputlevel=1, randomstart=FALSE,fixg=FALSE, model="EE")
+    ashparam = modifyList(ashparam.default, ashparam)
     if (!is.null(ashparam[["g"]]))
         stop("Error: ash parameter 'g' can only be NULL; if you want to specify ash parameter 'g' use multiseq arguments 'fitted.g' and/or 'fitted.g.intercept'")
     
@@ -364,7 +325,10 @@ setAshParam <- function(ashparam){
     
 #' Estimate underlying signal from count data \code{x} and optionally the effect of a covariate \code{g}.
 #' 
-#' This function takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}. Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
+#' Fits the model \code{x}_{ib} \sim Poi(\lambda_{ib}) where $log(\lambda_{ib}) = \alpha_b + g_i \beta_b$.
+#' where takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}.
+#' Estimates are all on the log intensity scale 
+#' Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
 #'
 #' @param x: a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.
 #' @param read.depth: an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.
@@ -398,7 +362,7 @@ setAshParam <- function(ashparam){
 #' data(dat, package="multiseq")
 #' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
 #' @return \code{multiseq} returns an object of \code{\link[base]{class}} "multiseq", a list with the following elements (or a simplified list if \code{verbose=FALSE} or \code{smoothing=FALSE}) \cr
-#' \item{baseline.mean}{an \code{nsig}-vector with the posterior baseline mean}
+#' \item{baseline.mean}{an \code{nsig}-vector with the posterior mean of baseline log(intensity)}
 #' \item{baseline.var}{an \code{nsig}-vector with the posterior baseline variance}
 #' \item{effect.mean}{an \code{nsig}-vector with the posterior effect mean}
 #' \item{effect.var}{an \code{nsig}-vector with the posterior effect variance}

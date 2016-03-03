@@ -1,4 +1,4 @@
-source("~/multiscale_analysis/src/R/my.utils.R")
+source("~/Dropbox/Documents/git/multiscale_analysis/src/R/my.utils.R")
 ##' `simulate.data' simulate data sets by resampling reads from real data (real.read.counts) for given signals (sig0, sig1).
 ##' 
 ##' @param seed seed number to set up
