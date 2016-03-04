@@ -387,8 +387,8 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     ashparam=setAshParam(ashparam)
     ashparam.fitted.g = ashparam
     ashparam.fitted.g.intercept = ashparam
-    if (!is.null(set.fitted.g)) ashparam.fitted.g$control$maxiter = 0
-    if (!is.null(set.fitted.g.intercept)) ashparam.fitted.g.intercept$control$maxiter = 0
+    if (!is.null(set.fitted.g)) ashparam.fitted.g$fixg = TRUE
+    if (!is.null(set.fitted.g.intercept)) ashparam.fitted.g.intercept$fixg = TRUE
     if (!smoothing) reverse = FALSE
     if (!cyclespin) {reverse = FALSE; warning("Reversing wavelet not implemented here when cyclespin=FALSE, setting reverse=FALSE")}
     #to do: check other input parameters
