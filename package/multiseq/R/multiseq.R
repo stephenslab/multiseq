@@ -399,7 +399,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
         if(!is.numeric(x)) stop("Error: invalid parameter 'x': 'x' must be numeric")
         if(is.vector(x)) dim(x) = c(1,length(x)) #change x to matrix
         nsig = nrow(x)
-        if(!is.null(read.depth)) if(length(read.depth) != nsig) stop("Error: read depths for all samples are not provided")
+        if(!is.null(read.depth)){
+          if(length(read.depth) != nsig) stop("Error: read depths for all samples are not provided")
+          if(!all(read.depth >= apply(x,1,sum))) stop("Error: read depths must exceed total counts!")
+        }
         if(!is.null(g)) if(length(g) != nsig) stop("Error: covariate g for all samples are not provided")
         if(nsig == 1) forcebin = TRUE #if only one observation, don't allow overdispersion
         J = log2(ncol(x)); if((J%%1) != 0) reflect=TRUE #if ncol(x) is not a power of 2, reflect x
