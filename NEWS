@@ -1,2 +1,5 @@
-No new features!
-
+-----------------------------------
+March 6, 2006 : build v0.1.3
+1. option overall.loglr (FALSE as default) has been added to multiseq funtion. If overall.loglr = FALSE, multiseq returns logLR for shape. If overall.loglr = TRUE, multiseq returns sum of logLR for shape and logLR for overall mean. 
+2. option shape.eff has been replaced with overall.effect (TRUE as default). 
+-----------------------------------
