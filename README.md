@@ -10,6 +10,9 @@ To download the package click on [link](https://github.com/stephenslab/multiseq/
 
 After uncompressing the downloaded archive into folder `multiseq`, you can find installation instructions in `multiseq/README.Rmd`.
 
+## News
+
+See the [`NEWS`](https://github.com/stephenslab/multiseq/blob/master/NEWS) file for news, such as recent updates and releases.
 
 ### Instructions for developers
 
