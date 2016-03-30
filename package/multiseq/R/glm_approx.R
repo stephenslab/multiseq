@@ -449,14 +449,14 @@ compute.glm=function(x,g,d,n,na.index,repara){
 #' This function is optimized for fitting multiple models simultaneously
 #' @param x: a matrix of N (# of samples) by 2*T (T: # of WCs or, more precisely, of different scales and locations in multi-scale space); Two consecutive columns correspond to a particular scale and location; The first column (the second column) contains # of successes (# of failures) for each sample at corresponding scale and location.
 #' @param g: a vector of covariates. Can be a factor (2 groups only) or quantitative
-#' @param pseudocounts: adds pseudocounts in the case of low success of failure counts.
-#' @param all: bool,  when success or failure counts are low, controls whether or not to add pseudocounts to all observations or only the low counts.
-#' @param eps: adds tiny pseudocounts in the case of 0 successes or 0 failures. Only used when pseoducounts=0
-#' @param center: bool, specifies if g should be centered or not
-#' @param repara: bool, specifies if model should be reparametrized so that muhat and betahat are uncorrelated
-#' @param forcebin: bool, if TRUE don't allow for overdipersion.
-#' @param lm.approx: bool, specifies if WLS should be used (TRUE), or GLM (FALSE)
-#' @param disp: "all" or "mult", indicates which type of overdispersion is assumed when lm.approx=TRUE
+#' @param minobs: minimum number of obs required to be in each logistic model.
+#' @param pseudocounts: a number to be added to counts.
+#' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0.
+#' @param center: bool, indicating whether to center \code{g}.
+#' @param repara: bool, indicating whether to reparameterize \code{alpha} and \code{beta} so that their likelihoods can be factorized. 
+#' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}.
+#' @param lm.approx: bool, indicating whether a WLS alternative should be used.
+#' @param disp: a string, can be either "add" or "mult", indicates which type of overdispersion is assumed when \code{lm.approx=TRUE}.
 #' @param bound: numeric, indicates the threshold of the success vs failure ratio below which pseudocounts will be added
 #'
 #' @export
