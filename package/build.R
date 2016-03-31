@@ -14,7 +14,7 @@ Rcpp.package.skeleton("multiseq", path=".", code_files=c("multiseq.R", "PoissonB
 #from within the package/multiseq directory:
 #/data/tools/R-3.1.1/bin/R
 #devtools::install_github("klutometis/roxygen")
-install.packages("~/src/ash/package/ashr.no.cxx.tar.gz",repos=NULL,type="source")
+library(ashr)
 require(roxygen2)
 require(devtools)
 roxygenize()

@@ -1,0 +1,100 @@
+track reads
+shortLabel reads
+longLabel reads
+superTrack on none
+priority 1
+autoScale off
+viewLimits 0:4.000000a
+dragAndDrop subtracks
+
+track Gm12878_Yy1_Rep1
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep1.bam.bw
+track Gm12878_Yy1_Rep1
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep1.bam.bw
+shortLabel Gm12878_Yy1_Rep1
+longLabel testMultiseq.dat Gm12878_Yy1_Rep1
+
+track Gm12878_Yy1_Rep2
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep2.bam.bw
+track Gm12878_Yy1_Rep2
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep2.bam.bw
+shortLabel Gm12878_Yy1_Rep2
+longLabel testMultiseq.dat Gm12878_Yy1_Rep2
+
+track H1hesc_Yy1_Rep1
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep1.bam.bw
+track H1hesc_Yy1_Rep1
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep1.bam.bw
+shortLabel H1hesc_Yy1_Rep1
+longLabel testMultiseq.dat H1hesc_Yy1_Rep1
+
+track H1hesc_Yy1_Rep2
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep2.bam.bw
+track H1hesc_Yy1_Rep2
+parent reads
+type bigWig
+graphType points
+visibility full
+color 0,0,0
+bigDataUrl wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep2.bam.bw
+shortLabel H1hesc_Yy1_Rep2
+longLabel testMultiseq.dat H1hesc_Yy1_Rep2
+
+track peaks
+shortLabel peaks
+longLabel peaks
+superTrack on none
+priority 2
+dragAndDrop subtracks
+
+track signalspp.idrOptimal.bf.wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep0.bam_VS_wgEncodeHaibTfbsGm12878RxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed
+type bigBed
+shortLabel spp.idrOptimal.bf.wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep0.bam_VS_wgEncodeHaibTfbsGm12878RxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed
+longLabel testMultiseq.datspp.idrOptimal.bf.wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep0.bam_VS_wgEncodeHaibTfbsGm12878RxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed
+parent peaks
+visibility full
+bigDataUrl spp.idrOptimal.bf.wgEncodeHaibTfbsGm12878Yy1sc281Pcr1xAlnRep0.bam_VS_wgEncodeHaibTfbsGm12878RxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed.bb
+color 0,0,0
+track signalspp.idrOptimal.bf.wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep0.bam_VS_wgEncodeHaibTfbsH1hescRxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed
+type bigBed
+shortLabel spp.idrOptimal.bf.wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep0.bam_VS_wgEncodeHaibTfbsH1hescRxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed
+longLabel testMultiseq.datspp.idrOptimal.bf.wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep0.bam_VS_wgEncodeHaibTfbsH1hescRxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed
+parent peaks
+visibility full
+bigDataUrl spp.idrOptimal.bf.wgEncodeHaibTfbsH1hescYy1sc281V0416102AlnRep0.bam_VS_wgEncodeHaibTfbsH1hescRxlchPcr1xAlnRep0.bam.narrowPeak.gz.sorted.bed.bb
+color 0,0,0

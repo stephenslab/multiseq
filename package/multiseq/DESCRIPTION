@@ -5,7 +5,7 @@ Maintainer: Ester Pantaleo <esterpantaleo@gmail.com>, Heejung Shim
 Author: Ester Pantaleo, Heejung Shim, Zhengrong Xing, Matthew Stephens.
 Type: Package
 Title: Multiscale Sequence Analysis
-Version: 0.1.3
+Version: 0.1.5
 Description: Multiseq implements a Bayesian multiscale method for
     inhomogeneous Poisson processes. An inhomogeneous Poisson process is ...
     Multiseq can be used both for smoothing and for effect size estimation

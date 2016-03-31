@@ -1,0 +1,5 @@
+SampleID Type bedPath ReadDepth bigWigPath
+A1 Gm12878 peak.A.bb 16335812 A1.bw
+A2 Gm12878 peak.A.bb 18197248 A2.bw
+B1 H1hesc peak.B.bb 24225586 B1.bw
+B2 H1hesc peak.B.bb 12378544 B2.bw

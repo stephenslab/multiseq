@@ -369,21 +369,25 @@ setLearnPiParam <- function(learn.pi.param){
 
 
     
-#' Estimate underlying signal from count data \code{x} and optionally the effect of a covariate \code{g}.
+#' @title Estimate baseline and effect from count data.
 #' 
-#' Fits the model \code{x}_{ib} \sim Poi(\lambda_{ib}) where $log(\lambda_{ib}) = \alpha_b + g_i \beta_b$.
-#' where takes a series of Poisson count signals \code{x}, with data on different samples in each row, and smooths all simultaneously using a multiscale Poisson model. Optionally, it estimates the "effect" of a covariate \code{g}.
-#' Estimates are all on the log intensity scale 
-#' Parameters \code{minobs}, \code{pseudocounts}, \code{all}, \code{center}, \code{repara}, \code{forcebin}, \code{lm.approx}, and \code{disp} are passed to \code{\link{glm.approx}}. The list \code{ashparam} specifies a list of parameters to be passed to \code{ash}.
+#' @description Given a \code{m} by \code{n} matrix of count data \code{x}, returns estimates
+#' (posterior means) of the baseline and possible an effect if a covariate is present, along with their posterior standard deviations. Additionally, a log-likelihood ratio for the presence of a significant "effect" ie deviation of effect from 0 is also included as an output. 
+#' 
+#' @details The data is modelled as $x_{ib} \sim Poi(\lambda_{ib})$ where $log(\lambda_b^i) = \mu_b^o + g^i \beta_b^o + \nu_b^i$ for samples $i=1,...,m$, and $b=1,...,n$, where 
+#' $\mu_b^o$ and $\beta_b^o$ are fixed parameters of interest, and $\nu__b^i$ is a random effect modelling extra-Poisson variation. Here the parameters $\mu_b^o$ and 
+#' $\beta_b^o$ are assumed to be spatially structured (or smooth if they are treated as being sampled from a continuous function), so the model can be reparametrized as $\alpha_{sl}^i = \mu_{sl} + g^i \beta_{sl} + u_{sl}^i$ using a 
+#' multiscale representation, which is the actual model fitted by the function \code{multiseq} (for details see companion paper by Shim et al. (2016)). However, outputs are on the original scale ie \code{multiseq} returns estimates
+#' of $\mu_b^o$ and $\beta_b^o$, and not $\mu_{sl}$ or $\beta_{sl}$.
 #'
 #' @param x: a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.
 #' @param read.depth: an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.
 #' @param reflect: bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflectSignal}} for details.
 #' @param baseline: a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".
-#' @param g: an \code{nsig}-dimensional vector containing group indicators/covariates for each sample.
+#' @param g: a \code{nsig}-dimensional vector containing group indicators/covariates for each sample.
 #' @param overall.effect: bool, indicating whether to include overall mean into effect estimates (TRUE, default) or not (FALSE)
 #' @param overall.loglr: bool, indicating if multiseq should be used to estimate logLR for overall effect (TRUE) or DESeq2 should be used (FALSE, default).
-#' @param cxx: bool, indicating whether to use c++ code (faster) (TRUE) or R code (FALSE)
+#' @param cxx: bool, indicating whether to use c++ code (faster) (TRUE, default) or R code (FALSE)
 #' @param maxlogLR: a positive number, defaults to NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #' @param verbose: bool, defaults to FALSE, if TRUE \code{\link{multiseq}} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.
 #' @param glm.approx.param: a list of parameters to be passed to \code{glm.approx}; default values are set by function \code{\link{setGlmApproxParam}}.
