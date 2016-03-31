@@ -1,5 +1,8 @@
 -----------------------------------
-March 6, 2006 : build v0.1.3
+March 30, 2016 : build v0.1.3
+1. Grouped multiseq input parameters by functional category. Now all glm.approx inputs are entered as a list under glm.approx.param, ash inputs are entered as a list under ashparam, and the parameters for when fitted g from ash is provided are entered as a list under learn.pi.param
+-----------------------------------
+March 6, 2016 : build v0.1.3
 1. This version has been tagged and released in https://github.com/stephenslab/multiseq/releases.
 2. option overall.loglr (FALSE as default) has been added to multiseq funtion. If overall.loglr = FALSE, multiseq returns logLR for shape. If overall.loglr = TRUE, multiseq returns sum of logLR for shape and logLR for overall mean. 
 3. option shape.eff has been replaced with overall.effect (TRUE as default). 
