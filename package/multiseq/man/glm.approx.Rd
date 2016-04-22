@@ -11,7 +11,7 @@ glm.approx(x, g = NULL, minobs = 1, pseudocounts = 0.5, all = FALSE,
 \arguments{
 \item{x:}{a matrix of N (# of samples) by 2*B (B: # of WCs or, more precisely, of different scales and locations in multi-scale space); Two consecutive columns correspond to a particular scale and location; The first column (the second column) contains # of successes (# of failures) for each sample at the corresponding scale and location.}
 
-\item{g:}{a vector of covariate values. Can be a factor (2 groups only) or quantitative}
+\item{g:}{a vector of covariate values. Can be a factor (2 groups only) or quantitative. For a 2-group categorical covariate, provide \code{g} as a 0-1 factor instead of a 0-1 numeric vector for faster computation.}
 
 \item{minobs:}{minimum number of non-zero required for each model to be fitted (otherwise NA is returned for that model).}
 
@@ -19,7 +19,7 @@ glm.approx(x, g = NULL, minobs = 1, pseudocounts = 0.5, all = FALSE,
 
 \item{all:}{bool, if TRUE pseudocounts are added to all entries, if FALSE (default) pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0.}
 
-\item{center:}{bool, indicating whether to center \code{g}.}
+\item{center:}{bool, indicating whether to center \code{g}. If \code{g} is a 2-group categorical variable and centering is desired, use \code{center=TRUE} instead of treating \code{g} as numeric and centering manually to avoid slower computation.}
 
 \item{repara:}{bool, indicating whether to reparameterize \code{alpha} and \code{beta} so that their likelihoods can be factorized.}
 

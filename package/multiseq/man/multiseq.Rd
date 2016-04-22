@@ -5,9 +5,9 @@
 \title{Estimate baseline and effect from count data.}
 \usage{
 multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
-  baseline = "inter", overall.effect = TRUE, overall.loglr = FALSE,
-  cxx = TRUE, maxlogLR = NULL, verbose = FALSE,
-  glm.approx.param = list(), ashparam = list(), learn.pi.param = list())
+  overall.effect = TRUE, overall.loglr = FALSE, cxx = TRUE,
+  maxlogLR = NULL, verbose = FALSE, glm.approx.param = list(),
+  ashparam = list(), learn.pi.param = list())
 }
 \arguments{
 \item{x:}{a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.}
@@ -16,9 +16,7 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 
 \item{reflect:}{bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflectSignal}} for details.}
 
-\item{baseline:}{a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".}
-
-\item{g:}{a \code{nsig}-dimensional vector containing group indicators/covariates for each sample.}
+\item{g:}{a \code{nsig}-dimensional vector containing group indicators/covariates for each sample. For a 2-group categorical covariate, provide \code{g} as a 0-1 factor instead of a 0-1 numeric vector for faster computation.}
 
 \item{overall.effect:}{bool, indicating whether to include overall mean into effect estimates (TRUE, default) or not (FALSE)}
 

@@ -350,9 +350,16 @@ glm.coef=function(z,g,n,center,repara){
             var=z$var+c(rep(0,n),rep(z$var[1:n],times=(lg-1)))        #compute var of intercept and slope
         }
         if(repara==TRUE){
-            mbvar=-var[1:n]/var[(n+1):(2*n)]                               #compute gamma as in documentation if reparametrization is used
-            coef[1:n]=coef[1:n]-coef[(n+1):(2*n)]*mbvar                      #reparametrized estimates
-            var[1:n]=var[1:n]-var[1:n]^2/var[(n+1):(2*n)]              #reparametrized Ses
+            if(center==TRUE){
+                mbvar=-(w2*z$var[1:n]+w1*z$var[(n+1):(2*n)])/var[(n+1):(2*n)]                               #compute gamma as in documentation if reparametrization is used
+                coef[1:n]=coef[1:n]-coef[(n+1):(2*n)]*mbvar                      #reparametrized estimates
+                var[1:n]=var[1:n]-(w2*z$var[1:n]+w1*z$var[(n+1):(2*n)])^2/var[(n+1):(2*n)]              #reparametrized Ses
+            }else{
+                mbvar=-var[1:n]/var[(n+1):(2*n)]
+                coef[1:n]=coef[1:n]-coef[(n+1):(2*n)]*mbvar                      #reparametrized estimates
+                var[1:n]=var[1:n]-var[1:n]^2/var[(n+1):(2*n)]              #reparametrized Ses
+            }
+
         }
     }else if(lg==3){                        #3 groups case as in PoissonBinomial_etc
         if(center==TRUE){                         #considered centered and uncentered covariate separately    
@@ -449,11 +456,11 @@ compute.glm=function(x,g,d,n,na.index,repara){
 #' This function fits many "simple" logistic regressions (ie zero or one covariate) simultaneously, allowing for the possibility of small sample sizes with low or zero counts. In addition, an alternative
 #' model in the form of a weighted least squares regression can also be fit in place of a logistic regression.
 #' @param x: a matrix of N (# of samples) by 2*B (B: # of WCs or, more precisely, of different scales and locations in multi-scale space); Two consecutive columns correspond to a particular scale and location; The first column (the second column) contains # of successes (# of failures) for each sample at the corresponding scale and location.
-#' @param g: a vector of covariate values. Can be a factor (2 groups only) or quantitative
+#' @param g: a vector of covariate values. Can be a factor (2 groups only) or quantitative. For a 2-group categorical covariate, provide \code{g} as a 0-1 factor instead of a 0-1 numeric vector for faster computation.
 #' @param minobs: minimum number of non-zero required for each model to be fitted (otherwise NA is returned for that model).
 #' @param pseudocounts: a number to be added to counts when counts are zero (or possibly extremely small).
 #' @param all: bool, if TRUE pseudocounts are added to all entries, if FALSE (default) pseudocounts are added only to cases when either number of successes or number of failures (but not both) is 0.
-#' @param center: bool, indicating whether to center \code{g}.
+#' @param center: bool, indicating whether to center \code{g}. If \code{g} is a 2-group categorical variable and centering is desired, use \code{center=TRUE} instead of treating \code{g} as numeric and centering manually to avoid slower computation.
 #' @param repara: bool, indicating whether to reparameterize \code{alpha} and \code{beta} so that their likelihoods can be factorized.
 #' @param forcebin: bool, if TRUE don't allow for overdipersion. Defaults to TRUE if \code{nsig=1}, and FALSE otherwise.
 #' @param lm.approx: bool, indicating whether a WLS alternative should be used. Defaults to FALSE

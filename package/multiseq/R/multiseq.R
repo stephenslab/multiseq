@@ -215,19 +215,14 @@ ffwrapper <- function(mean, var, Mean, Sq, wSq, beta.tm, beta.fm, g){
 #' @title compute.res.rate
 #' @return a list with elements "lp.mean", "lp.var", "lpratio.mean", "lpratio.var"
 #' @keywords internal
-compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
+compute.res.rate <- function(zdat, repara, w, read.depth, g=NULL){
     if (repara==TRUE)
         mbvar=zdat[5]
     else
         mbvar=0
 
-    if(baseline=="grp")
-        w1=w[1]
-    else if (baseline=="inter")
-        w1=0 
-    else
-        w1=baseline
-
+    w1=w[1]
+    
     #compute lpratio.m and lpratio.v    
     #computes mean and variance for the ratio of overall intensities in different groups (used in reconstructing the effect estimate later)
     if (is.null(read.depth)){
@@ -255,7 +250,7 @@ compute.res.rate <- function(zdat, repara, baseline, w, read.depth, g=NULL){
 #' @return a list with elements "lp.mean", "lp.var", "lq.mean", "lq.var" [and "lpratio.mean", "lpratio.var", "lqratio.mean", "lqratio.var"
 #' if covariate is present, i.e. \code{g} is not NULL]  
 #' @keywords internal
-compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NULL, zdat=NULL, zdat.ash=NULL){
+compute.res <- function(zdat.ash.intercept, repara, w=NULL, g=NULL, zdat=NULL, zdat.ash=NULL){
     alpha=list(mean=zdat.ash.intercept$PosteriorMean, var=zdat.ash.intercept$PosteriorSD^2) #find mean and variance of alpha
     alpha.prior=list(mean=rep(0,length(zdat.ash.intercept$PosteriorMean)), var=sum(zdat.ash.intercept$fitted.g$pi*zdat.ash.intercept$fitted.g$sd^2))
     if(is.null(g)){#if covariate is absent
@@ -272,12 +267,8 @@ compute.res <- function(zdat.ash.intercept, repara, baseline=NULL, w=NULL, g=NUL
         }else{
             mbvar=0
         }
-        if(baseline=="grp")
-            w1=w[1]
-        else if (baseline=="inter")
-            w1=0        
-        else
-            w1=baseline
+        
+        w1=w[1]
                                         #apply ash to vector of slope estimates and SEs
         zdat.ash_post=posterior_dist(zdat.ash$fitted.g,zdat[3,],zdat[4,])
                                         #compute the posterior third and fourth moments of beta
@@ -382,8 +373,7 @@ setLearnPiParam <- function(learn.pi.param){
 #' @param x: a matrix (or a vector) of \code{nsig} by \code{n} counts where \code{n} should be a power of 2 or a vector of size \code{n}.
 #' @param read.depth: an \code{nsig}-dimensional vector containing the total number of reads for each sample (used to test for association with the total intensity); defaults to NULL.
 #' @param reflect: bool, if TRUE signal is reflected, if FALSE signal is not reflected. Defaults to TRUE if n is not power of 2. See \code{\link{reflectSignal}} for details.
-#' @param baseline: a string, can be "inter" or "grp" or a number. Uses intercept \code{g=0} as baseline ("inter") or the group with the smallest \code{g} as baseline ("grp") or specifies value of \code{g} that should be baseline (number). If center==FALSE and baseline=="inter", then baseline will be overwritten and automatically set to "grp".
-#' @param g: a \code{nsig}-dimensional vector containing group indicators/covariates for each sample.
+#' @param g: a \code{nsig}-dimensional vector containing group indicators/covariates for each sample. For a 2-group categorical covariate, provide \code{g} as a 0-1 factor instead of a 0-1 numeric vector for faster computation.
 #' @param overall.effect: bool, indicating whether to include overall mean into effect estimates (TRUE, default) or not (FALSE)
 #' @param overall.loglr: bool, indicating if multiseq should be used to estimate logLR for overall effect (TRUE) or DESeq2 should be used (FALSE, default).
 #' @param cxx: bool, indicating whether to use c++ code (faster) (TRUE, default) or R code (FALSE)
@@ -406,7 +396,7 @@ setLearnPiParam <- function(learn.pi.param){
 #' \item{logLR}{a list with elements \code{value} specifying the log likelihood ratio, \code{scales} a \code{J+1} vector specifying the logLR at each scale, \code{isfinite} bool specifying if the log likelihood ratio is finite}
 #' \item{fitted.g}{a list of \code{J+1} mixture of normal models fitted using \pkg{ashr}, \code{J=log2(n)}}
 #' \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
-multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="inter", overall.effect=TRUE, overall.loglr=FALSE, cxx=TRUE, maxlogLR=NULL, verbose=FALSE, glm.approx.param=list(), ashparam=list(), learn.pi.param=list()){
+multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effect=TRUE, overall.loglr=FALSE, cxx=TRUE, maxlogLR=NULL, verbose=FALSE, glm.approx.param=list(), ashparam=list(), learn.pi.param=list()){
   
   ashparam=setAshParam(ashparam)
   ashparam.fitted.g = ashparam
@@ -415,8 +405,6 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
   learn.pi.param = setLearnPiParam(learn.pi.param)
   
   if(!is.null(g)) if(!(is.numeric(g)|is.factor(g))) stop("Error: invalid parameter 'g', 'g' must be numeric or factor or NULL")
-  if(!((baseline == "inter") | (baseline=="grp") | is.numeric(baseline))) stop("Error: invalid parameter 'baseline', 'baseline' can be a number or 'inter' or 'grp'")
-  if(glm.approx.param$center == FALSE & baseline == "inter") baseline = "grp"
   if(!is.logical(reflect)) stop("Error: invalid parameter 'reflect', 'reflect' must be bool")
   
   if (!is.null(learn.pi.param$set.fitted.g)) ashparam.fitted.g$fixg = TRUE
@@ -448,15 +436,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     if(is.null(g)) stop("Error: specify argument g to multiseq")
     if(length(g) != nsig) stop("Error: arguments g and listy not compatible")
   }
-  if(!is.null(g)){
-    if(is.factor(g))
-      g.num = as.numeric(levels(g))[g]
-    else{
-      g.num = g
-      if(length(unique(g)) == 2)
-        g = factor(g)
-    }
-  }
+
   
   fitted.g=list()
   fitted.g.intercept=list()
@@ -476,13 +456,9 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
     }
   }else{
     if(is.null(learn.pi.param$listy)){
-      if(learn.pi.param$reverse){
-        #weights for quantitative covariate
-        if(glm.approx.param$center == TRUE)
-          w = unique(sort(g.num-mean(g.num)))
-        else
-          w = c(0,1)
-      }
+      
+      #These weights can be changed if one wants to include the possibility of estimating group intensities even if g is centered ie. estimate \mu+g_0\beta
+      w = c(0, 1)
       
       #compute mean and variance of the baseline overall intensity(used in reconstructing the baseline estimate later)    
       xRowSums = rowSums(x)
@@ -495,7 +471,14 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
       if(learn.pi.param$smoothing | learn.pi.param$get.fitted.g){
         #below lm.approx=FALSE in which case disp doesn't matter
         y.rate[y.rate==0] = 0.5
-        zdat.rate = as.vector(t(summary(suppressWarnings(glm(y.rate ~ g, family="poisson")))$coef[1:2,1:2]))
+        g.rate = g
+        if(glm.approx.param$center==TRUE){
+          if(is.factor(g)){
+            g.rate = as.numeric(levels(g.rate))[g.rate]
+          }
+          g.rate = g.rate - mean(g.rate)
+        }
+        zdat.rate = as.vector(t(summary(suppressWarnings(glm(y.rate ~ g.rate, family="poisson")))$coef[1:2,1:2]))
         zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=learn.pi.param$set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
         if (learn.pi.param$get.fitted.g)
           fitted.g[[J+1]] = zdat.rate.ash$fitted.g
@@ -519,7 +502,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
         if (ashparam$pointmass) #compute logLR 
           logLR[J+1] = zdat.rate.ash$logLR
         if (learn.pi.param$reverse)
-          res.rate = compute.res.rate(zdat.rate, glm.approx.param$repara, baseline, w, read.depth, g)
+          res.rate = compute.res.rate(zdat.rate, glm.approx.param$repara, w, read.depth, g)
       }
     }
   }
@@ -588,7 +571,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, baseline="in
             if (is.null(g))
               res.j = compute.res(zdat.ash.intercept, glm.approx.param$repara)
             else
-              res.j = compute.res(zdat.ash.intercept, glm.approx.param$repara, baseline, w, g, zdat[,ind], zdat.ash)
+              res.j = compute.res(zdat.ash.intercept, glm.approx.param$repara, w, g, zdat[,ind], zdat.ash)
             res=rbindlist(list(res.j,res))
           }
         }else{
