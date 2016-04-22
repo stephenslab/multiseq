@@ -359,7 +359,6 @@ glm.coef=function(z,g,n,center,repara){
                 coef[1:n]=coef[1:n]-coef[(n+1):(2*n)]*mbvar                      #reparametrized estimates
                 var[1:n]=var[1:n]-var[1:n]^2/var[(n+1):(2*n)]              #reparametrized Ses
             }
-
         }
     }else if(lg==3){                        #3 groups case as in PoissonBinomial_etc
         if(center==TRUE){                         #considered centered and uncentered covariate separately    
