@@ -30,7 +30,7 @@ multiseq(x = NULL, g = NULL, read.depth = NULL, reflect = FALSE,
 
 \item{glm.approx.param:}{a list of parameters to be passed to \code{glm.approx}; default values are set by function \code{\link{setGlmApproxParam}}.}
 
-\item{ashparam:}{a list of parameters to be passed to \code{ash}; default values are set by function \code{\link{setAshParam}}.}
+\item{ashparam:}{a list of parameters to be passed to \code{ash}; default values are set by function \code{\link{setAshParam.poiss}}.}
 
 \item{learn.pi.param:}{a list of parameters to decide if and how previously learned parameters from \code{ash} should be used; default values are set by function \code{\link{setLearnPiParam}}.}
 }

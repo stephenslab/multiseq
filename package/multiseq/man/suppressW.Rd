@@ -6,6 +6,9 @@
 \usage{
 suppressW(w)
 }
+\arguments{
+\item{w:}{call to ash}
+}
 \description{
 Suppress an ash warning that we want to ignore; used any time ash is called in the package
 }

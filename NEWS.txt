@@ -1,4 +1,7 @@
 -----------------------------------
+April 29, 2016 : build v0.1.7
+1. Removed functions that are common to both smash and multiseq; now requires the package smashr.
+-----------------------------------
 April 22, 2016 : build v0.1.6
 1. Removed baseline options, which was somewhat confusing
 2. Fixed a bug in glm.approx when repara=TRUE, lm.approx=FALSE and center=TRUE are provided. 

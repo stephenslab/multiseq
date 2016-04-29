@@ -1,5 +1,5 @@
 #' Suppress an ash warning that we want to ignore; used any time ash is called in the package
-#' @param w
+#' @param w: call to ash
 #' @keywords internal
 suppressW <- function(w){
     if( any(grepl("It's likely that the input data is not coming from a distribution with zero mean", w)))
@@ -27,8 +27,8 @@ haar.aggregate= function(x){
 }
 
 #' Compute the third and fourth moments of a normal or a mixture of normals distribution.
-#' @param mu
-#' @param sigma
+#' @param mu: the mean of the normal distribution
+#' @param sigma: the standard deviation of the normal distribution
 #' @param moment: if moment=3 compute the third moment, if moment=4 compute the forth moment
 #' @keywords internal
 tfmoment=function(mu,sigma,moment,pi=NULL){
@@ -43,112 +43,7 @@ tfmoment=function(mu,sigma,moment,pi=NULL){
     return(moment)
 }
 
-#' Interleave two vectors.
-#' @keywords internal
-interleave=function(x,y){
-  return(as.vector(rbind(x,y)))
-}
 
-#' Shift a vector right and left respectively.
-#' @keywords internal
-rshift = function(x){L=length(x); return(c(x[L],x[-L]))}
-lshift = function(x){return(c(x[-1],x[1]))}
-
-
-#' Create a TI table and a parent table.
-#' 
-#' This function returns both a TItable and a "parent" table whose pairwise comparisons are used to create a TI table. For example, in the ith row, elements 1, 2 are the parents of the first element in the (i+1)th row of the TI table.
-#'
-#' This function creates a decomposition table of signal, using pairwise sums, keeping just the values that are *not* redundant under the shift-invariant scheme.
-#'
-#' @param sig: an n vector of Poisson counts at n locations
-#' @return a list with elements "TItable" and "parent"
-#' @references This is very similar to TI-tables in Donoho and Coifman's TI-denoising framework
-#' @keywords internal
-ParentTItable=function(sig){
-  n = length(sig)
-  J = log2(n)
-
-  dmat = matrix(0, nrow=J+1, ncol=n)
-  dmat[1,] = sig
-  #dmat[1,] = as.matrix(sig)  
-  dmat2 = matrix(0, nrow=J, ncol=2*n) #the parent table
-  
-  for(D in 0:(J-1)){
-    nD = 2^(J-D); 
-    nDo2 = nD/2;
-    twonD = 2*nD;
-    for(l in 0:(2^D-1)){
-      ind = (l*nD+1):((l+1)*nD)
-      ind2 = (l*twonD+1):((l+1)*twonD)
-      x = dmat[D+1,ind]
-      lsumx = x[seq(from=1,to=nD-1, by=2)] + x[seq(from=2,to=nD,by=2)]
-      rx = rshift(x);
-      rsumx = rx[seq(from=1,to=nD-1, by=2)] + rx[seq(from=2,to=nD,by=2)]
-      dmat[D+2,ind] = c(lsumx,rsumx)
-      dmat2[D+1,ind2] = c(x,rx)
-    }
-  }
-  return(list(TItable=dmat,parent=dmat2))
-}
-
-#' Reverse wavelet transform a set of probabilities in TItable format
-#'
-#' @param est: an n-vector. Usually a constant vector with each element equal to the estimated log(total rate).
-#' @param lp: a J by n matrix of estimated log(p), wavelet proportions for Poisson data on the log scale. First row of lp gives the high frequency proportions (so 1/(1+2), 3/(3+4) etc), second row gives next level of resolution etc.
-#' @param lq: a J by n matrix of estimated log(1-p). If lq is not given, set lq = log(1-exp(lp)).
-#'
-#' @return an n-vector
-#' @keywords internal
-reverse.pwave=function(est,lp,lq=NULL){
-  if(is.null(lq))
-     lq = log(1-pmin(exp(lp),1-1e-10))
-
-  if(length(est)==1)
-     est = rep(est,ncol(lp))
-  
-  J=nrow(lp)
-  
-  for(D in J:1){
-    #print(exp(est))
-    #readline("press a key")
-    nD = 2^(J-D+1) 
-    nDo2 = nD/2
-    for(l in 0:(2^(D-1)-1)){
-      # Set indexing so as to pick off blocks of size 2^(J-D+1)
-      # when shrinking estimates at depth D+1 down to finer
-      # scale at depth D.
-      ind = (l*nD+1):((l+1)*nD)
-
-      estvec = est[ind]
-      lpvec = lp[D,ind]
-      lqvec = lq[D,ind]
-      # In the first half of the vector of D+1-depth estimates,
-      # we can shrink using the D-depth counts in the order
-      # in which they appear.
-      estl = estvec[1:nDo2]
-      lpl=lpvec[1:nDo2]
-      lql=lqvec[1:nDo2]
-      nestl = interleave(estl+lpl,estl+lql) #interleaves the two
-    
-      # In the second half of the vector of D+1-depth counts,
-      # the shrunken values are for the right shifted vector so these
-      # have to be left shifted before averaging
-    
-      estr = estvec[(nDo2+1):nD]
-      lpr = lpvec[(nDo2+1):nD]
-      lqr = lqvec[(nDo2+1):nD]
-      nestr = interleave(estr+lpr,estr+lqr) #interleaves the two
-      nestr = lshift(nestr)
-    
-      # Combine the estimates from both halves of the D+1-depth
-      # counts, and store.
-      est[ind] = 0.5*( nestl + nestr )
-    }
-  }
-
-  return(est)
-}
 
 #' Reflects the signal and extends it to a power of 2 if necessary
 #'
@@ -292,31 +187,9 @@ compute.res <- function(zdat.ash.intercept, repara, w=NULL, g=NULL, zdat=NULL, z
 }            
 
 
-#' Set default \code{ash} parameters.
-#' @export
-#' @keywords internal 
-#' @param ashparam: a list of parameters to be passed to ash.
-setAshParam <- function(ashparam){
-    #by default ashparam$df=NULL
-    #by default ashparam$mixsd=NULL
-    #by default ashparam$g=NULL
-    if (!is.list(ashparam))
-        stop("Error: invalid parameter 'ashparam'")
-    ashparam.default = list(optmethod="mixEM", pointmass=TRUE,
-                   prior="nullbiased", gridmult=2, control = list(maxiter=5000,trace=FALSE), 
-                   mixcompdist="normal", nullweight=10, nonzeromode=FALSE, outputlevel=1, randomstart=FALSE,fixg=FALSE, model="EE")
-    ashparam = modifyList(ashparam.default, ashparam)
-    if (!is.null(ashparam[["g"]]))
-        stop("Error: ash parameter 'g' can only be NULL; if you want to specify ash parameter 'g' use multiseq arguments 'fitted.g' and/or 'fitted.g.intercept'")
-    
-    if(!((is.null(ashparam[["mixsd"]]))|(is.numeric(ashparam[["mixsd"]]) & (length(ashparam[["mixsd"]])<2)))) stop("Error: invalid parameter 'mixsd', 'mixsd'  must be null or a numeric vector of length >=2")
-    if(!((ashparam[["prior"]] == "nullbiased") | (ashparam[["prior"]] == "uniform") | is.numeric(ashparam[["prior"]]))) stop("Error: invalid parameter 'prior', 'prior' can be a number or 'nullbiased' or 'uniform'")
-    return(ashparam)
-}
 
 
 #' Set default \code{glm.approx} parameters.
-#' @export
 #' @keywords internal 
 #' @param glm.approx.param: a list of parameters to be passed to glm.approx.
 setGlmApproxParam <- function(glm.approx.param){
@@ -338,7 +211,6 @@ setGlmApproxParam <- function(glm.approx.param){
 
 
 #' Set default \code{learn.pi} parameters.
-#' @export
 #' @keywords internal 
 #' @param learn.pi.param: a list of parameters to be passed to learn.pi.
 setLearnPiParam <- function(learn.pi.param){
@@ -380,7 +252,7 @@ setLearnPiParam <- function(learn.pi.param){
 #' @param maxlogLR: a positive number, defaults to NULL, if \code{maxlogLR} is provided as a positive number, the function returns this number as \code{logLR} when \code{logLR} is infinite.
 #' @param verbose: bool, defaults to FALSE, if TRUE \code{\link{multiseq}} also outputs \code{logLR$scales} (scales contains (part of) \pkg{ashr} output for each scale), \code{fitted.g}, and \code{fitted.g.intercept}.
 #' @param glm.approx.param: a list of parameters to be passed to \code{glm.approx}; default values are set by function \code{\link{setGlmApproxParam}}.
-#' @param ashparam: a list of parameters to be passed to \code{ash}; default values are set by function \code{\link{setAshParam}}.
+#' @param ashparam: a list of parameters to be passed to \code{ash}; default values are set by function \code{\link{setAshParam.poiss}}.
 #' @param learn.pi.param: a list of parameters to decide if and how previously learned parameters from \code{ash} should be used; default values are set by function \code{\link{setLearnPiParam}}.
 #' @export
 #'
@@ -398,7 +270,7 @@ setLearnPiParam <- function(learn.pi.param){
 #' \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
 multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effect=TRUE, overall.loglr=FALSE, cxx=TRUE, maxlogLR=NULL, verbose=FALSE, glm.approx.param=list(), ashparam=list(), learn.pi.param=list()){
   
-  ashparam=setAshParam(ashparam)
+  ashparam=setAshParam.poiss(ashparam)
   ashparam.fitted.g = ashparam
   ashparam.fitted.g.intercept = ashparam
   glm.approx.param = setGlmApproxParam(glm.approx.param)

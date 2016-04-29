@@ -7,6 +7,10 @@
 tfmoment(mu, sigma, moment, pi = NULL)
 }
 \arguments{
+\item{mu:}{the mean of the normal distribution}
+
+\item{sigma:}{the standard deviation of the normal distribution}
+
 \item{moment:}{if moment=3 compute the third moment, if moment=4 compute the forth moment}
 }
 \description{
