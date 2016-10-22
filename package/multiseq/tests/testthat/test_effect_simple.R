@@ -6,7 +6,7 @@ test_that("multiseq gives sensible answer for effect in simple settings",{
     xx = rbind(rpois(1024,rep(lambda[i],1024)),rpois(1024,rep(lambda[i],1024)),rpois(1024,rep(lambda[i],1024)))
     yy = rbind(rpois(1024,rep(effect[i]*lambda[i],1024)),rpois(1024,rep(effect[i]*lambda[i],1024)),rpois(1024,rep(effect[i]*lambda[i],1024)))
     yy.m = multiseq(rbind(xx,yy),g=c(0,0,0,1,1,1))
-    testthat::expect_less_than(mean((yy.m$effect.mean-log(effect[i]))^2), 0.01)
+    testthat::expect_lt(mean((yy.m$effect.mean-log(effect[i]))^2), 0.01)
   }
 })
 

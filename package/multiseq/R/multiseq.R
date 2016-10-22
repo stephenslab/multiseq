@@ -146,8 +146,10 @@ compute.res.rate <- function(zdat, repara, w, read.depth, g=NULL){
 #' if covariate is present, i.e. \code{g} is not NULL]  
 #' @keywords internal
 compute.res <- function(zdat.ash.intercept, repara, w=NULL, g=NULL, zdat=NULL, zdat.ash=NULL){
-    alpha=list(mean=zdat.ash.intercept$PosteriorMean, var=zdat.ash.intercept$PosteriorSD^2) #find mean and variance of alpha
-    alpha.prior=list(mean=rep(0,length(zdat.ash.intercept$PosteriorMean)), var=sum(zdat.ash.intercept$fitted.g$pi*zdat.ash.intercept$fitted.g$sd^2))
+    alpha=list(mean=ashr::get_pm(zdat.ash.intercept), var=ashr::get_psd(zdat.ash.intercept)^2) #find mean and variance of alpha
+    alpha.prior=list(mean=rep(0,length(ashr::get_pm(zdat.ash.intercept))), 
+                     var=sum(ashr::get_fitted_g(zdat.ash.intercept)$pi*
+                               ashr::get_fitted_g(zdat.ash.intercept)$sd^2))
     if(is.null(g)){#if covariate is absent
         lp = ff.moments(alpha$mean, alpha$var)
         lq = ff.moments(-alpha$mean, alpha$var)  #find mean and variance of log(q)
@@ -165,10 +167,13 @@ compute.res <- function(zdat.ash.intercept, repara, w=NULL, g=NULL, zdat=NULL, z
         
         w1=w[1]
                                         #apply ash to vector of slope estimates and SEs
-        zdat.ash_post=posterior_dist(zdat.ash$fitted.g,zdat[3,],zdat[4,])
+        zdat.ash_post=posterior_dist(get_fitted_g(zdat.ash),zdat[3,],zdat[4,])
                                         #compute the posterior third and fourth moments of beta
-        gamma=list(mean=alpha$mean+(w1+mbvar)*zdat.ash$PosteriorMean, var=alpha$var+((w1+mbvar)*zdat.ash$PosteriorSD)^2)   
-        gamma.prior=list(mean=alpha.prior$mean, var=alpha.prior$var+(w1+mbvar)^2*sum(zdat.ash$fitted.g$pi*zdat.ash$fitted.g$sd^2))
+        gamma=list(mean=alpha$mean+(w1+mbvar)*ashr::get_pm(zdat.ash), 
+                   var=alpha$var+((w1+mbvar)*ashr::get_psd(zdat.ash))^2)   
+        gamma.prior=list(mean=alpha.prior$mean, var=alpha.prior$var+
+                           (w1+mbvar)^2*sum(get_fitted_g(zdat.ash)$pi*
+                                            get_fitted_g(zdat.ash)$sd^2))
         lp = ff.moments(gamma$mean, gamma$var)    #find mean and variance of p in baseline estimate
         lq = ff.moments(-gamma$mean, gamma$var)  #find mean and variance of q in baseline estimate
         lp.prior = ff.moments(gamma.prior$mean, gamma.prior$var)
@@ -177,11 +182,11 @@ compute.res <- function(zdat.ash.intercept, repara, w=NULL, g=NULL, zdat=NULL, z
         beta.tm=tfmoment(zdat.ash_post$mu, zdat.ash_post$sigma,3,zdat.ash_post$pi)
         beta.fm=tfmoment(zdat.ash_post$mu, zdat.ash_post$sigma,4,zdat.ash_post$pi)
         wSq=(w[2]+mbvar)^2-(w[1]+mbvar)^2
-        PosteriorSq=zdat.ash$PosteriorSD^2+zdat.ash$PosteriorMean^2
-        lpratio=ffwrapper(alpha$mean, alpha$var, zdat.ash$PosteriorMean, PosteriorSq, wSq, beta.tm, beta.fm, g)
-        lqratio=ffwrapper(-alpha$mean, alpha$var, -zdat.ash$PosteriorMean, PosteriorSq, wSq, -beta.tm, beta.fm, g)
-        lpratio.prior=ffwrapper(alpha.prior$mean, alpha.prior$var, zdat.ash$PosteriorMean, PosteriorSq, wSq, beta.tm, beta.fm, g)
-        lqratio.prior=ffwrapper(-alpha.prior$mean, alpha.prior$var, -zdat.ash$PosteriorMean, PosteriorSq, wSq, -beta.tm, beta.fm, g)
+        PosteriorSq=get_psd(zdat.ash)^2+get_pm(zdat.ash)^2
+        lpratio=ffwrapper(alpha$mean, alpha$var, get_pm(zdat.ash), PosteriorSq, wSq, beta.tm, beta.fm, g)
+        lqratio=ffwrapper(-alpha$mean, alpha$var, -get_pm(zdat.ash), PosteriorSq, wSq, -beta.tm, beta.fm, g)
+        lpratio.prior=ffwrapper(alpha.prior$mean, alpha.prior$var, get_pm(zdat.ash), PosteriorSq, wSq, beta.tm, beta.fm, g)
+        lqratio.prior=ffwrapper(-alpha.prior$mean, alpha.prior$var, -get_pm(zdat.ash), PosteriorSq, wSq, -beta.tm, beta.fm, g)
         return(list(lp.mean=lp$mean, lp.var=lp$var, lq.mean=lq$mean, lq.var=lq$var, lpratio.mean=lpratio$mean, lpratio.var=lpratio$var, lqratio.mean=lqratio$mean, lqratio.var=lqratio$var, lp.prior.mean=lp.prior$mean, lp.prior.var=lp.prior$var, lq.prior.mean=lq.prior$mean, lq.prior.var=lq.prior$var, lpratio.prior.mean=lpratio.prior$mean, lpratio.prior.var=lpratio.prior$var, lqratio.prior.mean=lqratio.prior$mean, lqratio.prior.var=lqratio.prior$var))
     }
 }            
@@ -259,7 +264,7 @@ setLearnPiParam <- function(learn.pi.param){
 #' @examples
 #' #load data contained in dat
 #' data(dat, package="multiseq")
-#' res <- multiseq(x=dat$x, g=dat$g, minobs=1, lm.approx=FALSE, read.depth=dat$read.depth)
+#' res <- multiseq(x=dat$x, g=dat$g, read.depth=dat$read.depth)
 #' @return \code{multiseq} returns an object of \code{\link[base]{class}} "multiseq", a list with the following elements (or a simplified list if \code{verbose=FALSE} or \code{smoothing=FALSE}) \cr
 #' \item{baseline.mean}{an \code{nsig}-vector with the posterior mean of baseline log(intensity)}
 #' \item{baseline.var}{an \code{nsig}-vector with the posterior baseline variance}
@@ -270,7 +275,7 @@ setLearnPiParam <- function(learn.pi.param){
 #' \item{fitted.g.intercept}{a list of \code{J} mixture of normal models fitted using \pkg{ashr} on the intercept, \code{J=log2(n)}}
 multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effect=TRUE, overall.loglr=FALSE, cxx=TRUE, maxlogLR=NULL, verbose=FALSE, glm.approx.param=list(), ashparam=list(), learn.pi.param=list()){
   
-  ashparam=setAshParam.poiss(ashparam)
+  ashparam=smashr::setAshParam.poiss(ashparam)
   ashparam.fitted.g = ashparam
   ashparam.fitted.g.intercept = ashparam
   glm.approx.param = setGlmApproxParam(glm.approx.param)
@@ -351,9 +356,10 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effe
           g.rate = g.rate - mean(g.rate)
         }
         zdat.rate = as.vector(t(summary(suppressWarnings(glm(y.rate ~ g.rate, family="poisson")))$coef[1:2,1:2]))
-        zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=learn.pi.param$set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
+        zdat.rate.ash = withCallingHandlers(do.call(ashr::ash, 
+                  c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=learn.pi.param$set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
         if (learn.pi.param$get.fitted.g)
-          fitted.g[[J+1]] = zdat.rate.ash$fitted.g
+          fitted.g[[J+1]] = get_fitted_g(zdat.rate.ash)
         if (ashparam$pointmass) #compute logLR
           logLR[J+1] = zdat.rate.ash$logLR
         if(learn.pi.param$reverse)
@@ -370,7 +376,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effe
         zdat.rate = as.vector(withCallingHandlers(do.call(glm.approx, c(list(x=y.rate, g=g, bound=0), glm.approx.param))))
         zdat.rate.ash = withCallingHandlers(do.call(ash, c(list(betahat=zdat.rate[3], sebetahat=zdat.rate[4], g=learn.pi.param$set.fitted.g[[J+1]]), ashparam.fitted.g)), warning=suppressW)
         if (learn.pi.param$get.fitted.g)
-          fitted.g[[J+1]] = zdat.rate.ash$fitted.g
+          fitted.g[[J+1]] = get_fitted_g(zdat.rate.ash)
         if (ashparam$pointmass) #compute logLR 
           logLR[J+1] = zdat.rate.ash$logLR
         if (learn.pi.param$reverse)
@@ -382,7 +388,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effe
   #compute y
   if (is.null(learn.pi.param$listy)){
     if (learn.pi.param$cyclespin){
-      #create the parent TI table for each signal, and putfitted.g[[J+1]] = zdat.rate.ash$fitted.g  into rows of matrix y
+      #create the parent TI table for each signal, and putfitted.g[[J+1]] = zdat.rate.ash$fitted_g  into rows of matrix y
       if (cxx==FALSE){
         y = matrix(nrow=nsig, ncol=2*J*n); for(i in 1:nsig){tt = ParentTItable(x[i,]); y[i,] = as.vector(t(tt$parent))}        
       }else
@@ -418,13 +424,13 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effe
         if(min(sum(!is.na(zdat[3,ind])), sum(!is.na(zdat[4,ind]))) > 0){ # run ash when there is at least one WC.
           zdat.ash = withCallingHandlers(do.call(ash,c(list(betahat=zdat[3,ind], sebetahat=zdat[4,ind], g=learn.pi.param$set.fitted.g[[j]]), ashparam.fitted.g)), warning=suppressW)
           if (learn.pi.param$get.fitted.g)
-            fitted.g[[j]] = zdat.ash$fitted.g
+            fitted.g[[j]] = get_fitted_g(zdat.ash)
           if (ashparam$pointmass)
             logLR[j] = zdat.ash$logLR/spins
         }else{
           if(j == J){
             #if (learn.pi.param$get.fitted.g)
-            #    fitted.g[[j]] = zdat.ash$fitted.g
+            #    fitted.g[[j]] = zdat.ash$fitted_g
             if (ashparam$pointmass)
               logLR[j] = NA
           }else{
@@ -438,7 +444,7 @@ multiseq = function(x=NULL, g=NULL, read.depth=NULL, reflect=FALSE, overall.effe
         if(min(sum(!is.na(zdat[1,ind])), sum(!is.na(zdat[2,ind]))) > 0){ # run ash when there is at least one WC.
           zdat.ash.intercept = withCallingHandlers(do.call(ash, c(list(betahat=zdat[1,ind], sebetahat=zdat[2,ind], g=learn.pi.param$set.fitted.g.intercept[[j]]), ashparam.fitted.g.intercept)), warning=suppressW)
           if (learn.pi.param$get.fitted.g)
-            fitted.g.intercept[[j]] = zdat.ash.intercept$fitted.g
+            fitted.g.intercept[[j]] = get_fitted_g(zdat.ash.intercept)
           if (learn.pi.param$reverse){
             if (is.null(g))
               res.j = compute.res(zdat.ash.intercept, glm.approx.param$repara)
